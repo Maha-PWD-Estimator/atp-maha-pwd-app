@@ -185,6 +185,7 @@ tr:hover td{background:#fdf8f3}
 .emp p{font-size:.61rem;line-height:1.4}
 /* PRINT */
 @page{margin:1.2cm;size:A4}
+.lc-row-zero{display:none!important}
 @media print{
   .noprt,nav,.tabs,.sw,.rh,.rb,.af,.fa,.bar,.dbt,.side,
   .km-in,.lead-note,.cta,.btn,button,.sh,
@@ -3885,7 +3886,7 @@ function sendContact(){
   if(typeof LCD!=="undefined"){
     for(var ki=0;ki<LCD.length;ki++){
       var kmEl=R("lkm_"+ki);
-      if(kmEl){var kmV=parseFloat(kmEl.value)||0;var kpEl=R("lkmp_"+ki);if(kpEl)kpEl.textContent=kmV>0?kmV.toFixed(1):"";var rowEl=R("lcrow_"+ki);if(rowEl)rowEl.className=kmV>0?"lc-row":"lc-row-zero";}
+      if(kmEl){var kmV=parseFloat(kmEl.value)||0;var kpEl=R("lkmp_"+ki);if(kpEl)kpEl.textContent=kmV>0?kmV.toFixed(1):"";var rowEl=R("lcrow_"+ki);if(rowEl)rowEl.className=kmV>0?"":"lc-row-zero";}
       var locEl=R("lloc_"+ki);if(locEl){var lp=R("llocp_"+ki);if(lp)lp.textContent=locEl.value||"";}
     }
   }
