@@ -28,7 +28,7 @@ nav{background:#18150f;color:#fff;padding:.5rem .9rem;display:flex;align-items:c
 .tbdg{display:inline-flex;align-items:center;justify-content:center;background:var(--or);color:#fff;
   border-radius:9px;font-size:.5rem;min-width:13px;height:13px;padding:0 3px;margin-left:2px}
 .lay{display:grid;grid-template-columns:1fr 255px;min-height:calc(100vh - 78px)}
-.main{padding:.72rem;overflow-y:auto}
+.main{padding:.72rem;overflow-y:auto;height:calc(100vh - 78px);box-sizing:border-box}
 
 .panel{display:none}.panel.on{display:block}
 .sh{display:flex;align-items:center;gap:.3rem;margin-bottom:.62rem}
@@ -188,7 +188,7 @@ tr:hover td{background:#fdf8f3}
 @media print{
   .noprt,nav,.tabs,.sw,.rh,.rb,.af,.fa,.bar,.dbt,.side,
   .km-in,.lead-note,.cta,.btn,button,.sh,
-  #p2,#p9,#p10,#p12,#p13,#p14,#p15,
+  #p2,#p9,#p10,#p13,#p14,#p15,
   #cloudEstList,
   [id="cloudEstList"]{display:none!important}
   /* Lead chart: hide 0km rows in print */
@@ -802,7 +802,7 @@ ii) Water Absorption</td><td style="font-size:.57rem">One test for 50,000 blocks
 </div>
 
 
-<div class="panel noprt" id="p12">
+<div class="panel" id="p12">
 <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem;padding-bottom:.4rem;border-bottom:2px solid var(--or)"><span style="font-size:1.2rem">&#128205;</span><h2 style="margin:0;font-size:.9rem;font-weight:800;color:var(--or)">Lead Diagram — Material Transport</h2></div>
 
 
@@ -812,7 +812,7 @@ ii) Water Absorption</td><td style="font-size:.57rem">One test for 50,000 blocks
 </div>
 
 <div style="text-align:center;padding:1rem;background:#fafafa;border-radius:6px">
-<svg id="leadDiagram" width="1000" height="600" viewBox="0 0 1000 600" style="max-width:1000px;border:1px solid #ddd;background:#fff"><circle cx="500" cy="300" r="30" fill="#ff6f00" stroke="#e65100" stroke-width="2"></circle><text x="500" y="305" text-anchor="middle" font-size="12" font-weight="bold" fill="#fff">SITE</text><defs><marker id="arrow0" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#1976d2"></path></marker></defs><line x1="760" y1="300" x2="540" y2="300" stroke="#1976d2" stroke-width="3" marker-end="url(#arrow0)"></line><circle cx="760" cy="300" r="25" fill="#1976d2" stroke="#333" stroke-width="2"></circle><text x="760" y="268" text-anchor="middle" font-size="11" font-weight="bold" fill="#333">ConcreteBlock (...</text><text x="760" y="304" text-anchor="middle" font-size="14" font-weight="bold" fill="#fff">10.0</text><text x="760" y="316" text-anchor="middle" font-size="10" fill="#fff">km</text><text x="760" y="340" text-anchor="middle" font-size="10" fill="#666" style="font-style:italic">ConcreteBlock (FORM)</text><defs><marker id="arrow1" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#4caf50"></path></marker></defs><line x1="641.6729641045135" y1="374.355707527003" x2="535.4182410261284" y2="318.58892688175075" stroke="#4caf50" stroke-width="3" marker-end="url(#arrow1)"></line><circle cx="641.6729641045135" cy="374.355707527003" r="25" fill="#4caf50" stroke="#333" stroke-width="2"></circle><text x="641.6729641045135" y="342.355707527003" text-anchor="middle" font-size="11" font-weight="bold" fill="#333">Cement, Lime, S...</text><text x="641.6729641045135" y="378.355707527003" text-anchor="middle" font-size="14" font-weight="bold" fill="#fff">5.0</text><text x="641.6729641045135" y="390.355707527003" text-anchor="middle" font-size="10" fill="#fff">km</text><text x="641.6729641045135" y="414.355707527003" text-anchor="middle" font-size="10" fill="#666" style="font-style:italic">Cement, Lime, Stone Block, GI, CI, CC &amp; AC Pipes / Sheet&amp; Plate, Glass in packs, Distemper, AC Sheet, Fitting Iron Sheet</text><defs><marker id="arrow2" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#1976d2"></path></marker></defs><line x1="556.8064746731155" y1="382.29838658936563" x2="522.7225898692462" y2="332.91935463574623" stroke="#1976d2" stroke-width="3" marker-end="url(#arrow2)"></line><circle cx="556.8064746731155" cy="382.29838658936563" r="25" fill="#1976d2" stroke="#333" stroke-width="2"></circle><text x="556.8064746731155" y="350.29838658936563" text-anchor="middle" font-size="11" font-weight="bold" fill="#333">Bricks</text><text x="556.8064746731155" y="386.29838658936563" text-anchor="middle" font-size="14" font-weight="bold" fill="#fff">2.0</text><text x="556.8064746731155" y="398.29838658936563" text-anchor="middle" font-size="10" fill="#fff">km</text><text x="556.8064746731155" y="422.29838658936563" text-anchor="middle" font-size="10" fill="#666" style="font-style:italic">Bricks</text><defs><marker id="arrow3" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#1976d2"></path></marker></defs><line x1="512.0536680255323" y1="399.27088740980537" x2="504.8214672102129" y2="339.70835496392215" stroke="#1976d2" stroke-width="3" marker-end="url(#arrow3)"></line><circle cx="512.0536680255323" cy="399.27088740980537" r="25" fill="#1976d2" stroke="#333" stroke-width="2"></circle><text x="512.0536680255323" y="367.27088740980537" text-anchor="middle" font-size="11" font-weight="bold" fill="#333">Tiles Half Roun...</text><text x="512.0536680255323" y="403.27088740980537" text-anchor="middle" font-size="14" font-weight="bold" fill="#fff">2.0</text><text x="512.0536680255323" y="415.27088740980537" text-anchor="middle" font-size="10" fill="#fff">km</text><text x="512.0536680255323" y="439.27088740980537" text-anchor="middle" font-size="10" fill="#666" style="font-style:italic">Tiles Half Round Tiles /Roofing Tiles/Manlore Tiles</text><defs><marker id="arrow4" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9c27b0"></path></marker></defs><line x1="457.4474135548957" y1="412.2019491222498" x2="485.8158045182986" y2="337.4006497074166" stroke="#9c27b0" stroke-width="3" marker-end="url(#arrow4)"></line><circle cx="457.4474135548957" cy="412.2019491222498" r="25" fill="#9c27b0" stroke="#333" stroke-width="2"></circle><text x="457.4474135548957" y="380.2019491222498" text-anchor="middle" font-size="11" font-weight="bold" fill="#333">Steel (MS, TMT,...</text><text x="457.4474135548957" y="416.2019491222498" text-anchor="middle" font-size="14" font-weight="bold" fill="#fff">3.0</text><text x="457.4474135548957" y="428.2019491222498" text-anchor="middle" font-size="10" fill="#fff">km</text><text x="457.4474135548957" y="452.2019491222498" text-anchor="middle" font-size="10" fill="#666" style="font-style:italic">Steel (MS, TMT, H.Y.S.D.) Structural Steel</text><defs><marker id="arrow5" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#1976d2"></path></marker></defs><line x1="425.1489251828899" y1="366.31226582407953" x2="470.05957007315595" y2="326.52490632963185" stroke="#1976d2" stroke-width="3" marker-end="url(#arrow5)"></line><circle cx="425.1489251828899" cy="366.31226582407953" r="25" fill="#1976d2" stroke="#333" stroke-width="2"></circle><text x="425.1489251828899" y="334.31226582407953" text-anchor="middle" font-size="11" font-weight="bold" fill="#333">Flooring Tiles ...</text><text x="425.1489251828899" y="370.31226582407953" text-anchor="middle" font-size="14" font-weight="bold" fill="#fff">2.0</text><text x="425.1489251828899" y="382.31226582407953" text-anchor="middle" font-size="10" fill="#fff">km</text><text x="425.1489251828899" y="406.31226582407953" text-anchor="middle" font-size="10" fill="#666" style="font-style:italic">Flooring Tiles Ceramic/ Marbonate</text><defs><marker id="arrow6" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#1976d2"></path></marker></defs><line x1="383.48698190887376" y1="328.7178797145069" x2="461.1623273029579" y2="309.5726265715023" stroke="#1976d2" stroke-width="3" marker-end="url(#arrow6)"></line><circle cx="383.48698190887376" cy="328.7178797145069" r="25" fill="#1976d2" stroke="#333" stroke-width="2"></circle><text x="383.48698190887376" y="296.7178797145069" text-anchor="middle" font-size="11" font-weight="bold" fill="#333">GI sheet</text><text x="383.48698190887376" y="332.7178797145069" text-anchor="middle" font-size="14" font-weight="bold" fill="#fff">3.0</text><text x="383.48698190887376" y="344.7178797145069" text-anchor="middle" font-size="10" fill="#fff">km</text><text x="383.48698190887376" y="368.7178797145069" text-anchor="middle" font-size="10" fill="#666" style="font-style:italic">GI sheet</text><defs><marker id="arrow7" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#1976d2"></path></marker></defs><line x1="402.9058182573948" y1="276.0684335712442" x2="461.1623273029579" y2="290.4273734284977" stroke="#1976d2" stroke-width="3" marker-end="url(#arrow7)"></line><circle cx="402.9058182573948" cy="276.0684335712442" r="25" fill="#1976d2" stroke="#333" stroke-width="2"></circle><text x="402.9058182573948" y="244.0684335712442" text-anchor="middle" font-size="11" font-weight="bold" fill="#333">Murrum, Buildin...</text><text x="402.9058182573948" y="280.0684335712442" text-anchor="middle" font-size="14" font-weight="bold" fill="#fff">2.0</text><text x="402.9058182573948" y="292.0684335712442" text-anchor="middle" font-size="10" fill="#fff">km</text><text x="402.9058182573948" y="316.0684335712442" text-anchor="middle" font-size="10" fill="#666" style="font-style:italic">Murrum, Building Rubish, Earth</text><defs><marker id="arrow8" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#1976d2"></path></marker></defs><line x1="410.1787102194679" y1="220.42528101110457" x2="470.05957007315595" y2="273.4750936703682" stroke="#1976d2" stroke-width="3" marker-end="url(#arrow8)"></line><circle cx="410.1787102194679" cy="220.42528101110457" r="25" fill="#1976d2" stroke="#333" stroke-width="2"></circle><text x="410.1787102194679" y="188.42528101110457" text-anchor="middle" font-size="11" font-weight="bold" fill="#333">Manure  Sludge</text><text x="410.1787102194679" y="224.42528101110457" text-anchor="middle" font-size="14" font-weight="bold" fill="#fff">3.0</text><text x="410.1787102194679" y="236.42528101110457" text-anchor="middle" font-size="10" fill="#fff">km</text><text x="410.1787102194679" y="260.4252810111046" text-anchor="middle" font-size="10" fill="#666" style="font-style:italic">Manure  Sludge</text><defs><marker id="arrow9" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#1976d2"></path></marker></defs><line x1="457.44741355489566" y1="187.79805087775023" x2="485.8158045182986" y2="262.5993502925834" stroke="#1976d2" stroke-width="3" marker-end="url(#arrow9)"></line><circle cx="457.44741355489566" cy="187.79805087775023" r="25" fill="#1976d2" stroke="#333" stroke-width="2"></circle><text x="457.44741355489566" y="155.79805087775023" text-anchor="middle" font-size="11" font-weight="bold" fill="#333">Excavated Rock ...</text><text x="457.44741355489566" y="191.79805087775023" text-anchor="middle" font-size="14" font-weight="bold" fill="#fff">3.0</text><text x="457.44741355489566" y="203.79805087775023" text-anchor="middle" font-size="10" fill="#fff">km</text><text x="457.44741355489566" y="227.79805087775023" text-anchor="middle" font-size="10" fill="#666" style="font-style:italic">Excavated Rock soling stone</text><defs><marker id="arrow10" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff9800"></path></marker></defs><line x1="514.4644016306387" y1="180.8749351082335" x2="504.8214672102129" y2="260.29164503607785" stroke="#ff9800" stroke-width="3" marker-end="url(#arrow10)"></line><circle cx="514.4644016306387" cy="180.8749351082335" r="25" fill="#ff9800" stroke="#333" stroke-width="2"></circle><text x="514.4644016306387" y="148.8749351082335" text-anchor="middle" font-size="11" font-weight="bold" fill="#333">Sand, Stone bel...</text><text x="514.4644016306387" y="184.8749351082335" text-anchor="middle" font-size="14" font-weight="bold" fill="#fff">3.0</text><text x="514.4644016306387" y="196.8749351082335" text-anchor="middle" font-size="10" fill="#fff">km</text><text x="514.4644016306387" y="220.8749351082335" text-anchor="middle" font-size="10" fill="#666" style="font-style:italic">Sand, Stone below 40 mm, Normal Brick sider aggre. Timber</text><defs><marker id="arrow11" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#1976d2"></path></marker></defs><line x1="556.8064746731156" y1="217.7016134106344" x2="522.7225898692462" y2="267.08064536425377" stroke="#1976d2" stroke-width="3" marker-end="url(#arrow11)"></line><circle cx="556.8064746731156" cy="217.7016134106344" r="25" fill="#1976d2" stroke="#333" stroke-width="2"></circle><text x="556.8064746731156" y="185.7016134106344" text-anchor="middle" font-size="11" font-weight="bold" fill="#333">Stone aggregate...</text><text x="556.8064746731156" y="221.7016134106344" text-anchor="middle" font-size="14" font-weight="bold" fill="#fff">2.0</text><text x="556.8064746731156" y="233.7016134106344" text-anchor="middle" font-size="10" fill="#fff">km</text><text x="556.8064746731156" y="257.7016134106344" text-anchor="middle" font-size="10" fill="#666" style="font-style:italic">Stone aggregate 40mm Normal size and above</text><defs><marker id="arrow12" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#1976d2"></path></marker></defs><line x1="730.2185666698347" y1="179.1719752686202" x2="535.4182410261284" y2="281.41107311824925" stroke="#1976d2" stroke-width="3" marker-end="url(#arrow12)"></line><circle cx="730.2185666698347" cy="179.1719752686202" r="25" fill="#1976d2" stroke="#333" stroke-width="2"></circle><text x="730.2185666698347" y="147.1719752686202" text-anchor="middle" font-size="11" font-weight="bold" fill="#333">Bitumen (VG-30)...</text><text x="730.2185666698347" y="183.1719752686202" text-anchor="middle" font-size="14" font-weight="bold" fill="#fff">10.0</text><text x="730.2185666698347" y="195.1719752686202" text-anchor="middle" font-size="10" fill="#fff">km</text><text x="730.2185666698347" y="219.1719752686202" text-anchor="middle" font-size="10" fill="#666" style="font-style:italic">Bitumen (VG-30) -- 10 Rs/km</text></svg>
+<svg id="leadDiagram" width="1000" height="600" viewBox="0 0 1000 600" style="max-width:100%;width:100%;border:1px solid #ddd;background:#fff;display:block"><circle cx="500" cy="300" r="30" fill="#ff6f00" stroke="#e65100" stroke-width="2"></circle><text x="500" y="305" text-anchor="middle" font-size="12" font-weight="bold" fill="#fff">SITE</text><defs><marker id="arrow0" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#1976d2"></path></marker></defs><line x1="760" y1="300" x2="540" y2="300" stroke="#1976d2" stroke-width="3" marker-end="url(#arrow0)"></line><circle cx="760" cy="300" r="25" fill="#1976d2" stroke="#333" stroke-width="2"></circle><text x="760" y="268" text-anchor="middle" font-size="11" font-weight="bold" fill="#333">ConcreteBlock (...</text><text x="760" y="304" text-anchor="middle" font-size="14" font-weight="bold" fill="#fff">10.0</text><text x="760" y="316" text-anchor="middle" font-size="10" fill="#fff">km</text><text x="760" y="340" text-anchor="middle" font-size="10" fill="#666" style="font-style:italic">ConcreteBlock (FORM)</text><defs><marker id="arrow1" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#4caf50"></path></marker></defs><line x1="641.6729641045135" y1="374.355707527003" x2="535.4182410261284" y2="318.58892688175075" stroke="#4caf50" stroke-width="3" marker-end="url(#arrow1)"></line><circle cx="641.6729641045135" cy="374.355707527003" r="25" fill="#4caf50" stroke="#333" stroke-width="2"></circle><text x="641.6729641045135" y="342.355707527003" text-anchor="middle" font-size="11" font-weight="bold" fill="#333">Cement, Lime, S...</text><text x="641.6729641045135" y="378.355707527003" text-anchor="middle" font-size="14" font-weight="bold" fill="#fff">5.0</text><text x="641.6729641045135" y="390.355707527003" text-anchor="middle" font-size="10" fill="#fff">km</text><text x="641.6729641045135" y="414.355707527003" text-anchor="middle" font-size="10" fill="#666" style="font-style:italic">Cement, Lime, Stone Block, GI, CI, CC &amp; AC Pipes / Sheet&amp; Plate, Glass in packs, Distemper, AC Sheet, Fitting Iron Sheet</text><defs><marker id="arrow2" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#1976d2"></path></marker></defs><line x1="556.8064746731155" y1="382.29838658936563" x2="522.7225898692462" y2="332.91935463574623" stroke="#1976d2" stroke-width="3" marker-end="url(#arrow2)"></line><circle cx="556.8064746731155" cy="382.29838658936563" r="25" fill="#1976d2" stroke="#333" stroke-width="2"></circle><text x="556.8064746731155" y="350.29838658936563" text-anchor="middle" font-size="11" font-weight="bold" fill="#333">Bricks</text><text x="556.8064746731155" y="386.29838658936563" text-anchor="middle" font-size="14" font-weight="bold" fill="#fff">2.0</text><text x="556.8064746731155" y="398.29838658936563" text-anchor="middle" font-size="10" fill="#fff">km</text><text x="556.8064746731155" y="422.29838658936563" text-anchor="middle" font-size="10" fill="#666" style="font-style:italic">Bricks</text><defs><marker id="arrow3" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#1976d2"></path></marker></defs><line x1="512.0536680255323" y1="399.27088740980537" x2="504.8214672102129" y2="339.70835496392215" stroke="#1976d2" stroke-width="3" marker-end="url(#arrow3)"></line><circle cx="512.0536680255323" cy="399.27088740980537" r="25" fill="#1976d2" stroke="#333" stroke-width="2"></circle><text x="512.0536680255323" y="367.27088740980537" text-anchor="middle" font-size="11" font-weight="bold" fill="#333">Tiles Half Roun...</text><text x="512.0536680255323" y="403.27088740980537" text-anchor="middle" font-size="14" font-weight="bold" fill="#fff">2.0</text><text x="512.0536680255323" y="415.27088740980537" text-anchor="middle" font-size="10" fill="#fff">km</text><text x="512.0536680255323" y="439.27088740980537" text-anchor="middle" font-size="10" fill="#666" style="font-style:italic">Tiles Half Round Tiles /Roofing Tiles/Manlore Tiles</text><defs><marker id="arrow4" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9c27b0"></path></marker></defs><line x1="457.4474135548957" y1="412.2019491222498" x2="485.8158045182986" y2="337.4006497074166" stroke="#9c27b0" stroke-width="3" marker-end="url(#arrow4)"></line><circle cx="457.4474135548957" cy="412.2019491222498" r="25" fill="#9c27b0" stroke="#333" stroke-width="2"></circle><text x="457.4474135548957" y="380.2019491222498" text-anchor="middle" font-size="11" font-weight="bold" fill="#333">Steel (MS, TMT,...</text><text x="457.4474135548957" y="416.2019491222498" text-anchor="middle" font-size="14" font-weight="bold" fill="#fff">3.0</text><text x="457.4474135548957" y="428.2019491222498" text-anchor="middle" font-size="10" fill="#fff">km</text><text x="457.4474135548957" y="452.2019491222498" text-anchor="middle" font-size="10" fill="#666" style="font-style:italic">Steel (MS, TMT, H.Y.S.D.) Structural Steel</text><defs><marker id="arrow5" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#1976d2"></path></marker></defs><line x1="425.1489251828899" y1="366.31226582407953" x2="470.05957007315595" y2="326.52490632963185" stroke="#1976d2" stroke-width="3" marker-end="url(#arrow5)"></line><circle cx="425.1489251828899" cy="366.31226582407953" r="25" fill="#1976d2" stroke="#333" stroke-width="2"></circle><text x="425.1489251828899" y="334.31226582407953" text-anchor="middle" font-size="11" font-weight="bold" fill="#333">Flooring Tiles ...</text><text x="425.1489251828899" y="370.31226582407953" text-anchor="middle" font-size="14" font-weight="bold" fill="#fff">2.0</text><text x="425.1489251828899" y="382.31226582407953" text-anchor="middle" font-size="10" fill="#fff">km</text><text x="425.1489251828899" y="406.31226582407953" text-anchor="middle" font-size="10" fill="#666" style="font-style:italic">Flooring Tiles Ceramic/ Marbonate</text><defs><marker id="arrow6" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#1976d2"></path></marker></defs><line x1="383.48698190887376" y1="328.7178797145069" x2="461.1623273029579" y2="309.5726265715023" stroke="#1976d2" stroke-width="3" marker-end="url(#arrow6)"></line><circle cx="383.48698190887376" cy="328.7178797145069" r="25" fill="#1976d2" stroke="#333" stroke-width="2"></circle><text x="383.48698190887376" y="296.7178797145069" text-anchor="middle" font-size="11" font-weight="bold" fill="#333">GI sheet</text><text x="383.48698190887376" y="332.7178797145069" text-anchor="middle" font-size="14" font-weight="bold" fill="#fff">3.0</text><text x="383.48698190887376" y="344.7178797145069" text-anchor="middle" font-size="10" fill="#fff">km</text><text x="383.48698190887376" y="368.7178797145069" text-anchor="middle" font-size="10" fill="#666" style="font-style:italic">GI sheet</text><defs><marker id="arrow7" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#1976d2"></path></marker></defs><line x1="402.9058182573948" y1="276.0684335712442" x2="461.1623273029579" y2="290.4273734284977" stroke="#1976d2" stroke-width="3" marker-end="url(#arrow7)"></line><circle cx="402.9058182573948" cy="276.0684335712442" r="25" fill="#1976d2" stroke="#333" stroke-width="2"></circle><text x="402.9058182573948" y="244.0684335712442" text-anchor="middle" font-size="11" font-weight="bold" fill="#333">Murrum, Buildin...</text><text x="402.9058182573948" y="280.0684335712442" text-anchor="middle" font-size="14" font-weight="bold" fill="#fff">2.0</text><text x="402.9058182573948" y="292.0684335712442" text-anchor="middle" font-size="10" fill="#fff">km</text><text x="402.9058182573948" y="316.0684335712442" text-anchor="middle" font-size="10" fill="#666" style="font-style:italic">Murrum, Building Rubish, Earth</text><defs><marker id="arrow8" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#1976d2"></path></marker></defs><line x1="410.1787102194679" y1="220.42528101110457" x2="470.05957007315595" y2="273.4750936703682" stroke="#1976d2" stroke-width="3" marker-end="url(#arrow8)"></line><circle cx="410.1787102194679" cy="220.42528101110457" r="25" fill="#1976d2" stroke="#333" stroke-width="2"></circle><text x="410.1787102194679" y="188.42528101110457" text-anchor="middle" font-size="11" font-weight="bold" fill="#333">Manure  Sludge</text><text x="410.1787102194679" y="224.42528101110457" text-anchor="middle" font-size="14" font-weight="bold" fill="#fff">3.0</text><text x="410.1787102194679" y="236.42528101110457" text-anchor="middle" font-size="10" fill="#fff">km</text><text x="410.1787102194679" y="260.4252810111046" text-anchor="middle" font-size="10" fill="#666" style="font-style:italic">Manure  Sludge</text><defs><marker id="arrow9" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#1976d2"></path></marker></defs><line x1="457.44741355489566" y1="187.79805087775023" x2="485.8158045182986" y2="262.5993502925834" stroke="#1976d2" stroke-width="3" marker-end="url(#arrow9)"></line><circle cx="457.44741355489566" cy="187.79805087775023" r="25" fill="#1976d2" stroke="#333" stroke-width="2"></circle><text x="457.44741355489566" y="155.79805087775023" text-anchor="middle" font-size="11" font-weight="bold" fill="#333">Excavated Rock ...</text><text x="457.44741355489566" y="191.79805087775023" text-anchor="middle" font-size="14" font-weight="bold" fill="#fff">3.0</text><text x="457.44741355489566" y="203.79805087775023" text-anchor="middle" font-size="10" fill="#fff">km</text><text x="457.44741355489566" y="227.79805087775023" text-anchor="middle" font-size="10" fill="#666" style="font-style:italic">Excavated Rock soling stone</text><defs><marker id="arrow10" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff9800"></path></marker></defs><line x1="514.4644016306387" y1="180.8749351082335" x2="504.8214672102129" y2="260.29164503607785" stroke="#ff9800" stroke-width="3" marker-end="url(#arrow10)"></line><circle cx="514.4644016306387" cy="180.8749351082335" r="25" fill="#ff9800" stroke="#333" stroke-width="2"></circle><text x="514.4644016306387" y="148.8749351082335" text-anchor="middle" font-size="11" font-weight="bold" fill="#333">Sand, Stone bel...</text><text x="514.4644016306387" y="184.8749351082335" text-anchor="middle" font-size="14" font-weight="bold" fill="#fff">3.0</text><text x="514.4644016306387" y="196.8749351082335" text-anchor="middle" font-size="10" fill="#fff">km</text><text x="514.4644016306387" y="220.8749351082335" text-anchor="middle" font-size="10" fill="#666" style="font-style:italic">Sand, Stone below 40 mm, Normal Brick sider aggre. Timber</text><defs><marker id="arrow11" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#1976d2"></path></marker></defs><line x1="556.8064746731156" y1="217.7016134106344" x2="522.7225898692462" y2="267.08064536425377" stroke="#1976d2" stroke-width="3" marker-end="url(#arrow11)"></line><circle cx="556.8064746731156" cy="217.7016134106344" r="25" fill="#1976d2" stroke="#333" stroke-width="2"></circle><text x="556.8064746731156" y="185.7016134106344" text-anchor="middle" font-size="11" font-weight="bold" fill="#333">Stone aggregate...</text><text x="556.8064746731156" y="221.7016134106344" text-anchor="middle" font-size="14" font-weight="bold" fill="#fff">2.0</text><text x="556.8064746731156" y="233.7016134106344" text-anchor="middle" font-size="10" fill="#fff">km</text><text x="556.8064746731156" y="257.7016134106344" text-anchor="middle" font-size="10" fill="#666" style="font-style:italic">Stone aggregate 40mm Normal size and above</text><defs><marker id="arrow12" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#1976d2"></path></marker></defs><line x1="730.2185666698347" y1="179.1719752686202" x2="535.4182410261284" y2="281.41107311824925" stroke="#1976d2" stroke-width="3" marker-end="url(#arrow12)"></line><circle cx="730.2185666698347" cy="179.1719752686202" r="25" fill="#1976d2" stroke="#333" stroke-width="2"></circle><text x="730.2185666698347" y="147.1719752686202" text-anchor="middle" font-size="11" font-weight="bold" fill="#333">Bitumen (VG-30)...</text><text x="730.2185666698347" y="183.1719752686202" text-anchor="middle" font-size="14" font-weight="bold" fill="#fff">10.0</text><text x="730.2185666698347" y="195.1719752686202" text-anchor="middle" font-size="10" fill="#fff">km</text><text x="730.2185666698347" y="219.1719752686202" text-anchor="middle" font-size="10" fill="#666" style="font-style:italic">Bitumen (VG-30) -- 10 Rs/km</text></svg>
 </div>
 
 <div class="noprt" style="margin-top:.6rem;text-align:center">
@@ -1327,8 +1327,8 @@ function addCFRow(){
   var no=prompt('Item number enter kara (e.g. 3.18, 24.01):','');
   if(!no)return;
   no=no.trim();
-  if(!no){alert('Item number blank aahe.');return;}
-  if(CF_MAP[no]){alert('Item '+no+' already exists. Table madhe edit kara.');return;}
+  if(!no){alert('Item number is empty.');return;}
+  if(CF_MAP[no]){alert('Item '+no+' already exists. Please edit it in the table.');return;}
   CF_MAP[no]={};
   rCFTab();
   /* Scroll to new row */
@@ -1338,7 +1338,7 @@ function addCFRow(){
 
 /* Reset CF to original defaults */
 function resetCFtoDefaults(){
-  if(!confirm('Sagale CF values reset honar. Continue?'))return;
+  if(!confirm('Reset all CF values to defaults? This cannot be undone.'))return;
   /* Restore from hardcoded defaults */
   var DEFAULTS={
     "21.37":{rubble:1.8,quarry:0.36},
@@ -1367,7 +1367,7 @@ function resetCFtoDefaults(){
   for(var k2 in DEFAULTS)CF_MAP[k2]=JSON.parse(JSON.stringify(DEFAULTS[k2]));
   rCFTab();
   updateAll();
-  alert('CF defaults restored!');
+  alert('CF defaults restored successfully.');
 }
 
 /* Save CF to HTML and download - CF permanently embedded */
@@ -1445,7 +1445,7 @@ function importCFcsv(){
         /* Remove BOM if present */
         if(text.charCodeAt(0)===0xFEFF)text=text.slice(1);
         var lines=text.split(/\r?\n/).filter(function(l){return l.trim();});
-        if(lines.length<2){alert('CSV empty or invalid.');return;}
+        if(lines.length<2){alert('CSV file is empty or invalid.');return;}
         /* Parse header to get column positions */
         var hdr=parseCSVRow(lines[0]);
         var noIdx=0, descIdx=1;
@@ -2376,7 +2376,7 @@ function putStore(d){try{localStorage.setItem(STORE_KEY,JSON.stringify(d));
 
 function newEstimate(){
   if(items.length>0||((R('pName')||{}).value||'').trim()){
-    if(!confirm('Start a new estimate? Current unsaved work will be lost.\nTip: Click Save first to keep it.'))return;
+    if(!confirm('Start a new estimate?\nAny unsaved work will be lost. Save first if needed.'))return;
   }
   /* Clear all */
   items=[];
@@ -2400,28 +2400,36 @@ function newEstimate(){
 }
 function saveEstimate(){
   var nm=((R('pName')||{}).value||'').trim();
-  if(!nm){alert('Please enter Name of Work first.');return;}
-  var d=getStore();if(d[nm]&&!confirm('Overwrite "'+nm+'"?'))return;
+  if(!nm){alert('Please enter the Name of Work first.');return;}
+  var d=getStore();if(d[nm]&&!confirm('Estimate "'+nm+'" already exists. Overwrite it?'))return;
   var lkm={};for(var i=0;i<LCD.length;i++){var el=R('lkm_'+i);if(el)lkm[i]=parseFloat(el.value)||0;}
+  /* Also save LEAD_KM and LEAD_LOC for full restore */
+  var lkmFull={};
+  if(typeof LEAD_KM!=='undefined'){for(var _k in LEAD_KM)lkmFull[_k]=LEAD_KM[_k];}
+  var llocFull={};
+  if(typeof LEAD_LOC!=='undefined'){for(var _l in LEAD_LOC)llocFull[_l]=LEAD_LOC[_l];}
   d[nm]={nm:nm,dt:new Date().toLocaleDateString('en-IN'),
     meta:{pName:((R('pName')||{}).value||''),pSub:((R('pSub')||{}).value||''),
       pDiv:((R('pDiv')||{}).value||''),pCir:((R('pCir')||{}).value||''),
       pReg:((R('pReg')||{}).value||''),
       sGST:pf('sGST'),sCont:pf('sCont'),sLI:pf('sLI'),sRS:pf('sRS'),sRC:pf('sRC')},
-    lkm:lkm,items:items};
-  putStore(d);renderSaveList();alert('Saved: "'+nm+'"');}
+    lkm:lkm,leadKm:lkmFull,leadLoc:llocFull,items:items};
+  putStore(d);renderSaveList();alert('\u2705 Estimate saved: "'+nm+'"');}
 function loadEstimate(nm){
   var d=getStore();var est=d[nm];if(!est)return;var m=est.meta||{};
   ['pName','pSub','pDiv','pCir','pReg'].forEach(function(id){var el=R(id);if(el)el.value=m[id]||'';});
   ['sGST','sCont','sLI','sRS','sRC'].forEach(function(id){var el=R(id);if(el)el.value=m[id]||0;});
+  /* Restore lead KM from index-based lkm and key-based leadKm */
+  if(est.leadKm){for(var _lk in est.leadKm){if(typeof LEAD_KM!=='undefined')LEAD_KM[_lk]=est.leadKm[_lk];}}
+  if(est.leadLoc){for(var _ll in est.leadLoc){if(typeof LEAD_LOC!=='undefined')LEAD_LOC[_ll]=est.leadLoc[_ll];}}
   var lk=est.lkm||{};
   for(var ki in lk){var el2=R('lkm_'+ki);if(el2){el2.value=lk[ki];onKmChange(parseInt(ki));}}
   items=est.items||[];for(var i=0;i<items.length;i++)items[i]=recalcItem(items[i]);
   ['pName','pSub'].forEach(function(id){var ta=R(id);
     if(ta&&ta.tagName==='TEXTAREA'){ta.style.height='auto';ta.style.height=ta.scrollHeight+'px';}});
-  upCover();upMeta();updateAll();alert('Loaded: "'+nm+'"');}
+  upCover();upMeta();updateAll();alert('\u2705 Estimate loaded: "'+nm+'"');}
 function deleteEstimate(nm){
-  if(!confirm('Delete "'+nm+'"?'))return;
+  if(!confirm('Delete estimate "'+nm+'"? This cannot be undone.'))return;
   var d=getStore();delete d[nm];putStore(d);renderSaveList();}
 function renderSaveList(){
   var el=R('saveList');if(!el)return;
@@ -2891,7 +2899,7 @@ function scUpdateGrand(){
 }
 
 function scReset(){
-  if(scSecs.length&&!confirm('Reset all steel sections?'))return;
+  if(scSecs.length&&!confirm('Reset all steel sections? This cannot be undone.'))return;
   scSecs=[];scUID=0;scRender();
 }
 
@@ -2899,7 +2907,7 @@ function scAddToItem(){
   if(!R('scKg'))return;
   var totalKg=parseFloat(R('scKg').textContent)||0;
   var q=totalKg/1000; /* MT */
-  if(q<=0){alert('Total steel is 0. Add sections and enter values first.');return;}
+  if(q<=0){alert('Total steel quantity is 0. Add steel sections and enter values first.');return;}
   var ssr26=null;
   for(var j=0;j<SSR.length;j++){if(SSR[j][0]==='26.33'){ssr26=SSR[j];break;}}
   if(!ssr26){alert('Item 26.33 not found in SSR.');return;}
@@ -3107,12 +3115,13 @@ setInterval(function(){
     if(!nm)return; /* Don't save if no name */
     var d=getStore();
     var lkm={};for(var _i=0;_i<LCD.length;_i++){var _el=R('lkm_'+_i);if(_el)lkm[_i]=parseFloat(_el.value)||0;}
+    var _lkf={};if(typeof LEAD_KM!=='undefined'){for(var _k2 in LEAD_KM)_lkf[_k2]=LEAD_KM[_k2];}
     d['__autosave__']={nm:nm,dt:new Date().toLocaleDateString('en-IN'),_auto:true,
       meta:{pName:((R('pName')||{}).value||''),pSub:((R('pSub')||{}).value||''),
         pDiv:((R('pDiv')||{}).value||''),pCir:((R('pCir')||{}).value||''),
         pReg:((R('pReg')||{}).value||''),
         sGST:pf('sGST'),sCont:pf('sCont'),sLI:pf('sLI'),sRS:pf('sRS'),sRC:pf('sRC')},
-      lkm:lkm,items:items};
+      lkm:lkm,leadKm:_lkf,items:items};
     putStore(d);
     console.log('AutoSaved at '+new Date().toLocaleTimeString());
   }catch(e){console.warn('AutoSave failed:',e);}
@@ -3125,9 +3134,16 @@ setInterval(function(){
     var as=d['__autosave__'];
     if(as&&as.nm&&!items.length){
       /* Only restore if current estimate is empty */
-      if(confirm('AutoSave found: "'+as.nm+'". Restore it?')){
-        loadEstObj(as);
-        showToast && showToast('AutoSave restored ✓','success');
+      if(confirm('Auto-save found: "'+as.nm+'".\nRestore your last unsaved work?')){
+        /* Restore from autosave object */
+        var m2=as.meta||{};
+        ['pName','pSub','pDiv','pCir','pReg'].forEach(function(id){var el=R(id);if(el)el.value=m2[id]||'';});
+        ['sGST','sCont','sLI','sRS','sRC'].forEach(function(id){var el=R(id);if(el)el.value=m2[id]||0;});
+        if(as.leadKm){for(var _rk in as.leadKm)LEAD_KM[_rk]=as.leadKm[_rk];}
+        var lk2=as.lkm||{};
+        for(var ki2 in lk2){var el3=R('lkm_'+ki2);if(el3){el3.value=lk2[ki2];onKmChange(parseInt(ki2));}}
+        items=as.items||[];for(var ii=0;ii<items.length;ii++)items[ii]=recalcItem(items[ii]);
+        upCover();upMeta();updateAll();
       }
     }
   }catch(e){}
@@ -3356,7 +3372,7 @@ function doRegister(){
 }
 
 function doForgot(){var em=(G("eEmail").value||"").trim();if(!em){showE("eErr","Enter email first");return;}firebase.auth().sendPasswordResetEmail(em).then(function(){showToast("Reset email sent 📧","success");}).catch(function(e){showE("eErr",e.message);});}
-function doLogout(){if(!confirm("Log out?"))return;firebase.auth().signOut();}
+function doLogout(){if(!confirm("Are you sure you want to log out?"))return;firebase.auth().signOut();}
 
 function doAdminLogin(){
   var pw=(G("admPwd").value||"").trim();if(!pw){showE("admErr","Enter password");return;}
@@ -3578,8 +3594,8 @@ function loadEst(docId){
 }
 
 function dlEst(docId){if(!canDownload())return;CUR_EST_ID=docId;loadEst(docId);setTimeout(function(){if(typeof printAll==="function")printAll();},600);}
-function delEst(docId){if(!confirm("Delete?"))return;firebase.firestore().collection("estimates").doc(docId).delete().then(function(){if(CUR_EST_ID===docId)CUR_EST_ID=null;showToast("Deleted","info");loadCloudList();});}
-function newEstimate(){if(!confirm("Clear and start new?"))return;CUR_EST_ID=null;if(typeof items!=="undefined")items=[];["pReg","pCir","pDiv","pSub","pName"].forEach(function(k){var e=G(k);if(e)e.value="";});if(typeof buildLCT==="function")buildLCT();if(typeof updateAll==="function")updateAll();if(typeof goTab==="function")goTab(0);showToast("New estimate ready ✅","success");}
+function delEst(docId){if(!confirm("Delete this record?"))return;firebase.firestore().collection("estimates").doc(docId).delete().then(function(){if(CUR_EST_ID===docId)CUR_EST_ID=null;showToast("Deleted","info");loadCloudList();});}
+function newEstimate(){if(!confirm("Clear all data and start a new estimate?"))return;CUR_EST_ID=null;if(typeof items!=="undefined")items=[];["pReg","pCir","pDiv","pSub","pName"].forEach(function(k){var e=G(k);if(e)e.value="";});if(typeof buildLCT==="function")buildLCT();if(typeof updateAll==="function")updateAll();if(typeof goTab==="function")goTab(0);showToast("New estimate ready ✅","success");}
 
 /* ADMIN DASHBOARD */
 var AD={pays:[],users:[],ests:[],qrFile:null};
@@ -3950,7 +3966,7 @@ function sendContact(){
     if(!p.classList.contains("noprt")){p.classList.add("on");p.style.pageBreakAfter="always";}
   });
   if(typeof drawLeadDiagram==="function"){try{drawLeadDiagram();}catch(e){}}
-  setTimeout(function(){window.print();},300);
+  setTimeout(function(){window.print();},500);
   setTimeout(function(){
     document.querySelectorAll(".panel").forEach(function(p){p.classList.remove("on");p.style.pageBreakAfter="";});
     document.querySelectorAll(".tab").forEach(function(t){t.classList.remove("on");});
@@ -4368,7 +4384,7 @@ function loadEst(docId){
 
 function dlEst(docId){if(!canDownload())return;CUR_EST_ID=docId;loadEst(docId);setTimeout(function(){if(typeof printAll==="function")printAll();},600);}
 function delEst(docId){if(!confirm("Delete?"))return;firebase.firestore().collection("estimates").doc(docId).delete().then(function(){if(CUR_EST_ID===docId)CUR_EST_ID=null;showToast("Deleted","info");loadCloudList();});}
-function newEstimate(){if(!confirm("Clear and start new?"))return;CUR_EST_ID=null;if(typeof items!=="undefined")items=[];["pReg","pCir","pDiv","pSub","pName"].forEach(function(k){var e=G(k);if(e)e.value="";});if(typeof buildLCT==="function")buildLCT();if(typeof updateAll==="function")updateAll();if(typeof goTab==="function")goTab(0);showToast("New estimate ready ✅","success");}
+function newEstimate(){if(!confirm("Clear all data and start a new estimate?"))return;CUR_EST_ID=null;if(typeof items!=="undefined")items=[];["pReg","pCir","pDiv","pSub","pName"].forEach(function(k){var e=G(k);if(e)e.value="";});if(typeof buildLCT==="function")buildLCT();if(typeof updateAll==="function")updateAll();if(typeof goTab==="function")goTab(0);showToast("New estimate ready ✅","success");}
 
 /* ADMIN DASHBOARD */
 var AD={pays:[],users:[],ests:[],qrFile:null};
