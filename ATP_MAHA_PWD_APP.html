@@ -923,7 +923,7 @@ ii) Water Absorption</td><td style="font-size:.57rem">One test for 50,000 blocks
     <div style="background:#fff8e1;border:1px solid #f5a623;border-radius:8px;padding:.8rem 1rem;margin-bottom:.7rem">
       <div style="font-weight:900;font-size:.78rem;color:#e65100;margin-bottom:.4rem">&#127959; ATP Maha PWD Estimate App</div>
       <div style="font-size:.71rem;color:#333;line-height:2.1">
-        <div>&#128231; <b>Email:</b> thongeaditya@gmail.com</div>
+        <div>&#128231; <b>Email:</b> <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="80f4e8efeee7e5e1e4e9f4f9e1c0e7ede1e9ecaee3efed">[email&#160;protected]</a></div>
         <div>&#128241; <b>Mobile / WhatsApp:</b> 8975962565</div>
         <div>&#128179; <b>UPI:</b> adityathonge@ybl</div>
       </div>
@@ -984,7 +984,7 @@ ii) Water Absorption</td><td style="font-size:.57rem">One test for 50,000 blocks
     </div>
   </div>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 /* ── PWA: MANIFEST + SERVICE WORKER ──────────────────────────────── */
 (function(){
   /* SVG Icon — Maharashtra PWD colours */
@@ -2433,7 +2433,19 @@ function saveEstimate(){
       pReg:((R('pReg')||{}).value||''),
       sGST:pf('sGST'),sCont:pf('sCont'),sLI:pf('sLI'),sRS:pf('sRS'),sRC:pf('sRC')},
     lkm:lkm,leadKm:lkmFull,leadLoc:llocFull,items:items};
-  putStore(d);renderSaveList();alert('\u2705 Estimate saved: "'+nm+'"');}
+  putStore(d);renderSaveList();
+  if(typeof CU!=="undefined"&&CU&&window.firebase&&firebase.firestore){
+    var _cov={pName:d[nm].meta.pName,pSub:d[nm].meta.pSub,pDiv:d[nm].meta.pDiv,pCir:d[nm].meta.pCir,pReg:d[nm].meta.pReg};
+    var _grand=0;try{var _gt=document.getElementById("grandTotal");if(_gt)_grand=parseFloat(_gt.textContent.replace(/[^0-9.]/g,""))||0;}catch(_ge){}
+    var _cdoc={name:nm,uid:CU.uid,cover:_cov,items:items,grand:_grand,updatedAt:firebase.firestore.FieldValue.serverTimestamp()};
+    firebase.firestore().collection("estimates").where("name","==",nm).where("uid","==",CU.uid).limit(1).get()
+      .then(function(_s){return _s.empty?firebase.firestore().collection("estimates").add(_cdoc):_s.docs[0].ref.update(_cdoc);})
+      .then(function(){showToast("\u2705 Saved locally & to cloud","success");})
+      .catch(function(){showToast("\u2705 Saved locally","success");});
+  } else {
+    alert("\u2705 Estimate saved: \""+nm+"\"");
+  }
+}
 function loadEstimate(nm){
   var d=getStore();var est=d[nm];if(!est)return;var m=est.meta||{};
   ['pName','pSub','pDiv','pCir','pReg'].forEach(function(id){var el=R(id);if(el)el.value=m[id]||'';});
@@ -3154,7 +3166,6 @@ renderSaveList();
 upCover();
 upMeta();
 </script>
-
 <script>
 /* ATP MAHA PWD v35 */
 var FBCFG={apiKey:"AIzaSyCdH-k3hH1mYYcND0cBf7J2pLRG6xQydrU",authDomain:"atp-maha-pwd.firebaseapp.com",projectId:"atp-maha-pwd",storageBucket:"atp-maha-pwd.firebasestorage.app",messagingSenderId:"382409286731",appId:"1:382409286731:web:37daae9842bc3687bf99ce"};
@@ -3209,6 +3220,7 @@ var REQ_UNSUB=null;
 function startReqListener(uid){
   if(REQ_UNSUB)REQ_UNSUB();
   if(!window.firebase||!firebase.firestore)return;
+  var _prevCount=-1;
   REQ_UNSUB=firebase.firestore().collection("requests")
     .where("ownerUid","==",uid)
     .where("status","==","pending")
@@ -3217,6 +3229,14 @@ function startReqListener(uid){
       var badge=G("reqBadge");
       if(badge)badge.textContent=newCount>0?newCount:"";
       if(badge)badge.style.display=newCount>0?"inline-flex":"none";
+      if(_prevCount>=0&&newCount>_prevCount){
+        var newest="";
+        snap.docChanges().forEach(function(ch){
+          if(ch.type==="added")newest=ch.doc.data().estName||ch.doc.data().fromName||"";
+        });
+        showToast("\uD83D\uDD14 New request"+(newest?" for: "+newest:"!"),"info");
+      }
+      _prevCount=newCount;
     },function(){});
 }
 function stopReqListener(){if(REQ_UNSUB){REQ_UNSUB();REQ_UNSUB=null;}}
@@ -3605,6 +3625,23 @@ function loadEst(docId){
     if(data.settings){var ks=["gst","cont","li","royS","royC"];["sGST","sCont","sLI","sRS","sRC"].forEach(function(k,i){var e=G(k);if(e&&data.settings[ks[i]]!=null)e.value=data.settings[ks[i]];});}
     if(typeof buildLCT==="function")buildLCT();if(typeof updateAll==="function")updateAll();if(typeof upCover==="function")upCover();if(typeof upMeta==="function")upMeta();if(typeof goTab==="function")goTab(0);
     showToast("Loaded: "+esc(data.name||""),"success");
+    /* Auto-save locally */
+    try{
+      var _nm=(data.name||"").trim()||(data.cover&&data.cover.pName?data.cover.pName.trim():"");
+      if(_nm&&typeof getStore==="function"&&typeof putStore==="function"){
+        var _ls=getStore();var _lk={};
+        if(typeof LCD!=="undefined"){for(var _i=0;_i<LCD.length;_i++){var _el=document.getElementById("lkm_"+_i);if(_el)_lk[_i]=parseFloat(_el.value)||0;}}
+        _ls[_nm]={nm:_nm,dt:new Date().toLocaleDateString("en-IN"),
+          meta:{pName:((G("pName")||{value:""}).value||""),pSub:((G("pSub")||{value:""}).value||""),
+            pDiv:((G("pDiv")||{value:""}).value||""),pCir:((G("pCir")||{value:""}).value||""),
+            pReg:((G("pReg")||{value:""}).value||"")},
+          lkm:_lk,items:typeof items!=="undefined"?items:[]};
+        putStore(_ls);
+        if(typeof renderSaveList==="function")renderSaveList();
+        if(typeof renderHomeScreen==="function")renderHomeScreen();
+        showToast("\u2705 Auto-saved to local storage","success");
+      }
+    }catch(_e){}
   });
 }
 
@@ -4781,12 +4818,6 @@ function doLogout(){
   if(!confirm("Are you sure you want to log out?"))return;
   sessionStorage.removeItem("appReady");if(window.firebase&&firebase.auth)firebase.auth().signOut();
 }
-/* ── END HOME SCREEN ─────────────────────────── */
 </script>
-
 </body>
-</html
-/* Hide sidebar on non-main tabs (narrow screen) */
-/* In print, side never shows */
-
->
+</html>
