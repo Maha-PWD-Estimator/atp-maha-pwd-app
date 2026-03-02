@@ -1202,7 +1202,7 @@ function buildLCT(){
       +'</td>'
       +'<td class="r" style="padding:.3rem"><span class="chg-val" id="lchg_'+i+'">0.000</span></td>'
       +'<td class="noprt" style="padding:.3rem;text-align:center">'
-        +'<button id="lnr_'+i+'" onclick="toggleNR('+i+')" style="font-size:.55rem;padding:.15rem .38rem;border:1px solid #18602f;border-radius:3px;cursor:pointer;background:#e8f5e9;color:#18602f;font-weight:600">✓ Use</button>'
+        +'<button id="lnr_'+i+'" onclick="toggleNR('+i+')" style="font-size:.55rem;padding:.15rem .38rem;border:1px solid #c62828;border-radius:3px;cursor:pointer;background:#fdecea;color:#c62828;font-weight:600">✗ Skip</button>'
       +'</td>'
     +'</tr>';
   }
@@ -1212,15 +1212,20 @@ function buildLCT(){
       var kmEl=R('lkm_'+idx),locEl=R('lloc_'+idx),key=LCD[idx]?LCD[idx].llKey:'';
       if(kmEl){if(LEAD_KM[key]){kmEl.value=LEAD_KM[key];onKmChange(idx);}kmEl.oninput=function(){onKmChange(idx);};}
       if(locEl){if(typeof LEAD_LOC!=='undefined'&&LEAD_LOC[key])locEl.value=LEAD_LOC[key];locEl.oninput=function(){onLocChange(idx);};}
-      if(LEAD_NR[key]){
-        var btn=R('lnr_'+idx),rowEl=R('lcrow_'+idx);
-        if(btn){btn.textContent='✗ Skip';btn.style.background='#fdecea';btn.style.color='#c62828';btn.style.borderColor='#c62828';}
-        if(rowEl)rowEl.className='lc-row-zero';if(kmEl)kmEl.disabled=true;
-      }else{
+      /* Default=Skip. LEAD_NR[key]===false means user set it to Use */
+      if(LEAD_NR[key]===false){
+        /* User marked as Use */
+        var btn3=R('lnr_'+idx),rowEl3=R('lcrow_'+idx);
+        if(btn3){btn3.textContent='✓ Use';btn3.style.background='#e8f5e9';btn3.style.color='#18602f';btn3.style.borderColor='#18602f';}
         var km2=parseFloat((kmEl||{}).value)||0,row2=LCD[idx];
         var chg2=row2.isBitumen?(km2*10):(row2.llKey?lkup(row2.llKey,km2):0);
         var chgEl=R('lchg_'+idx);if(chgEl)chgEl.textContent=(Math.round(chg2*1000)/1000).toFixed(3);
-        var rowEl2=R('lcrow_'+idx);if(rowEl2)rowEl2.className=km2>0?'':'lc-row-zero';
+        if(rowEl3)rowEl3.className=km2>0?'':'lc-row-zero';
+      }else{
+        /* Skip (default or explicitly skipped) */
+        var btn4=R('lnr_'+idx),rowEl4=R('lcrow_'+idx);
+        if(btn4){btn4.textContent='✗ Skip';btn4.style.background='#fdecea';btn4.style.color='#c62828';btn4.style.borderColor='#c62828';}
+        if(rowEl4)rowEl4.className='lc-row-zero';if(kmEl)kmEl.disabled=true;
       }
     })(i);
   }
@@ -1230,13 +1235,19 @@ function toggleNR(idx){
   if(!LCD||!LCD[idx])return;
   var key=LCD[idx].llKey||'',btn=R('lnr_'+idx),rowEl=R('lcrow_'+idx),kmEl=R('lkm_'+idx);
   if(!btn)return;
+  /* Skip = not required (red). Use = required for this estimate (green) */
   if(btn.textContent.indexOf('Skip')>=0){
-    LEAD_NR[key]=false;btn.textContent='✓ Use';
+    /* Skip → Use: mark as required */
+    LEAD_NR[key]=false;
+    btn.textContent='✓ Use';
     btn.style.background='#e8f5e9';btn.style.color='#18602f';btn.style.borderColor='#18602f';
     if(kmEl)kmEl.disabled=false;
-    if(rowEl)rowEl.className=parseFloat((kmEl||{}).value)>0?'':'lc-row-zero';
+    var km=parseFloat((kmEl||{}).value)||0;
+    if(rowEl)rowEl.className=km>0?'':'lc-row-zero';
   }else{
-    LEAD_NR[key]=true;btn.textContent='✗ Skip';
+    /* Use → Skip: mark as not required */
+    LEAD_NR[key]=true;
+    btn.textContent='✗ Skip';
     btn.style.background='#fdecea';btn.style.color='#c62828';btn.style.borderColor='#c62828';
     if(kmEl){kmEl.value='0';kmEl.disabled=true;onKmChange(idx);}
     if(rowEl)rowEl.className='lc-row-zero';
@@ -2381,6 +2392,8 @@ function goTab(n){
   document.querySelectorAll('.pth-work').forEach(function(el){el.textContent=wk;});
   /* Scroll active tab into view */
   var at=R('t'+n);if(at)at.scrollIntoView({inline:'center',behavior:'smooth',block:'nearest'});
+  /* Scroll main panel area to top */
+  var mainEl=document.querySelector('.main');if(mainEl)mainEl.scrollTop=0;
 }
 /* printAll defined in ATP module */
 function getStore(){try{var s=localStorage.getItem(STORE_KEY);return s?JSON.parse(s):{};
@@ -3899,7 +3912,7 @@ function sendContact(){
         var locEl=R("lloc_"+ki);
         if(locEl){var lp=R("llocp_"+ki);if(lp)lp.textContent=locEl.value||"";}
         var rowEl=R("lcrow_"+ki);
-        var _nk=typeof LCD!="undefined"&&LCD&&LCD[ki]?LCD[ki].llKey:"";if(rowEl)rowEl.className=(typeof LEAD_NR!="undefined"&&LEAD_NR[_nk])?"lc-row-zero":(kmV>0?"":"lc-row-zero");
+        var _nk=typeof LCD!="undefined"&&LCD&&LCD[ki]?LCD[ki].llKey:"";var _use=(typeof LEAD_NR!="undefined"&&LEAD_NR[_nk]===false);if(rowEl)rowEl.className=_use?(kmV>0?"":"lc-row-zero"):"lc-row-zero";
       }
     }
   }catch(e){}
