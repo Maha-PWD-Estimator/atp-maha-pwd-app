@@ -454,6 +454,98 @@ tr:hover td{background:#fdf8f3}
   </script>
 </head>
 <body>
+<script>
+// Essential helper functions loaded immediately
+function G(id){return document.getElementById(id);}
+function showE(id,msg){var e=G(id);if(e){e.textContent=msg;e.style.display='block';}}
+function hideE(id){var e=G(id);if(e)e.style.display='none';}
+
+// Login/Auth functions
+function swAuth(i){
+  for(var j=0;j<2;j++){
+    var p=G("ap"+j),t=G("at"+j);
+    if(p)p.classList[j===i?"add":"remove"]("on");
+    if(t)t.classList[j===i?"add":"remove"]("on");
+  }
+}
+
+function swEmail(tab){
+  G("eL").style.display=tab==="l"?"block":"none";
+  G("eR").style.display=tab==="r"?"block":"none";
+  G("et0").classList[tab==="l"?"add":"remove"]("on");
+  G("et1").classList[tab==="r"?"add":"remove"]("on");
+}
+
+function doELogin(){
+  var em=(G("eEmail").value||"").trim(),pw=G("ePwd").value;
+  if(!em||!pw){showE("eErr","Email and password required");return;}
+  var btn=G("eLoginBtn");btn.disabled=true;btn.textContent="Logging in...";hideE("eErr");
+  firebase.auth().signInWithEmailAndPassword(em,pw)
+    .catch(function(e){
+      btn.disabled=false;btn.textContent="🔑 Login";
+      showE("eErr",e.code==="auth/user-not-found"||e.code==="auth/invalid-credential"?"Invalid email or password":e.code==="auth/wrong-password"?"Wrong password":e.message);
+    });
+}
+
+function doRegister(){
+  var fn=(G("rFirst").value||"").trim(),ln=(G("rLast").value||"").trim();
+  var em=(G("rEmail").value||"").trim(),pw=G("rPwd").value,pw2=G("rPwd2").value;
+  if(!fn){showE("rErr","First name required");return;}
+  if(!em){showE("rErr","Email required");return;}
+  if(pw.length<6){showE("rErr","Password min 6 chars");return;}
+  if(pw!==pw2){showE("rErr","Passwords do not match");return;}
+  var name=(fn+" "+ln).trim();var btn=G("regBtn");btn.disabled=true;btn.textContent="Creating...";hideE("rErr");
+  firebase.auth().createUserWithEmailAndPassword(em,pw)
+    .then(function(c){return c.user.updateProfile({displayName:name});})
+    .then(function(){
+      if(firebase.auth().currentUser)
+        firebase.firestore().collection("users").doc(firebase.auth().currentUser.uid).set({name:name},{merge:true}).catch(function(){});
+      showToast("Welcome "+fn+"!","success");
+    })
+    .catch(function(e){
+      btn.disabled=false;btn.textContent="📝 Create Account";
+      showE("rErr",e.code==="auth/email-already-in-use"?"Email already registered":e.message);
+    });
+}
+
+function doForgot(){
+  var em=(G("eEmail").value||"").trim();
+  if(!em){showE("eErr","Enter email first");return;}
+  firebase.auth().sendPasswordResetEmail(em)
+    .then(function(){alert("Reset email sent 📧");})
+    .catch(function(e){showE("eErr",e.message);});
+}
+
+function doAdminLogin(){
+  var pw=(G("admPwd").value||"").trim();
+  if(!pw){showE("admErr","Enter password");return;}
+  hideE("admErr");var btn=G("admBtn");btn.disabled=true;btn.textContent="Logging in...";
+  firebase.auth().signInWithEmailAndPassword("thongeaditya@gmail.com",pw)
+    .then(function(){
+      if(G("loginShell"))G("loginShell").style.display="none";
+      var w=G("adminWrap");if(w)w.style.display="block";
+      if(G("adminLoginBox"))G("adminLoginBox").style.display="none";
+      if(G("adminDash"))G("adminDash").style.display="block";
+    })
+    .catch(function(e){
+      btn.disabled=false;btn.textContent="🔑 Admin Login";
+      showE("admErr",e.code==="auth/wrong-password"?"Wrong password":e.message);
+    });
+}
+
+function doGoogle(){
+  var provider=new firebase.auth.GoogleAuthProvider();
+  firebase.auth().signInWithPopup(provider).catch(function(e){
+    showE("eErr",e.message);
+  });
+}
+
+function showToast(msg,type){
+  var t=G("mainToast");if(!t)return;
+  t.textContent=msg;t.className="toast toast-"+(type||"info")+" show";
+  setTimeout(function(){t.classList.remove("show");},3000);
+}
+</script>
 <div id="loginShell">
 <div class="abox">
 <div class="alogo"><span class="ico">🏛️</span><h1>ATP's MAHA PWD ESTIMATE APP</h1><p>Maharashtra PWD · SSR 2022-23</p></div>
