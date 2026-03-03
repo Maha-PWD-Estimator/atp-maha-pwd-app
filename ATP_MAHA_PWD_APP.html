@@ -188,6 +188,11 @@ tr:hover td{background:#fdf8f3}
 /* PRINT */
 @page{margin:1.2cm;size:A4}
 @media print{
+  /* Force black text for all elements */
+  *{color:#000!important;background:transparent!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  table{border-color:#000!important}
+  td,th{border-color:#ccc!important}
+  .gr,.rd,.pu,.or{color:#000!important}
   /* Hide non-print elements */
   .noprt,nav,.tabs,.sw,.rh,.rb,.af,.fa,.bar,.dbt,.side,
   .km-in,.lead-note,.cta,.btn,button,.sh,
@@ -858,9 +863,7 @@ ii) Water Absorption</td><td style="font-size:.57rem">One test for 50,000 blocks
 <div class="sh"><div class="n">13</div><h2>⚙️ CF Table — Consumption Factors</h2></div>
 <div class="pth"><div class="pth-work"></div><div class="pth-sheet">CF Table</div></div>
 <div style="background:#fff3cd;border:1px solid #ffc107;border-radius:6px;padding:.6rem .9rem;margin-bottom:.8rem;font-size:.67rem;line-height:1.6">
-  <strong>⚠️ Important:</strong> इथे edit केलेले CF values <strong>"💾 Save CF &amp; Download HTML"</strong> button दाबल्यावर नवीन HTML file मध्ये permanently save होतात. 
-  दुसऱ्या computer ला ती file पाठवली तरी हे CF values तसेच राहतात. 
-  <br><strong>Item च्या CF मध्ये 0 ठेवलेले materials वगळले जातात.</strong>
+  <strong>Note:</strong> CF values edited here are permanently saved when you click <strong>"Save CF &amp; Download HTML"</strong>. The saved file retains all CF values when shared with other computers. Materials with CF value 0 are excluded from calculations.
 </div>
 
 <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.8rem">
@@ -896,7 +899,7 @@ ii) Water Absorption</td><td style="font-size:.57rem">One test for 50,000 blocks
 </table>
 </div>
 <div style="margin-top:.5rem;font-size:.6rem;color:#666">
-  ℹ️ 0 = या material चा वापर नाही | CF = per unit (M3/Sqm/etc) consumption
+  ℹ️ 0 = Material not used | CF = per unit (M3/Sqm/etc) consumption
 </div>
 </div>
 
@@ -2603,7 +2606,7 @@ function exportJSON(){
     lkm:lkm,items:items};
   var blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
   var url=URL.createObjectURL(blob);var a=document.createElement('a');a.href=url;
-  a.download=(nm.replace(/[^a-zA-Z0-9ऀ-ॿ _-]/g,'_').substring(0,60)||'estimate')+'.json';
+  a.download=(nm.replace(/[^a-zA-Z0-9 _-]/g,'_').substring(0,60)||'estimate')+'.json';
   a.click();URL.revokeObjectURL(url);}
 function importJSON(){
   var inp=document.createElement('input');inp.type='file';inp.accept='.json,application/json';
