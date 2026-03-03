@@ -457,6 +457,25 @@ tr:hover td{background:#fdf8f3}
       var FBCFG={apiKey:"AIzaSyCdH-k3hH1mYYcND0cBf7J2pLRG6xQydrU",authDomain:"atp-maha-pwd.firebaseapp.com",projectId:"atp-maha-pwd",storageBucket:"atp-maha-pwd.firebasestorage.app",messagingSenderId:"382409286731",appId:"1:382409286731:web:37daae9842bc3687bf99ce"};
       if(!firebase.apps.length) firebase.initializeApp(FBCFG);
     } catch(e) { console.error('Firebase init error:', e); }
+
+  /* ── LOGIN FUNCTION STUBS (loaded early, delegate to real fns) ── */
+  window._doELogin=function doELogin(){
+    if(window._doELogin)return window._doELogin();
+    /* firebase not ready yet — wait */
+    document.getElementById('eLoginBtn').textContent='Loading...';
+    var t=setInterval(function(){if(window._doELogin){clearInterval(t);window._doELogin();}},100);
+  }
+  window._doRegister=function doRegister(){if(window._doRegister)window._doRegister();}
+  window._doAdminLogin=function doAdminLogin(){if(window._doAdminLogin)window._doAdminLogin();}
+  window._doPortalLogin=function doPortalLogin(){if(window._doPortalLogin)window._doPortalLogin();}
+  window._doForgot=function doForgot(){if(window._doForgot)window._doForgot();}
+  window._doLogout=function doLogout(){if(window._doLogout)window._doLogout();}
+  function doGoogle(){if(window._doGoogle)window._doGoogle();}
+  
+  
+  function showE(id,msg){var e=document.getElementById(id);if(e){e.textContent=msg;e.style.display='block';}}
+  function hideE(id){var e=document.getElementById(id);if(e)e.style.display='none';}
+  function G(id){return document.getElementById(id);}
   </script>
 </head>
 <body>
@@ -3531,8 +3550,8 @@ function renderHeader(){
   }
 }
 
-function swAuth(i){for(var j=0;j<2;j++){var p=G("ap"+j),t=G("at"+j);if(p)p.classList[j===i?"add":"remove"]("on");if(t)t.classList[j===i?"add":"remove"]("on");}}
-function swEmail(tab){G("eL").style.display=tab==="l"?"block":"none";G("eR").style.display=tab==="r"?"block":"none";G("et0").classList[tab==="l"?"add":"remove"]("on");G("et1").classList[tab==="r"?"add":"remove"]("on");}
+window._swAuth=function swAuth(i){for(var j=0;j<2;j++){var p=G("ap"+j),t=G("at"+j);if(p)p.classList[j===i?"add":"remove"]("on");if(t)t.classList[j===i?"add":"remove"]("on");}}
+window._swEmail=function swEmail(tab){G("eL").style.display=tab==="l"?"block":"none";G("eR").style.display=tab==="r"?"block":"none";G("et0").classList[tab==="l"?"add":"remove"]("on");G("et1").classList[tab==="r"?"add":"remove"]("on");}
 
 function showInfo(title,inp,out){G("infoTtl").textContent=title+" — Guide";G("infoIn").textContent=inp;G("infoOut").textContent=out;G("infoModal").style.display="flex";}
 function closeInfo(){G("infoModal").style.display="none";}
@@ -3593,12 +3612,11 @@ function startOTPTimer(){
   OTP_TMR=setInterval(function(){s--;if(G("otpCd"))G("otpCd").textContent=s;if(s<=0){clearInterval(OTP_TMR);if(G("resendSpan"))G("resendSpan").style.display="inline";}},1000);
 }
 
-function doGoogle(){
-  
+window._doGoogle=function doGoogle(){
   firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(function(e){showToast("Google login failed: "+e.message,"error");});
 }
 
-function doELogin(){
+window._doELogin2=function doELogin_dup(){
   var em=(G("eEmail").value||"").trim(),pw=G("ePwd").value;
   if(!em||!pw){showE("eErr","Email and password required");return;}
   var btn=G("eLoginBtn");btn.disabled=true;btn.textContent="Logging in...";hideE("eErr");
@@ -4382,8 +4400,7 @@ function startOTPTimer(){
   OTP_TMR=setInterval(function(){s--;if(G("otpCd"))G("otpCd").textContent=s;if(s<=0){clearInterval(OTP_TMR);if(G("resendSpan"))G("resendSpan").style.display="inline";}},1000);
 }
 
-function doGoogle(){
-  
+window._doGoogle=function doGoogle(){
   firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(function(e){showToast("Google login failed: "+e.message,"error");});
 }
 
