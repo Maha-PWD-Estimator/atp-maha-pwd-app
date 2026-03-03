@@ -271,40 +271,40 @@ tr:hover td{background:#fdf8f3}
   text-align:right;font-family:monospace}
 
 
-#loginShell{display:flex;position:fixed;inset:0;z-index:9000;overflow-y:auto;align-items:flex-start;justify-content:center;padding:1rem 1rem 3rem;background:linear-gradient(160deg,#18150f,#0a2018,#18150f)}
+#loginShell{display:flex;position:fixed;inset:0;z-index:9000;overflow-y:auto;align-items:flex-start;justify-content:center;padding:1rem 1rem 3rem;background:linear-gradient(160deg,#004d20,#009E60,#006633)}
 .abox{width:100%;max-width:380px;margin:.5rem auto}
 .alogo{text-align:center;padding:1.2rem 0 .8rem}
 .alogo .ico{font-size:2.4rem;display:block}
-.alogo h1{color:#f5a623;font-size:.95rem;font-weight:900;margin:.3rem 0 .1rem}
-.alogo p{color:#555;font-size:.58rem}
-.acard{background:#1c1c1c;border:1px solid #2a2a2a;border-radius:14px;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.5)}
-.atabs{display:flex;background:#141414}
-.atab{flex:1;padding:.6rem;text-align:center;font-size:.67rem;font-weight:800;color:#555;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s}
-.atab.on{color:#f5a623;border-bottom-color:#f5a623}
+.alogo h1{color:#e8fff3;font-size:.95rem;font-weight:900;margin:.3rem 0 .1rem;text-shadow:0 1px 4px rgba(0,0,0,.3)}
+.alogo p{color:#a8e6c2;font-size:.58rem}
+.acard{background:#f0faf4;border:1px solid #b2dfcc;border-radius:14px;overflow:hidden;box-shadow:0 20px 50px rgba(0,80,30,.4)}
+.atabs{display:flex;background:#006633}
+.atab{flex:1;padding:.6rem;text-align:center;font-size:.67rem;font-weight:800;color:#a8e6c2;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s}
+.atab.on{color:#fff;border-bottom-color:#fff}
 .apanel{padding:1.2rem;display:none}.apanel.on{display:block}
 .laf{margin-bottom:.75rem}
-.laf label{display:block;font-size:.58rem;color:#666;font-weight:800;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.22rem}
-.laf input{width:100%;background:#111;border:1px solid #2a2a2a;border-radius:7px;padding:.58rem .8rem;color:#fff;font-size:.82rem;outline:none;transition:border .2s;box-sizing:border-box}
-.laf input:focus{border-color:#f5a623}
-.laf input::placeholder{color:#3a3a3a}
-.laf input[readonly]{color:#f5a623;font-weight:700;background:#0d0d0d}
+.laf label{display:block;font-size:.58rem;color:#004d20;font-weight:800;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.22rem}
+.laf input{width:100%;background:#fff;border:1px solid #b2dfcc;border-radius:7px;padding:.58rem .8rem;color:#1a3a2a;font-size:.82rem;outline:none;transition:border .2s;box-sizing:border-box}
+.laf input:focus{border-color:#009E60;box-shadow:0 0 0 2px rgba(0,158,96,.15)}
+.laf input::placeholder{color:#aacfbb}
+.laf input[readonly]{color:#009E60;font-weight:700;background:#e8f9ef}
 .nr{display:flex;gap:.5rem}.nr .laf{flex:1}
 .phr{display:flex;gap:.4rem}
-.phpre{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:7px;padding:.58rem .7rem;color:#888;font-size:.78rem;display:flex;align-items:center;white-space:nowrap}
-.otpbox{width:100%;text-align:center;font-size:1.5rem;font-weight:900;letter-spacing:.25em;background:#111;border:2px solid #f5a623;border-radius:7px;padding:.65rem;color:#fff;outline:none;box-sizing:border-box}
-.lbtn{width:100%;padding:.68rem;background:#f5a623;color:#18150f;border:none;border-radius:7px;font-size:.82rem;font-weight:900;cursor:pointer;margin-top:.35rem;transition:opacity .2s;display:block}
-.lbtn:hover:not(:disabled){opacity:.9}.lbtn:disabled{opacity:.4;cursor:not-allowed}
-.lbtn.ghost{background:none;border:1px solid #333;color:#888}
+.phpre{background:#e8f9ef;border:1px solid #b2dfcc;border-radius:7px;padding:.58rem .7rem;color:#005c2e;font-size:.78rem;display:flex;align-items:center;white-space:nowrap}
+.otpbox{width:100%;text-align:center;font-size:1.5rem;font-weight:900;letter-spacing:.25em;background:#fff;border:2px solid #009E60;border-radius:7px;padding:.65rem;color:#1a3a2a;outline:none;box-sizing:border-box}
+.lbtn{width:100%;padding:.68rem;background:#009E60;color:#fff;border:none;border-radius:7px;font-size:.82rem;font-weight:900;cursor:pointer;margin-top:.35rem;transition:all .2s;display:block}
+.lbtn:hover:not(:disabled){background:#007a45}.lbtn:disabled{opacity:.4;cursor:not-allowed}
+.lbtn.ghost{background:none;border:1px solid #b2dfcc;color:#004d20}
 .lbtn.blue{background:#1a4a76;color:#fff}
-.lerr{color:#ff6b6b;font-size:.65rem;margin-top:.35rem;padding:.3rem .6rem;background:#1a0000;border-radius:5px;display:none}
-.lsep{display:flex;align-items:center;gap:.5rem;font-size:.6rem;color:#3a3a3a;margin:.6rem 0}
-.lsep::before,.lsep::after{content:'';flex:1;height:1px;background:#2a2a2a}
-.lgoog{width:100%;padding:.55rem;border:1px solid #2a2a2a;border-radius:7px;background:#1a1a1a;color:#ccc;font-size:.72rem;cursor:pointer;font-weight:700}
-.lgoog:hover{border-color:#4285f4;color:#4285f4}
-.llink{font-size:.62rem;color:#f5a623;cursor:pointer;display:block;text-align:right;margin-top:.2rem}
+.lerr{color:#c62828;font-size:.65rem;margin-top:.35rem;padding:.3rem .6rem;background:#fde8e8;border:1px solid #f5c2c2;border-radius:5px;display:none}
+.lsep{display:flex;align-items:center;gap:.5rem;font-size:.6rem;color:#88c4a4;margin:.6rem 0}
+.lsep::before,.lsep::after{content:'';flex:1;height:1px;background:#c5e8d5}
+.lgoog{width:100%;padding:.55rem;border:1px solid #b2dfcc;border-radius:7px;background:#fff;color:#004d20;font-size:.72rem;cursor:pointer;font-weight:700}
+.lgoog:hover{border-color:#009E60;color:#007a45;background:#e8f9ef}
+.llink{font-size:.62rem;color:#007a45;cursor:pointer;display:block;text-align:right;margin-top:.2rem;font-weight:700}
 .otimer{font-size:.6rem;color:#888;text-align:center;margin-top:.4rem}
-.otimer .hl{color:#f5a623;font-weight:700}
-.afoot{padding:.55rem 1.2rem;text-align:center;font-size:.58rem;color:#444;border-top:1px solid #222}
+.otimer .hl{color:#009E60;font-weight:700}
+.afoot{padding:.55rem 1.2rem;text-align:center;font-size:.58rem;color:#5a9a70;border-top:1px solid #c5e8d5}
 #userHeaderDiv{display:inline-flex;align-items:center;gap:.35rem;flex-wrap:wrap}
 .uname{font-size:.8rem;color:#f5a623;font-weight:800}
 .ubadge{font-size:.65rem;padding:.15rem .45rem;border-radius:8px;font-weight:800}
@@ -661,7 +661,7 @@ service cloud.firestore {<br>
   </div>
 </div>
 <div id="appShell" style="display:none">
-<nav><div class="nb"><h1>ATP's Estimate App</h1><p>Maharashtra PWD · SSR 2022-23 · 2009 items · LL lookup</p></div><div class="ns"><div class="nst"><div class="nv" id="hIt">6</div><div class="nl">Items</div></div><div class="nst"><div class="nv" id="hTot">₹2.94 L</div><div class="nl">Grand Total</div></div></div><div style="display:flex;align-items:center;gap:.35rem"><div id="userHeaderDiv" style="display:flex;align-items:center;gap:.4rem;font-size:.62rem"></div><button id="reqBellBtn" onclick="openReqPanel()" title="Share Requests" style="display:none;position:relative;background:none;border:none;cursor:pointer;padding:.15rem .3rem;font-size:1.1rem;line-height:1"><span style="font-size:1rem">🔔</span><span id="reqBadge" style="display:none;position:absolute;top:-3px;right:-4px;background:#e53935;color:#fff;border-radius:10px;min-width:16px;height:16px;font-size:.55rem;font-weight:900;line-height:16px;text-align:center;padding:0 3px;box-sizing:border-box"></span></button></div><button id="installBtn" onclick="window.__pwaInstall&amp;&amp;window.__pwaInstall()" style="display:none;align-items:center;gap:.28rem;background:#f5a623;color:#18150f;border:none;border-radius:4px;padding:.28rem .56rem;font-size:.58rem;font-weight:800;cursor:pointer;white-space:nowrap;font-family:inherit">↓ Install App</button></nav>
+<nav><div class="nb"><h1>ATP's Estimate App</h1><p>Maharashtra PWD · SSR 2022-23 · 2009 items · LL lookup</p></div><div class="ns"><div class="nst"><div class="nv" id="hIt">6</div><div class="nl">Items</div></div><div class="nst"><div class="nv" id="hTot">₹2.94 L</div><div class="nl">Grand Total</div></div></div><div style="display:flex;align-items:center;gap:.35rem"><div style="display:flex;align-items:center;gap:.3rem"><div id="userHeaderDiv" style="display:flex;align-items:center;gap:.4rem;font-size:.62rem"></div><button id="reqBellBtn" onclick="openReqPanel()" title="Access Requests" style="display:none;position:relative;background:none;border:1px solid #555;border-radius:5px;cursor:pointer;padding:.22rem .45rem;font-size:.85rem;line-height:1;color:#ccc;transition:all .2s" onmouseover="this.style.borderColor='#f5a623';this.style.color='#f5a623'" onmouseout="this.style.borderColor='#555';this.style.color='#ccc'">🔔<span id="reqBadge" style="display:none;position:absolute;top:-5px;right:-5px;background:#e53935;color:#fff;border-radius:10px;min-width:16px;height:16px;font-size:.55rem;font-weight:900;line-height:16px;text-align:center;padding:0 3px;box-sizing:border-box"></span></button></div><button id="reqBellBtn" onclick="openReqPanel()" title="Share Requests" style="display:none;position:relative;background:none;border:none;cursor:pointer;padding:.15rem .3rem;font-size:1.1rem;line-height:1"><span style="font-size:1rem">🔔</span><span id="reqBadge" style="display:none;position:absolute;top:-3px;right:-4px;background:#e53935;color:#fff;border-radius:10px;min-width:16px;height:16px;font-size:.55rem;font-weight:900;line-height:16px;text-align:center;padding:0 3px;box-sizing:border-box"></span></button></div><button id="installBtn" onclick="window.__pwaInstall&amp;&amp;window.__pwaInstall()" style="display:none;align-items:center;gap:.28rem;background:#f5a623;color:#18150f;border:none;border-radius:4px;padding:.28rem .56rem;font-size:.58rem;font-weight:800;cursor:pointer;white-space:nowrap;font-family:inherit">↓ Install App</button></nav>
 <div class="tabs"><div class="tab on" id="t0" onclick="goTab(0)">Main</div><div class="tab" id="t1" onclick="goTab(1)">Lead Chart</div><div class="tab" id="t2" onclick="goTab(2)">Search <span class="tbdg" id="b2">0</span></div><div class="tab" id="t3" onclick="goTab(3)">Abstract</div><div class="tab" id="t4" onclick="goTab(4)">Rate Analysis</div><div class="tab" id="t5" onclick="goTab(5)">Measurements</div><div class="tab" id="t6" onclick="goTab(6)">Consumption</div><div class="tab" id="t7" onclick="goTab(7)">Royalty</div><div class="tab" id="t8" onclick="goTab(8)">General Abstract</div><div class="tab" id="t9" onclick="goTab(9)">Steel Calc</div><div class="tab" id="t10" onclick="goTab(10)">&#9881;&#65039; Settings</div><div class="tab" id="t11" onclick="goTab(11)">&#129514; Testing</div><div class="tab" id="t12" onclick="goTab(12)">&#128205; Lead Map</div><div class="tab" id="t13" onclick="goTab(13)">&#9881;&#65039; CF Table</div><div class="tab noprt" id="t14" onclick="goTab(14)">&#128101; Browse</div><div class="tab noprt" id="t15" onclick="goTab(15)">&#128222; Contact</div></div>
 <div class="lay">
 <div class="main">
@@ -902,7 +902,6 @@ ii) Water Absorption</td><td style="font-size:.57rem">One test for 50,000 blocks
 </div>
 
 <div class="panel noprt" id="p14">
-  <div class="pth noprt"><span class="pth-work"></span></div>
   <div style="max-width:700px;margin:0 auto">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem;padding-bottom:.4rem;border-bottom:2px solid var(--or)">
       <span style="font-size:.85rem;font-weight:800;color:var(--or)">&#128101; Browse Estimates</span>
@@ -3290,6 +3289,91 @@ function rejectReq(reqId,btn){
     .then(function(){showToast("Request rejected","info");loadReqNotifList();})
     .catch(function(e){showToast("Error: "+e.message,"error");btn.disabled=false;btn.textContent="✕ Reject";});
 }
+function openReqPanel(){
+  var m=G("reqNotifModal");
+  if(!m){
+    var md=document.createElement("div");
+    md.id="reqNotifModal";
+    md.style.cssText="display:flex;position:fixed;inset:0;z-index:9010;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:1rem";
+    md.onclick=function(e){if(e.target===md)md.style.display="none";};
+    md.innerHTML='<div style="background:#fff;border-radius:14px;max-width:440px;width:100%;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.4);max-height:88vh;display:flex;flex-direction:column">'
+      +'<div style="background:#18602f;color:#fff;padding:.85rem 1.2rem;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">'
+      +'<span style="font-size:.88rem;font-weight:900">🔔 Estimate Access Requests</span>'
+      +'<button onclick="G(\'reqNotifModal\').style.display=\'none\'" style="background:none;border:none;color:#fff;font-size:1.3rem;cursor:pointer;line-height:1;padding:0 .2rem">✕</button>'
+      +'</div>'
+      +'<div id="reqNotifList" style="padding:.9rem;overflow-y:auto;font-size:.78rem;flex:1;min-height:80px">'
+      +'<div style="color:#aaa;font-style:italic;text-align:center;padding:1rem">Loading...</div>'
+      +'</div>'
+      +'</div>';
+    document.body.appendChild(md);
+  }
+  G("reqNotifModal").style.display="flex";
+  loadReqNotifList();
+}
+function loadReqNotifList(){
+  var list=G("reqNotifList");
+  if(!list||!CU||!window.firebase||!firebase.firestore)return;
+  list.innerHTML='<div style="color:#aaa;font-size:.72rem;text-align:center;padding:.8rem">Loading...</div>';
+  firebase.firestore().collection("requests")
+    .where("ownerUid","==",CU.uid)
+    .orderBy("createdAt","desc")
+    .limit(40)
+    .get()
+    .then(function(snap){
+      if(snap.empty){
+        list.innerHTML='<div style="color:#aaa;font-style:italic;text-align:center;padding:1.5rem">No requests yet</div>';
+        return;
+      }
+      var html="";
+      snap.forEach(function(d){
+        var r=d.data();
+        var dt=r.createdAt?new Date(r.createdAt.seconds*1000).toLocaleDateString("en-IN"):"--";
+        var sc=r.status==="pending"?"#f57c00":r.status==="approved"?"#18602f":"#c62828";
+        var sb=r.status==="pending"?"#fff8e1":r.status==="approved"?"#e8f5e9":"#fde8e8";
+        html+='<div style="border:1px solid #e0e0e0;border-radius:8px;padding:.62rem .75rem;margin-bottom:.4rem;background:'+sb+'">'
+          +'<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.4rem;margin-bottom:.2rem">'
+          +'<strong style="font-size:.77rem;color:#1a3a2a">👤 '+(r.fromName||r.fromEmail||"Unknown user")+'</strong>'
+          +'<span style="font-size:.58rem;padding:.1rem .42rem;border-radius:9px;background:'+sc+';color:#fff;font-weight:800;flex-shrink:0;text-transform:uppercase">'+r.status+'</span>'
+          +'</div>'
+          +'<div style="color:#444;font-size:.7rem;margin-bottom:.12rem">📋 Estimate: <strong>'+(r.estName||"(unnamed)")+'</strong></div>'
+          +(r.fromEmail?'<div style="color:#888;font-size:.63rem;margin-bottom:.38rem">✉️ '+r.fromEmail+'&nbsp;·&nbsp;📅 '+dt+'</div>':'<div style="color:#888;font-size:.63rem;margin-bottom:.38rem">📅 '+dt+'</div>')
+          +(r.status==="pending"
+            ?'<div style="display:flex;gap:.35rem">'
+              +'<button onclick="approveReq(\''+d.id+'\',\''+esc(r.estId||"")+'\',\''+esc(r.fromEmail||"")+'\',this)" style="flex:1;padding:.3rem;background:#18602f;color:#fff;border:none;border-radius:5px;font-size:.67rem;font-weight:800;cursor:pointer">✅ Approve</button>'
+              +'<button onclick="rejectReq(\''+d.id+'\',this)" style="flex:1;padding:.3rem;background:#c62828;color:#fff;border:none;border-radius:5px;font-size:.67rem;font-weight:800;cursor:pointer">✕ Reject</button>'
+              +'</div>'
+            :"")
+          +'</div>';
+      });
+      list.innerHTML=html;
+    }).catch(function(e){
+      list.innerHTML='<div style="color:red;font-size:.7rem;padding:.5rem">Error: '+e.message+'</div>';
+    });
+}
+function approveReq(reqId,estId,email,btn){
+  if(!window.firebase||!firebase.firestore)return;
+  btn.disabled=true;btn.textContent="Approving...";
+  var db=firebase.firestore();
+  var p1=db.collection("requests").doc(reqId).update({status:"approved",approvedAt:firebase.firestore.FieldValue.serverTimestamp()});
+  var p2=(estId&&email)?db.collection("estimates").doc(estId).update({collaborators:firebase.firestore.FieldValue.arrayUnion({email:email,role:"viewer",addedAt:new Date().toISOString()})}):Promise.resolve();
+  Promise.all([p1,p2]).then(function(){
+    showToast("✅ Approved! "+email+" added as viewer.","success");
+    loadReqNotifList();
+  }).catch(function(e){
+    showToast("Error: "+e.message,"error");
+    btn.disabled=false;btn.textContent="✅ Approve";
+  });
+}
+function rejectReq(reqId,btn){
+  btn.disabled=true;btn.textContent="Rejecting...";
+  firebase.firestore().collection("requests").doc(reqId)
+    .update({status:"rejected",rejectedAt:firebase.firestore.FieldValue.serverTimestamp()})
+    .then(function(){showToast("Request rejected.","info");loadReqNotifList();})
+    .catch(function(e){
+      showToast("Error: "+e.message,"error");
+      btn.disabled=false;btn.textContent="✕ Reject";
+    });
+}
 function startReqListener(uid){
   if(REQ_UNSUB)REQ_UNSUB();
   if(!window.firebase||!firebase.firestore)return;
@@ -3383,7 +3467,7 @@ function renderHeader(){
   if(!CU){el.innerHTML="";return;}
   var nm=(CU.displayName||CU.phoneNumber||CU.email||"User").split(" ")[0];
   var rem=Math.max(0,FREE_LIMIT-DL_COUNT);
-  el.innerHTML="<span class=\"uname\">👤 "+esc(nm)+"</span>"+(IS_PRO?"<span class=\"ubadge upro\">💎 Pro</span>":"<span class=\"ubadge ufree\">🆓 "+rem+" left</span>")+"<button class=\"ubtn\" onclick=\"doLogout()\">Logout</button>";var _bell=G("reqBellBtn");if(_bell)_bell.style.display="inline-flex";
+  el.innerHTML="<span class=\"uname\">👤 "+esc(nm)+"</span>"+(IS_PRO?"<span class=\"ubadge upro\">💎 Pro</span>":"<span class=\"ubadge ufree\">🆓 "+rem+" left</span>")+"<button class=\"ubtn\" onclick=\"doLogout()\">Logout</button>";var _b=G("reqBellBtn");if(_b)_b.style.display="inline-flex";var _bell=G("reqBellBtn");if(_bell)_bell.style.display="inline-flex";
   var badge=G("dlCountBadge");
   if(badge){
     if(IS_PRO){badge.textContent="(💎 Pro)";}
@@ -3480,7 +3564,7 @@ function doRegister(){
 }
 
 function doForgot(){var em=(G("eEmail").value||"").trim();if(!em){showE("eErr","Enter email first");return;}firebase.auth().sendPasswordResetEmail(em).then(function(){showToast("Reset email sent 📧","success");}).catch(function(e){showE("eErr",e.message);});}
-function doLogout(){if(!confirm("Are you sure you want to log out?"))return;firebase.auth().signOut();}
+function doLogout(){var _b=G("reqBellBtn");if(_b)_b.style.display="none";var _badge=G("reqBadge");if(_badge){_badge.style.display="none";_badge.textContent="";}if(!confirm("Are you sure you want to log out?"))return;firebase.auth().signOut();}
 
 function doAdminLogin(){
   var pw=(G("admPwd").value||"").trim();if(!pw){showE("admErr","Enter password");return;}
