@@ -465,11 +465,20 @@ tr:hover td{background:#fdf8f3}
     if(!em||!pw){var e=document.getElementById('eErr');if(e){e.textContent='Email and password required';e.style.display='block';}return;}
     var btn=document.getElementById('eLoginBtn');if(btn){btn.disabled=true;btn.textContent='Logging in...';}
     var eErr=document.getElementById('eErr');if(eErr)eErr.style.display='none';
+    var loginTimeout=setTimeout(function(){
+      if(btn&&btn.disabled){
+        btn.disabled=false;btn.textContent='🔑 Login';
+        var errEl=document.getElementById('eErr');
+        if(errEl){errEl.textContent='Login timeout — Firebase domain not authorized. Add this site to Firebase Console → Authentication → Authorized Domains';errEl.style.display='block';}
+      }
+    },10000);
     firebase.auth().signInWithEmailAndPassword(em,pw)
+      .then(function(){clearTimeout(loginTimeout);})
       .catch(function(e){
+        clearTimeout(loginTimeout);
         if(btn){btn.disabled=false;btn.textContent='🔑 Login';}
         var errEl=document.getElementById('eErr');
-        var msg=e.code==='auth/user-not-found'||e.code==='auth/invalid-credential'?'Invalid email or password':e.code==='auth/wrong-password'?'Wrong password':e.message;
+        var msg=e.code==='auth/user-not-found'||e.code==='auth/invalid-credential'?'Invalid email or password':e.code==='auth/wrong-password'?'Wrong password':e.code==='auth/network-request-failed'?'Network error — check internet':e.message;
         if(errEl){errEl.textContent=msg;errEl.style.display='block';}
       });
   }
