@@ -2076,7 +2076,7 @@ function rBOQ(){
       +'<td class="r">'+it.qty.toFixed(3)+'</td>'
       +'<td class="r" style="font-size:.54rem">'+(function(it){
         var hasFloor=it.rows&&it.rows.some(function(rw){return rw.fl&&rw.fl>0;});
-        if(hasFloor){return '<span style="color:#e65100;font-size:.5rem">मजलेनुसार</span><br>\u20b9'+fmt(it.finalRate);}
+        if(hasFloor){return '<span style="color:#e65100;font-size:.5rem">Floor-wise</span><br>\u20b9'+fmt(it.finalRate)+' (GF)';}
         return '\u20b9'+fmt(it.finalRate);
       })(it)+'</td>'
       +'<td class="r gr">\u20b9'+fmt(it.amount)+'</td>'
@@ -2116,7 +2116,19 @@ function rRA(){
         note:noteTxt});
     }
     if(it.scadaVal)subRows.push({lbl:'+ SCADA Deduction',val:it.scadaVal,cls:'rd',note:''});
-    subRows.push({lbl:'Final Rate / '+it.unit,val:'\u20b9'+fmt(it.finalRate),cls:'gr bold',note:''});
+    subRows.push({lbl:'Final Rate (Ground Floor) / '+it.unit,val:'\u20b9'+fmt(it.finalRate),cls:'gr bold',note:'0% increase'});
+    /* Add floor-wise rows if item has floor measurements */
+    var usedFloors={};
+    if(it.rows){it.rows.forEach(function(rw){if(rw.fl&&rw.fl>0)usedFloors[rw.fl]=true;});}
+    var floorNames=['Ground','1st Floor','2nd Floor','3rd Floor','4th Floor'];
+    for(var fx=1;fx<=4;fx++){
+      if(usedFloors[fx]){
+        var fRate=Math.round(it.finalRate*(1+fx/100)*100)/100;
+        subRows.push({lbl:'Final Rate ('+floorNames[fx]+') / '+it.unit,
+          val:'\u20b9'+fmt(fRate),cls:'gr bold',
+          note:'+'+fx+'% on GF rate'});
+      }
+    }
     rowspan=subRows.length;
     desc=it.desc.length>110?it.desc.substring(0,110)+'...':it.desc;
     for(j=0;j<subRows.length;j++){
@@ -2177,7 +2189,7 @@ function rMS(){
       }
       var isTotRow=(r.isTot||false);
       var rowStyle=isTotRow?'style="background:#fff9c4;font-weight:900"':'';
-      var flNames=['G','१ली','२री','३री','४थी'];
+      var flNames=['G','1st','2nd','3rd','4th'];
       var flLabel=(!isTotRow&&r.fl)?(' <span style="font-size:.46rem;background:#ff8f00;color:#fff;border-radius:2px;padding:0 .18rem">'+(flNames[r.fl]||r.fl+'F')+'</span>'):'';
       h+='<td style="font-size:.61rem"'+(isTotRow?' style="font-weight:900"':'')+'>'+
         (isTotRow?'<b>'+(r.lbl||'')+'</b>':(r.lbl||''))+flLabel+'</td>'
