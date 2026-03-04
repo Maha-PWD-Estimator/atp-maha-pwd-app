@@ -12,7 +12,8 @@
 <style>*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{--bg:#f0ece5;--sf:#fff;--bd:#ddd6c8;--bd2:#bfb8aa;--tx:#18150f;--mu:#7a7064;
   --or:#b84f09;--ol:#f6ede2;--gr:#18602f;--rd:#9e2b2b;--rl:#fceaea;
-  --bl:#1a4a76;--bll:#e5f0f8;--pu:#4e349a}
+  --bl:#1a4a76;--bll:#e5f0f8;--pu:#4e349a;
+  --gf:#2d5016;--ff:#b84f09;--sf-c:#8b4513;--tf:#6b2d5c;--fof:#1a4a76}
 body{background:var(--bg);color:var(--tx);font-family:system-ui,sans-serif;font-size:13px}
 nav{background:#18150f;color:#fff;padding:.5rem .9rem;display:flex;align-items:center;
   justify-content:space-between;position:sticky;top:0;z-index:200;box-shadow:0 2px 8px rgba(0,0,0,.4)}
@@ -137,6 +138,28 @@ table.lct tr:hover td{background:#f0f5fb}
 .bp{background:var(--or);color:#fff}.bp:hover{background:#9a4007}
 .bs{background:#fff;color:var(--tx);border:1px solid var(--bd2)}.bs:hover{background:var(--bg)}
 .bg{background:var(--gr);color:#fff}.bg:hover{background:#134d24}
+/* FLOOR STYLES */
+.floor-sel{margin-bottom:.6rem;padding:.5rem;background:#f5f8fb;border-radius:4px;border:1px solid var(--bd)}
+.floor-sel-label{font-size:.58rem;font-weight:700;color:var(--bl);margin-bottom:.35rem;text-transform:uppercase;letter-spacing:.05em}
+.floor-chips{display:flex;gap:.35rem;flex-wrap:wrap}
+.floor-chip{padding:.3rem .6rem;border:2px solid var(--bd2);border-radius:4px;font-size:.62rem;font-weight:700;cursor:pointer;transition:all .15s;background:#fff;user-select:none}
+.floor-chip:hover{border-color:var(--bl)}
+.floor-chip.active{border-color:var(--or);background:var(--or);color:#fff}
+.floor-chip[data-floor="GF"].active{background:var(--gf);border-color:var(--gf)}
+.floor-chip[data-floor="FF"].active{background:var(--ff);border-color:var(--ff)}
+.floor-chip[data-floor="SF"].active{background:var(--sf-c);border-color:var(--sf-c)}
+.floor-chip[data-floor="TF"].active{background:var(--tf);border-color:var(--tf)}
+.floor-chip[data-floor="FoF"].active{background:var(--fof);border-color:var(--fof)}
+.floor-badge{display:inline-block;padding:.1rem .35rem;border-radius:3px;font-size:.52rem;font-weight:700;color:#fff;margin-right:.15rem;text-transform:uppercase;letter-spacing:.03em}
+.floor-badge.GF{background:var(--gf)}
+.floor-badge.FF{background:var(--ff)}
+.floor-badge.SF{background:var(--sf-c)}
+.floor-badge.TF{background:var(--tf)}
+.floor-badge.FoF{background:var(--fof)}
+.rate-inc{font-size:.52rem;color:var(--or);font-weight:600;margin-left:.15rem}
+.item-group{background:#fafafa}
+.item-group.first-floor{border-top:2px solid var(--bd)}
+.item-total-row{background:linear-gradient(135deg,#fff9e6 0%,#fff0cc 100%);font-weight:700;border-top:1px solid var(--or)!important}
 /* TABLES */
 .tw{overflow-x:auto;margin-top:.28rem}
 table{width:100%;border-collapse:collapse;font-size:.65rem;background:#fff;
@@ -449,7 +472,6 @@ tr:hover td{background:#fdf8f3}
       var FBCFG={apiKey:"AIzaSyCdH-k3hH1mYYcND0cBf7J2pLRG6xQydrU",authDomain:"atp-maha-pwd.firebaseapp.com",projectId:"atp-maha-pwd",storageBucket:"atp-maha-pwd.firebasestorage.app",messagingSenderId:"382409286731",appId:"1:382409286731:web:37daae9842bc3687bf99ce"};
       if(!firebase.apps.length) firebase.initializeApp(FBCFG);
     } catch(e) { console.error('Firebase init error:', e); }
-    var ADMIN_EMAIL="thongeaditya@gmail.com";
 
 function G(id){return document.getElementById(id);}
 function showE(id,msg){var e=G(id);if(e){e.textContent=msg;e.style.display="block";}}
@@ -483,6 +505,7 @@ function doRegister(){
 function doAdminLogin(){
   var pw=(G("admPwd").value||"").trim();if(!pw){showE("admErr","Enter password");return;}
   hideE("admErr");var btn=G("admBtn");btn.disabled=true;btn.textContent="Logging in...";
+  
   firebase.auth().signInWithEmailAndPassword(ADMIN_EMAIL,pw)
     .then(function(){
       if(G("loginShell"))G("loginShell").style.display="none";
@@ -490,12 +513,7 @@ function doAdminLogin(){
       if(G("adminLoginBox"))G("adminLoginBox").style.display="none";
       if(G("adminDash"))G("adminDash").style.display="block";
       if(G("adminUsr"))G("adminUsr").textContent=ADMIN_EMAIL;
-      setTimeout(function(){
-        try{if(typeof aLoadAll==="function")aLoadAll();}catch(e){}
-        try{if(typeof aLoadCurQR==="function")aLoadCurQR();}catch(e){}
-        try{if(typeof aStartPayListener==="function")aStartPayListener();}catch(e){}
-        try{if(typeof aLoadSettings==="function")aLoadSettings();}catch(e){}
-      },300);
+      aLoadAll();aLoadCurQR();aStartPayListener();aLoadSettings();
     })
     .catch(function(e){btn.disabled=false;btn.textContent="🔑 Admin Login";showE("admErr",e.code==="auth/wrong-password"||e.code==="auth/invalid-credential"?"Wrong password":"Error: "+e.message);});
 }
@@ -507,13 +525,7 @@ function doPortalLogin(){
       if(G("adminLoginBox"))G("adminLoginBox").style.display="none";
       if(G("adminDash"))G("adminDash").style.display="block";
       if(G("adminUsr"))G("adminUsr").textContent=c.user.email;
-      setTimeout(function(){
-        try{if(typeof showToast==="function")showToast("Welcome Admin! 👑","success");}catch(e){}
-        try{if(typeof aLoadAll==="function")aLoadAll();}catch(e){}
-        try{if(typeof aLoadCurQR==="function")aLoadCurQR();}catch(e){}
-        try{if(typeof aStartPayListener==="function")aStartPayListener();}catch(e){}
-        try{if(typeof aLoadSettings==="function")aLoadSettings();}catch(e){}
-      },300);
+      showToast("Welcome Admin! 👑","success");aLoadAll();aLoadCurQR();aStartPayListener();aLoadSettings();
     })
     .catch(function(e){btn.disabled=false;btn.textContent="🔑 Login to Dashboard";showE("portalErr",e.code==="auth/wrong-password"||e.code==="auth/invalid-credential"?"Wrong password":"Error: "+e.message);});
 }
@@ -557,7 +569,7 @@ function doPortalLogin(){
 </div>
 <!-- ADMIN -->
 <div class="apanel" id="ap1">
-<p style="font-size:.72rem;color:#aaa;text-align:center;margin-bottom:.8rem">Admin: thongeaditya@gmail.com</p>
+<p style="font-size:.72rem;color:#aaa;text-align:center;margin-bottom:.8rem">Admin: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="cdb9a5a2a3aaa8aca9a4b9b4ac8daaa0aca4a1e3aea2a0">[email&#160;protected]</a></p>
 <div class="laf"><label>Email (fixed)</label><input type="email" value="thongeaditya@gmail.com" readonly></div>
 <div class="laf"><label>Password</label><input id="admPwd" type="password" placeholder="Admin password" onkeydown="if(event.key==='Enter')doAdminLogin()"></div>
 <div class="lerr" id="admErr"></div>
@@ -631,7 +643,7 @@ function doPortalLogin(){
 <div class="alwrap">
 <div class="allogo"><span class="ico">🔐</span><h1>Admin Portal</h1></div>
 <div class="alcard">
-<div class="asub">thongeaditya@gmail.com</div>
+<div class="asub"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="15617d7a7b727074717c616c74557278747c793b767a78">[email&#160;protected]</a></div>
 <div class="laf"><label>Email</label><input type="email" value="thongeaditya@gmail.com" readonly></div>
 <div class="laf"><label>Password</label><input id="portalPwd" type="password" placeholder="Admin password" onkeydown="if(event.key==='Enter')doPortalLogin()"></div>
 <div class="lerr" id="portalErr"></div>
@@ -757,8 +769,8 @@ service cloud.firestore {<br>
   </table>
   </div>
 </div><div style="margin-top:2rem;padding:1.5rem 3rem;border-top:1px solid #999;page-break-inside:avoid;min-height:120px"><div style="display:flex;justify-content:space-between"><div style="text-align:left;flex:1"><div style="font-size:.72rem;line-height:1.8;font-style:italic"><div><span class="stmp-se">Section Engineer</span>,</div><div class="sign-space" style="min-height:45px;border-bottom:1px solid #ccc;margin:.3rem 0;width:90%"></div><div class="stmp-loc">P.W. Sub Division</div></div></div><div style="text-align:right;flex:1"><div style="font-size:.72rem;line-height:1.8;font-style:italic"><div><span class="stmp-sde">Sub Divisional Engineer</span>,</div><div class="sign-space" style="min-height:45px;border-bottom:1px solid #ccc;margin:.3rem 0;margin-left:auto;width:90%"></div><div class="stmp-loc">P.W. Sub Division</div></div></div></div></div></div>
-<div class="panel" id="p2" style=""><div class="sh"><div class="n">2</div><h2>SSR Item Search</h2></div><div class="af" id="addForm"><div style="font-size:.62rem;font-weight:800;color:var(--bl);margin-bottom:.38rem">Item Add Kara</div><div class="seli"><div class="seln" id="selNo">Item No. 28.01</div><div class="seld" id="selDesc">Providing uncoursed rubble masonry of trap / granite / quartzite / gneiss stones in cement mortar 1:6 in foundation and plinth of inner walls / in plinth of external walls includin...</div><div class="selr" id="selRate">₹5,025 / One Cubic Metre</div></div><div class="lprev" id="leadPrev"><div class="lprev-hd">Lead (current km -- non-linear lookup)</div><div class="ml" style="margin-top:.5rem;margin-bottom:.18rem">&#127970; Floor Wise Rate Increase (GR Table)</div><div id="floorSel" style="background:#fff8e1;border:1px solid #ffc107;border-radius:4px;padding:.38rem .56rem;margin-bottom:.4rem;display:flex;flex-wrap:wrap;gap:.18rem .6rem;align-items:center"><label style="font-size:.58rem;font-weight:700;color:#7a5c00;white-space:nowrap">Floor:</label><label style="font-size:.62rem;display:flex;align-items:center;gap:.18rem"><input type="checkbox" id="flGF" checked onchange="floorToggle()"> GF (0%)</label><label style="font-size:.62rem;display:flex;align-items:center;gap:.18rem"><input type="checkbox" id="flFF" onchange="floorToggle()"> FF (+1%)</label><label style="font-size:.62rem;display:flex;align-items:center;gap:.18rem"><input type="checkbox" id="flSF" onchange="floorToggle()"> SF (+2%)</label><label style="font-size:.62rem;display:flex;align-items:center;gap:.18rem"><input type="checkbox" id="flTF" onchange="floorToggle()"> TF (+3%)</label><label style="font-size:.62rem;display:flex;align-items:center;gap:.18rem"><input type="checkbox" id="fl4F" onchange="floorToggle()"> 4F (+4%)</label></div><div class="lp-row"><span>Rubble / Murrum (1.16 x km=2)</span><span class="lp-v">+₹235.85</span></div><div class="lp-row"><span>Cement (bags) (1.7x0.05 x km=5)</span><span class="lp-v">+₹14.02</span></div><div class="lp-row"><span>Screened Sand (0.35 x km=3)</span><span class="lp-v">+₹84.76</span></div><div style="border-top:1px solid #c8bef0;margin-top:.18rem;padding-top:.18rem;font-weight:700;font-size:.62rem">Lead/unit=₹334.64 | Final=₹5,359.64</div></div><div class="ml">Measurements -- No x L x B x H/D</div><div class="mch"><span>Desc</span><span>No.</span><span>L</span><span>B</span><span>D/H</span><span style="text-align:right">Total</span><span></span></div><div id="measRows"><div class="mr" id="mr1"><input type="text" placeholder="Desc" id="ml1"><input type="number" placeholder="1" step="any" id="mn1" oninput="cMR(1)" value="1"><input type="number" placeholder="0" step="any" id="ml21" oninput="cMR(1)"><input type="number" placeholder="0" step="any" id="mb1" oninput="cMR(1)"><input type="number" placeholder="0" step="any" id="md1" oninput="cMR(1)"><span class="mt" id="mt1">8.000</span><button class="dr" onclick="this.parentElement.remove()">x</button></div></div><button class="bar" onclick="addMR()">+ Row</button><div class="fa"><button class="btn bp" onclick="addToEst()">Add to Estimate</button><button class="btn bs" onclick="closeForm()">Cancel</button></div></div><div class="sw"><span class="sico">🔍</span><input type="text" id="srchIn" placeholder="Item No. / multiple words...  21.01 / M 20 slab / brick masonry / earth excavation" oninput="doSearch()" autocomplete="off"></div><div class="si" id="srchInfo">1 results</div><div class="rh"><span>No.</span><span>Description</span><span style="text-align:right">Unit</span><span style="text-align:right">Rate ₹</span></div><div class="rb" id="resBox"><div class="ri" data-no="28.01"><div class="rin">28.01</div><div class="rid">Providing uncoursed rubble masonry of trap / granite / quartzite / gneiss stones in cement mortar 1:6 in foundation and plinth of inner walls / in plinth of external walls including bailing out water manually , striking ...</div><div class="riu">One Cubic Metre</div><div class="rir">₹5,025</div></div></div><div style="margin-top:2rem;padding:1.5rem 3rem;border-top:1px solid #999;page-break-inside:avoid;min-height:120px"><div style="display:flex;justify-content:space-between"><div style="text-align:left;flex:1"><div style="font-size:.72rem;line-height:1.8;font-style:italic"><div><span class="stmp-se">Section Engineer</span>,</div><div class="sign-space" style="min-height:45px;border-bottom:1px solid #ccc;margin:.3rem 0;width:90%"></div><div class="stmp-loc">P.W. Sub Division</div></div></div><div style="text-align:right;flex:1"><div style="font-size:.72rem;line-height:1.8;font-style:italic"><div><span class="stmp-sde">Sub Divisional Engineer</span>,</div><div class="sign-space" style="min-height:45px;border-bottom:1px solid #ccc;margin:.3rem 0;margin-left:auto;width:90%"></div><div class="stmp-loc">P.W. Sub Division</div></div></div></div></div></div>
-<div class="panel" id="p3" style=""><div class="sh"><div class="n">3</div><h2>Abstract</h2></div><div class="pth"><div class="pth-work"></div><div class="pth-sheet">Abstract</div></div><div class="tw"><table><thead><tr><th>Sr.</th><th>Item No.</th><th>Description</th><th>Unit</th><th class="r">Qty</th><th class="r">Final Rate ₹</th><th class="r">Amount ₹</th><th></th><th class="noprt">CF</th></tr></thead><tbody id="boqTb"><tr><td>1</td><td class="or">3.4</td><td style="max-width:210px;font-size:.63rem;line-height:1.27">BITUMINOUS MACADAM: Proving and laying bituminous macadam using crushed aggregates of Grad...</td><td style="font-size:.58rem;color:var(--mu)">One Cubic Metre</td><td class="r">8.000</td><td class="r">₹7,540.4</td><td class="r gr">₹60,323.2</td><td class="noprt" style="white-space:nowrap"><button onclick="openCFEditor(0)" class="btn-sm" style="background:#ff6f00;color:#fff;font-size:.52rem;padding:.12rem .3rem;margin-right:.2rem;border:none;border-radius:3px;cursor:pointer">CF</button><button class="dbt" onclick="removeItem(1772295817064)">del</button></td></tr><tr><td>2</td><td class="or">25.11</td><td style="max-width:210px;font-size:.63rem;line-height:1.27">Providing and laying in situ /Ready Mix cement concrete M-20 of trap / granite /quartzite/...</td><td style="font-size:.58rem;color:var(--mu)">One Cubic Metre</td><td class="r">8.000</td><td class="r">₹7,344.53</td><td class="r gr">₹58,756.24</td><td class="noprt" style="white-space:nowrap"><button onclick="openCFEditor(1)" class="btn-sm" style="background:#ff6f00;color:#fff;font-size:.52rem;padding:.12rem .3rem;margin-right:.2rem;border:none;border-radius:3px;cursor:pointer">CF</button><button class="dbt" onclick="removeItem(1772299424653)">del</button></td></tr><tr><td>3</td><td class="or">8.32</td><td style="max-width:210px;font-size:.63rem;line-height:1.27">Providing 50 mm thick Full grout bituminous treatment including supplying all materials , ...</td><td style="font-size:.58rem;color:var(--mu)">One Square Meter</td><td class="r">8.000</td><td class="r">₹922.03</td><td class="r gr">₹7,376.24</td><td class="noprt" style="white-space:nowrap"><button onclick="openCFEditor(2)" class="btn-sm" style="background:#ff6f00;color:#fff;font-size:.52rem;padding:.12rem .3rem;margin-right:.2rem;border:none;border-radius:3px;cursor:pointer">CF</button><button class="dbt" onclick="removeItem(1772299565728)">del</button></td></tr><tr><td>4</td><td class="or">22.01</td><td style="max-width:210px;font-size:.63rem;line-height:1.27">Providing and laying cast in situ / Ready Mix Cement Concrete M-20 RCCsingle rim bored pil...</td><td style="font-size:.58rem;color:var(--mu)">One Running Metre</td><td class="r">8.000</td><td class="r">₹852.92</td><td class="r gr">₹6,823.36</td><td class="noprt" style="white-space:nowrap"><button onclick="openCFEditor(3)" class="btn-sm" style="background:#ff6f00;color:#fff;font-size:.52rem;padding:.12rem .3rem;margin-right:.2rem;border:none;border-radius:3px;cursor:pointer">CF</button><button class="dbt" onclick="removeItem(1772299670419)">del</button></td></tr><tr><td>5</td><td class="or">27.01</td><td style="max-width:210px;font-size:.63rem;line-height:1.27">Providing second class Burnt Brick masonry with conventional/ I.S. type bricks in cement m...</td><td style="font-size:.58rem;color:var(--mu)">One Cubic Metre</td><td class="r">8.000</td><td class="r">₹8,029.1</td><td class="r gr">₹64,232.8</td><td class="noprt" style="white-space:nowrap"><button onclick="openCFEditor(4)" class="btn-sm" style="background:#ff6f00;color:#fff;font-size:.52rem;padding:.12rem .3rem;margin-right:.2rem;border:none;border-radius:3px;cursor:pointer">CF</button><button class="dbt" onclick="removeItem(1772299869420)">del</button></td></tr><tr><td>6</td><td class="or">28.01</td><td style="max-width:210px;font-size:.63rem;line-height:1.27">Providing uncoursed rubble masonry of trap / granite / quartzite / gneiss stones in cement...</td><td style="font-size:.58rem;color:var(--mu)">One Cubic Metre</td><td class="r">8.000</td><td class="r">₹5,359.64</td><td class="r gr">₹42,877.12</td><td class="noprt" style="white-space:nowrap"><button onclick="openCFEditor(5)" class="btn-sm" style="background:#ff6f00;color:#fff;font-size:.52rem;padding:.12rem .3rem;margin-right:.2rem;border:none;border-radius:3px;cursor:pointer">CF</button><button class="dbt" onclick="removeItem(1772299987506)">del</button></td></tr><tr class="tfooter"><td colspan="6" style="text-align:right">Total =</td><td class="r gr">₹2.40 L</td><td></td></tr></tbody></table></div><div style="margin-top:2rem;padding:1.5rem 3rem;border-top:1px solid #999;page-break-inside:avoid;min-height:120px"><div style="display:flex;justify-content:space-between"><div style="text-align:left;flex:1"><div style="font-size:.72rem;line-height:1.8;font-style:italic"><div><span class="stmp-se">Section Engineer</span>,</div><div class="sign-space" style="min-height:45px;border-bottom:1px solid #ccc;margin:.3rem 0;width:90%"></div><div class="stmp-loc">P.W. Sub Division</div></div></div><div style="text-align:right;flex:1"><div style="font-size:.72rem;line-height:1.8;font-style:italic"><div><span class="stmp-sde">Sub Divisional Engineer</span>,</div><div class="sign-space" style="min-height:45px;border-bottom:1px solid #ccc;margin:.3rem 0;margin-left:auto;width:90%"></div><div class="stmp-loc">P.W. Sub Division</div></div></div></div></div></div>
+<div class="panel" id="p2" style=""><div class="sh"><div class="n">2</div><h2>SSR Item Search</h2></div><div class="af" id="addForm"><div style="font-size:.62rem;font-weight:800;color:var(--bl);margin-bottom:.38rem">Item Add Kara</div><div class="seli"><div class="seln" id="selNo">Item No. 28.01</div><div class="seld" id="selDesc">Providing uncoursed rubble masonry of trap / granite / quartzite / gneiss stones in cement mortar 1:6 in foundation and plinth of inner walls / in plinth of external walls includin...</div><div class="selr" id="selRate">₹5,025 / One Cubic Metre</div></div><div class="lprev" id="leadPrev"><div class="lprev-hd">Lead (current km -- non-linear lookup)</div><div class="lp-row"><span>Rubble / Murrum (1.16 x km=2)</span><span class="lp-v">+₹235.85</span></div><div class="lp-row"><span>Cement (bags) (1.7x0.05 x km=5)</span><span class="lp-v">+₹14.02</span></div><div class="lp-row"><span>Screened Sand (0.35 x km=3)</span><span class="lp-v">+₹84.76</span></div><div style="border-top:1px solid #c8bef0;margin-top:.18rem;padding-top:.18rem;font-weight:700;font-size:.62rem">Lead/unit=₹334.64 | Final=₹5,359.64</div></div><div class="floor-sel"><div class="floor-sel-label">Select Floor(s) for this Item:</div><div class="floor-chips"><div class="floor-chip" data-floor="GF" onclick="toggleFloor('GF')">Ground Floor (Base)</div><div class="floor-chip" data-floor="FF" onclick="toggleFloor('FF')">First Floor (+1%)</div><div class="floor-chip" data-floor="SF" onclick="toggleFloor('SF')">Second Floor (+2%)</div><div class="floor-chip" data-floor="TF" onclick="toggleFloor('TF')">Third Floor (+3%)</div><div class="floor-chip" data-floor="FoF" onclick="toggleFloor('FoF')">Fourth Floor (+3%)</div></div></div><div id="floorMeasSections"></div><div class="ml">Measurements -- No x L x B x H/D</div><div class="mch"><span>Desc</span><span>No.</span><span>L</span><span>B</span><span>D/H</span><span style="text-align:right">Total</span><span></span></div><div id="measRows"><div class="mr" id="mr1"><input type="text" placeholder="Desc" id="ml1"><input type="number" placeholder="1" step="any" id="mn1" oninput="cMR(1)" value="1"><input type="number" placeholder="0" step="any" id="ml21" oninput="cMR(1)"><input type="number" placeholder="0" step="any" id="mb1" oninput="cMR(1)"><input type="number" placeholder="0" step="any" id="md1" oninput="cMR(1)"><span class="mt" id="mt1">8.000</span><button class="dr" onclick="this.parentElement.remove()">x</button></div></div><button class="bar" onclick="addMR()">+ Row</button><div class="fa"><button class="btn bp" onclick="addToEst()">Add to Estimate</button><button class="btn bs" onclick="closeForm()">Cancel</button></div></div><div class="sw"><span class="sico">🔍</span><input type="text" id="srchIn" placeholder="Item No. / multiple words...  21.01 / M 20 slab / brick masonry / earth excavation" oninput="doSearch()" autocomplete="off"></div><div class="si" id="srchInfo">1 results</div><div class="rh"><span>No.</span><span>Description</span><span style="text-align:right">Unit</span><span style="text-align:right">Rate ₹</span></div><div class="rb" id="resBox"><div class="ri" data-no="28.01"><div class="rin">28.01</div><div class="rid">Providing uncoursed rubble masonry of trap / granite / quartzite / gneiss stones in cement mortar 1:6 in foundation and plinth of inner walls / in plinth of external walls including bailing out water manually , striking ...</div><div class="riu">One Cubic Metre</div><div class="rir">₹5,025</div></div></div><div style="margin-top:2rem;padding:1.5rem 3rem;border-top:1px solid #999;page-break-inside:avoid;min-height:120px"><div style="display:flex;justify-content:space-between"><div style="text-align:left;flex:1"><div style="font-size:.72rem;line-height:1.8;font-style:italic"><div><span class="stmp-se">Section Engineer</span>,</div><div class="sign-space" style="min-height:45px;border-bottom:1px solid #ccc;margin:.3rem 0;width:90%"></div><div class="stmp-loc">P.W. Sub Division</div></div></div><div style="text-align:right;flex:1"><div style="font-size:.72rem;line-height:1.8;font-style:italic"><div><span class="stmp-sde">Sub Divisional Engineer</span>,</div><div class="sign-space" style="min-height:45px;border-bottom:1px solid #ccc;margin:.3rem 0;margin-left:auto;width:90%"></div><div class="stmp-loc">P.W. Sub Division</div></div></div></div></div></div>
+<div class="panel" id="p3" style=""><div class="sh"><div class="n">3</div><h2>Abstract</h2></div><div class="pth"><div class="pth-work"></div><div class="pth-sheet">Abstract</div></div><div class="tw"><table><thead><tr><th>Sr.</th><th>Item No.</th><th style="width:70px">Floor</th><th>Description</th><th>Unit</th><th class="r">Qty</th><th class="r">Final Rate ₹</th><th class="r">Amount ₹</th><th></th><th class="noprt">CF</th></tr></thead><tbody id="boqTb"><tr><td>1</td><td class="or">3.4</td><td style="max-width:210px;font-size:.63rem;line-height:1.27">BITUMINOUS MACADAM: Proving and laying bituminous macadam using crushed aggregates of Grad...</td><td style="font-size:.58rem;color:var(--mu)">One Cubic Metre</td><td class="r">8.000</td><td class="r">₹7,540.4</td><td class="r gr">₹60,323.2</td><td class="noprt" style="white-space:nowrap"><button onclick="openCFEditor(0)" class="btn-sm" style="background:#ff6f00;color:#fff;font-size:.52rem;padding:.12rem .3rem;margin-right:.2rem;border:none;border-radius:3px;cursor:pointer">CF</button><button class="dbt" onclick="removeItem(1772295817064)">del</button></td></tr><tr><td>2</td><td class="or">25.11</td><td style="max-width:210px;font-size:.63rem;line-height:1.27">Providing and laying in situ /Ready Mix cement concrete M-20 of trap / granite /quartzite/...</td><td style="font-size:.58rem;color:var(--mu)">One Cubic Metre</td><td class="r">8.000</td><td class="r">₹7,344.53</td><td class="r gr">₹58,756.24</td><td class="noprt" style="white-space:nowrap"><button onclick="openCFEditor(1)" class="btn-sm" style="background:#ff6f00;color:#fff;font-size:.52rem;padding:.12rem .3rem;margin-right:.2rem;border:none;border-radius:3px;cursor:pointer">CF</button><button class="dbt" onclick="removeItem(1772299424653)">del</button></td></tr><tr><td>3</td><td class="or">8.32</td><td style="max-width:210px;font-size:.63rem;line-height:1.27">Providing 50 mm thick Full grout bituminous treatment including supplying all materials , ...</td><td style="font-size:.58rem;color:var(--mu)">One Square Meter</td><td class="r">8.000</td><td class="r">₹922.03</td><td class="r gr">₹7,376.24</td><td class="noprt" style="white-space:nowrap"><button onclick="openCFEditor(2)" class="btn-sm" style="background:#ff6f00;color:#fff;font-size:.52rem;padding:.12rem .3rem;margin-right:.2rem;border:none;border-radius:3px;cursor:pointer">CF</button><button class="dbt" onclick="removeItem(1772299565728)">del</button></td></tr><tr><td>4</td><td class="or">22.01</td><td style="max-width:210px;font-size:.63rem;line-height:1.27">Providing and laying cast in situ / Ready Mix Cement Concrete M-20 RCCsingle rim bored pil...</td><td style="font-size:.58rem;color:var(--mu)">One Running Metre</td><td class="r">8.000</td><td class="r">₹852.92</td><td class="r gr">₹6,823.36</td><td class="noprt" style="white-space:nowrap"><button onclick="openCFEditor(3)" class="btn-sm" style="background:#ff6f00;color:#fff;font-size:.52rem;padding:.12rem .3rem;margin-right:.2rem;border:none;border-radius:3px;cursor:pointer">CF</button><button class="dbt" onclick="removeItem(1772299670419)">del</button></td></tr><tr><td>5</td><td class="or">27.01</td><td style="max-width:210px;font-size:.63rem;line-height:1.27">Providing second class Burnt Brick masonry with conventional/ I.S. type bricks in cement m...</td><td style="font-size:.58rem;color:var(--mu)">One Cubic Metre</td><td class="r">8.000</td><td class="r">₹8,029.1</td><td class="r gr">₹64,232.8</td><td class="noprt" style="white-space:nowrap"><button onclick="openCFEditor(4)" class="btn-sm" style="background:#ff6f00;color:#fff;font-size:.52rem;padding:.12rem .3rem;margin-right:.2rem;border:none;border-radius:3px;cursor:pointer">CF</button><button class="dbt" onclick="removeItem(1772299869420)">del</button></td></tr><tr><td>6</td><td class="or">28.01</td><td style="max-width:210px;font-size:.63rem;line-height:1.27">Providing uncoursed rubble masonry of trap / granite / quartzite / gneiss stones in cement...</td><td style="font-size:.58rem;color:var(--mu)">One Cubic Metre</td><td class="r">8.000</td><td class="r">₹5,359.64</td><td class="r gr">₹42,877.12</td><td class="noprt" style="white-space:nowrap"><button onclick="openCFEditor(5)" class="btn-sm" style="background:#ff6f00;color:#fff;font-size:.52rem;padding:.12rem .3rem;margin-right:.2rem;border:none;border-radius:3px;cursor:pointer">CF</button><button class="dbt" onclick="removeItem(1772299987506)">del</button></td></tr><tr class="tfooter"><td colspan="6" style="text-align:right">Total =</td><td class="r gr">₹2.40 L</td><td></td></tr></tbody></table></div><div style="margin-top:2rem;padding:1.5rem 3rem;border-top:1px solid #999;page-break-inside:avoid;min-height:120px"><div style="display:flex;justify-content:space-between"><div style="text-align:left;flex:1"><div style="font-size:.72rem;line-height:1.8;font-style:italic"><div><span class="stmp-se">Section Engineer</span>,</div><div class="sign-space" style="min-height:45px;border-bottom:1px solid #ccc;margin:.3rem 0;width:90%"></div><div class="stmp-loc">P.W. Sub Division</div></div></div><div style="text-align:right;flex:1"><div style="font-size:.72rem;line-height:1.8;font-style:italic"><div><span class="stmp-sde">Sub Divisional Engineer</span>,</div><div class="sign-space" style="min-height:45px;border-bottom:1px solid #ccc;margin:.3rem 0;margin-left:auto;width:90%"></div><div class="stmp-loc">P.W. Sub Division</div></div></div></div></div></div>
 <div class="panel" id="p4" style=""><div class="sh"><div class="n">4</div><h2>Rate Analysis</h2></div><div class="pth"><div class="pth-work"></div><div class="pth-sheet">Rate Analysis</div></div><div class="tw"><table class="cc-tbl"><thead><tr><th>Item No.</th><th>Description</th><th class="r">Qty</th><th>Rate Component</th><th class="r">Value</th><th>Note</th></tr></thead><tbody id="raTb"><tr><td class="cc-no" rowspan="5">3.4</td><td class="cc-desc" rowspan="5">BITUMINOUS MACADAM: Proving and laying bituminous macadam using crushed aggregates of Grading 1, premixed with...</td><td class="cc-qty" rowspan="5">8.000</td><td style="font-size:.62rem">Base SSR Rate</td><td class="r" style="font-family:monospace;font-size:.63rem;">₹7,644</td><td style="font-size:.54rem;color:var(--mu)">One Cubic Metre</td></tr><tr><td style="font-size:.62rem">+ Lead: Bitumen Lead (0.0560 MT × 10 km × ₹10)</td><td class="r" style="font-family:monospace;font-size:.63rem;color:var(--pu);">+₹5.6</td><td style="font-size:.54rem;color:var(--mu)">0.056 × 10km</td></tr><tr><td style="font-size:.62rem">+ Lead: Bitumen Rate Change (0.0560 MT × ₹300)</td><td class="r" style="font-family:monospace;font-size:.63rem;color:var(--pu);">+₹16.8</td><td style="font-size:.54rem;color:var(--mu)">0.0560 MT × ₹300</td></tr><tr><td style="font-size:.62rem">+ SCADA Deduction</td><td class="r" style="font-family:monospace;font-size:.63rem;color:var(--rd);">-126</td><td style="font-size:.54rem;color:var(--mu)"></td></tr><tr style="background:#f0faf0"><td style="font-size:.62rem;font-weight:700">Final Rate / One Cubic Metre</td><td class="r" style="font-family:monospace;font-size:.63rem;font-weight:700;">₹7,540.4</td><td style="font-size:.54rem;color:var(--mu)"></td></tr><tr style="height:3px"><td colspan="6" style="background:var(--bd);padding:0"></td></tr><tr><td class="cc-no" rowspan="7">25.11</td><td class="cc-desc" rowspan="7">Providing and laying in situ /Ready Mix cement concrete M-20 of trap / granite /quartzite/ gneiss metal for R....</td><td class="cc-qty" rowspan="7">8.000</td><td style="font-size:.62rem">Base SSR Rate</td><td class="r" style="font-family:monospace;font-size:.63rem;">₹7,104</td><td style="font-size:.54rem;color:var(--mu)">One Cubic Metre</td></tr><tr><td style="font-size:.62rem">+ Lead: Cement (bags)</td><td class="r" style="font-family:monospace;font-size:.63rem;color:var(--pu);">+₹57.75</td><td style="font-size:.54rem;color:var(--mu)">7×0.05 × 5km</td></tr><tr><td style="font-size:.62rem">+ Lead: Screened Sand</td><td class="r" style="font-family:monospace;font-size:.63rem;color:var(--pu);">+₹102.93</td><td style="font-size:.54rem;color:var(--mu)">0.425 × 3km</td></tr><tr><td style="font-size:.62rem">+ Lead: Metal 20mm</td><td class="r" style="font-family:monospace;font-size:.63rem;color:var(--pu);">+₹138.04</td><td style="font-size:.54rem;color:var(--mu)">0.57 × 3km</td></tr><tr><td style="font-size:.62rem">+ Lead: Metal 12-10mm</td><td class="r" style="font-family:monospace;font-size:.63rem;color:var(--pu);">+₹67.81</td><td style="font-size:.54rem;color:var(--mu)">0.28 × 3km</td></tr><tr><td style="font-size:.62rem">+ SCADA Deduction</td><td class="r" style="font-family:monospace;font-size:.63rem;color:var(--rd);">-126</td><td style="font-size:.54rem;color:var(--mu)"></td></tr><tr style="background:#f0faf0"><td style="font-size:.62rem;font-weight:700">Final Rate / One Cubic Metre</td><td class="r" style="font-family:monospace;font-size:.63rem;font-weight:700;">₹7,344.53</td><td style="font-size:.54rem;color:var(--mu)"></td></tr><tr style="height:3px"><td colspan="6" style="background:var(--bd);padding:0"></td></tr><tr><td class="cc-no" rowspan="6">8.32</td><td class="cc-desc" rowspan="6">Providing 50 mm thick Full grout bituminous treatment including supplying all materials , prepairing the exisi...</td><td class="cc-qty" rowspan="6">8.000</td><td style="font-size:.62rem">Base SSR Rate</td><td class="r" style="font-family:monospace;font-size:.63rem;">₹715</td><td style="font-size:.54rem;color:var(--mu)">One Square Meter</td></tr><tr><td style="font-size:.62rem">+ Lead: Cement (bags)</td><td class="r" style="font-family:monospace;font-size:.63rem;color:var(--pu);">+₹0.49</td><td style="font-size:.54rem;color:var(--mu)">0.06×0.05 × 5km</td></tr><tr><td style="font-size:.62rem">+ Lead: Metal 20mm</td><td class="r" style="font-family:monospace;font-size:.63rem;color:var(--pu);">+₹6.54</td><td style="font-size:.54rem;color:var(--mu)">0.027 × 3km</td></tr><tr><td style="font-size:.62rem">+ Lead: Bitumen Lead (0.5000 MT × 10 km × ₹10)</td><td class="r" style="font-family:monospace;font-size:.63rem;color:var(--pu);">+₹50</td><td style="font-size:.54rem;color:var(--mu)">0.5 × 10km</td></tr><tr><td style="font-size:.62rem">+ Lead: Bitumen Rate Change (0.5000 MT × ₹300)</td><td class="r" style="font-family:monospace;font-size:.63rem;color:var(--pu);">+₹150</td><td style="font-size:.54rem;color:var(--mu)">0.5000 MT × ₹300</td></tr><tr style="background:#f0faf0"><td style="font-size:.62rem;font-weight:700">Final Rate / One Square Meter</td><td class="r" style="font-family:monospace;font-size:.63rem;font-weight:700;">₹922.03</td><td style="font-size:.54rem;color:var(--mu)"></td></tr><tr style="height:3px"><td colspan="6" style="background:var(--bd);padding:0"></td></tr><tr><td class="cc-no" rowspan="5">22.01</td><td class="cc-desc" rowspan="5">Providing and laying cast in situ / Ready Mix Cement Concrete M-20 RCCsingle rim bored pile of 225 mm dia. eac...</td><td class="cc-qty" rowspan="5">8.000</td><td style="font-size:.62rem">Base SSR Rate</td><td class="r" style="font-family:monospace;font-size:.63rem;">₹810</td><td style="font-size:.54rem;color:var(--mu)">One Running Metre</td></tr><tr><td style="font-size:.62rem">+ Lead: Cement (bags)</td><td class="r" style="font-family:monospace;font-size:.63rem;color:var(--pu);">+₹66</td><td style="font-size:.54rem;color:var(--mu)">8×0.05 × 5km</td></tr><tr><td style="font-size:.62rem">+ Lead: Screened Sand</td><td class="r" style="font-family:monospace;font-size:.63rem;color:var(--pu);">+₹102.93</td><td style="font-size:.54rem;color:var(--mu)">0.425 × 3km</td></tr><tr><td style="font-size:.62rem">+ SCADA Deduction</td><td class="r" style="font-family:monospace;font-size:.63rem;color:var(--rd);">-126</td><td style="font-size:.54rem;color:var(--mu)"></td></tr><tr style="background:#f0faf0"><td style="font-size:.62rem;font-weight:700">Final Rate / One Running Metre</td><td class="r" style="font-family:monospace;font-size:.63rem;font-weight:700;">₹852.92</td><td style="font-size:.54rem;color:var(--mu)"></td></tr><tr style="height:3px"><td colspan="6" style="background:var(--bd);padding:0"></td></tr><tr><td class="cc-no" rowspan="5">27.01</td><td class="cc-desc" rowspan="5">Providing second class Burnt Brick masonry with conventional/ I.S. type bricks in cement mortar 1:6 in foundat...</td><td class="cc-qty" rowspan="5">8.000</td><td style="font-size:.62rem">Base SSR Rate</td><td class="r" style="font-family:monospace;font-size:.63rem;">₹7,755</td><td style="font-size:.54rem;color:var(--mu)">One Cubic Metre</td></tr><tr><td style="font-size:.62rem">+ Lead: Cement (bags)</td><td class="r" style="font-family:monospace;font-size:.63rem;color:var(--pu);">+₹13.03</td><td style="font-size:.54rem;color:var(--mu)">1.58×0.05 × 5km</td></tr><tr><td style="font-size:.62rem">+ Lead: Screened Sand</td><td class="r" style="font-family:monospace;font-size:.63rem;color:var(--pu);">+₹77.5</td><td style="font-size:.54rem;color:var(--mu)">0.32 × 3km</td></tr><tr><td style="font-size:.62rem">+ Lead: Bricks (nos)</td><td class="r" style="font-family:monospace;font-size:.63rem;color:var(--pu);">+₹183.57</td><td style="font-size:.54rem;color:var(--mu)">475×0.001 × 2km</td></tr><tr style="background:#f0faf0"><td style="font-size:.62rem;font-weight:700">Final Rate / One Cubic Metre</td><td class="r" style="font-family:monospace;font-size:.63rem;font-weight:700;">₹8,029.1</td><td style="font-size:.54rem;color:var(--mu)"></td></tr><tr style="height:3px"><td colspan="6" style="background:var(--bd);padding:0"></td></tr><tr><td class="cc-no" rowspan="5">28.01</td><td class="cc-desc" rowspan="5">Providing uncoursed rubble masonry of trap / granite / quartzite / gneiss stones in cement mortar 1:6 in found...</td><td class="cc-qty" rowspan="5">8.000</td><td style="font-size:.62rem">Base SSR Rate</td><td class="r" style="font-family:monospace;font-size:.63rem;">₹5,025</td><td style="font-size:.54rem;color:var(--mu)">One Cubic Metre</td></tr><tr><td style="font-size:.62rem">+ Lead: Rubble / Murrum</td><td class="r" style="font-family:monospace;font-size:.63rem;color:var(--pu);">+₹235.85</td><td style="font-size:.54rem;color:var(--mu)">1.16 × 2km</td></tr><tr><td style="font-size:.62rem">+ Lead: Cement (bags)</td><td class="r" style="font-family:monospace;font-size:.63rem;color:var(--pu);">+₹14.02</td><td style="font-size:.54rem;color:var(--mu)">1.7×0.05 × 5km</td></tr><tr><td style="font-size:.62rem">+ Lead: Screened Sand</td><td class="r" style="font-family:monospace;font-size:.63rem;color:var(--pu);">+₹84.76</td><td style="font-size:.54rem;color:var(--mu)">0.35 × 3km</td></tr><tr style="background:#f0faf0"><td style="font-size:.62rem;font-weight:700">Final Rate / One Cubic Metre</td><td class="r" style="font-family:monospace;font-size:.63rem;font-weight:700;">₹5,359.64</td><td style="font-size:.54rem;color:var(--mu)"></td></tr><tr style="height:3px"><td colspan="6" style="background:var(--bd);padding:0"></td></tr></tbody></table></div><div style="margin-top:2rem;padding:1.5rem 3rem;border-top:1px solid #999;page-break-inside:avoid;min-height:120px"><div style="display:flex;justify-content:space-between"><div style="text-align:left;flex:1"><div style="font-size:.72rem;line-height:1.8;font-style:italic"><div><span class="stmp-se">Section Engineer</span>,</div><div class="sign-space" style="min-height:45px;border-bottom:1px solid #ccc;margin:.3rem 0;width:90%"></div><div class="stmp-loc">P.W. Sub Division</div></div></div><div style="text-align:right;flex:1"><div style="font-size:.72rem;line-height:1.8;font-style:italic"><div><span class="stmp-sde">Sub Divisional Engineer</span>,</div><div class="sign-space" style="min-height:45px;border-bottom:1px solid #ccc;margin:.3rem 0;margin-left:auto;width:90%"></div><div class="stmp-loc">P.W. Sub Division</div></div></div></div></div></div>
 <div class="panel" id="p5" style=""><div class="sh"><div class="n">5</div><h2>Measurement Sheet</h2></div><div class="pth"><div class="pth-work"></div><div class="pth-sheet">Measurement Sheet</div></div><div class="tw"><table><thead><tr><th>Sr.</th><th>Item No.</th><th>Description</th><th>Detail</th><th class="r">No.</th><th class="r">L</th><th class="r">B</th><th class="r">D/H</th><th class="r">Total</th><th>Unit</th><th class="noprt">Actions</th></tr></thead><tbody id="msTb"><tr><td rowspan="1">1</td><td rowspan="1" class="or">3.4</td><td rowspan="1" style="font-size:.6rem;max-width:125px;line-height:1.23">BITUMINOUS MACADAM: Proving and laying bituminous macad...</td><td style="font-size:.61rem"></td><td class="r">1</td><td class="r">8</td><td class="r">--</td><td class="r">--</td><td class="r" style="font-weight:700">8.000</td><td class="noprt" style="text-align:center"><button onclick="editMeasRow(0,0)" class="btn-sm" style="background:#1976d2;color:#fff;font-size:.52rem;padding:.1rem .25rem;margin:0 .1rem">✎</button><button onclick="delMeasRow(0,0)" class="btn-sm" style="background:#c62828;color:#fff;font-size:.52rem;padding:.1rem .25rem">✕</button></td><td rowspan="1" style="font-size:.56rem">One Cubic Metre</td></tr><tr><td rowspan="1">2</td><td rowspan="1" class="or">25.11</td><td rowspan="1" style="font-size:.6rem;max-width:125px;line-height:1.23">Providing and laying in situ /Ready Mix cement concrete...</td><td style="font-size:.61rem"></td><td class="r">1</td><td class="r">8</td><td class="r">--</td><td class="r">--</td><td class="r" style="font-weight:700">8.000</td><td class="noprt" style="text-align:center"><button onclick="editMeasRow(1,0)" class="btn-sm" style="background:#1976d2;color:#fff;font-size:.52rem;padding:.1rem .25rem;margin:0 .1rem">✎</button><button onclick="delMeasRow(1,0)" class="btn-sm" style="background:#c62828;color:#fff;font-size:.52rem;padding:.1rem .25rem">✕</button></td><td rowspan="1" style="font-size:.56rem">One Cubic Metre</td></tr><tr><td rowspan="1">3</td><td rowspan="1" class="or">8.32</td><td rowspan="1" style="font-size:.6rem;max-width:125px;line-height:1.23">Providing 50 mm thick Full grout bituminous treatment i...</td><td style="font-size:.61rem"></td><td class="r">1</td><td class="r">8</td><td class="r">--</td><td class="r">--</td><td class="r" style="font-weight:700">8.000</td><td class="noprt" style="text-align:center"><button onclick="editMeasRow(2,0)" class="btn-sm" style="background:#1976d2;color:#fff;font-size:.52rem;padding:.1rem .25rem;margin:0 .1rem">✎</button><button onclick="delMeasRow(2,0)" class="btn-sm" style="background:#c62828;color:#fff;font-size:.52rem;padding:.1rem .25rem">✕</button></td><td rowspan="1" style="font-size:.56rem">One Square Meter</td></tr><tr><td rowspan="1">4</td><td rowspan="1" class="or">22.01</td><td rowspan="1" style="font-size:.6rem;max-width:125px;line-height:1.23">Providing and laying cast in situ / Ready Mix Cement Co...</td><td style="font-size:.61rem"></td><td class="r">1</td><td class="r">8</td><td class="r">--</td><td class="r">--</td><td class="r" style="font-weight:700">8.000</td><td class="noprt" style="text-align:center"><button onclick="editMeasRow(3,0)" class="btn-sm" style="background:#1976d2;color:#fff;font-size:.52rem;padding:.1rem .25rem;margin:0 .1rem">✎</button><button onclick="delMeasRow(3,0)" class="btn-sm" style="background:#c62828;color:#fff;font-size:.52rem;padding:.1rem .25rem">✕</button></td><td rowspan="1" style="font-size:.56rem">One Running Metre</td></tr><tr><td rowspan="1">5</td><td rowspan="1" class="or">27.01</td><td rowspan="1" style="font-size:.6rem;max-width:125px;line-height:1.23">Providing second class Burnt Brick masonry with convent...</td><td style="font-size:.61rem"></td><td class="r">1</td><td class="r">8</td><td class="r">--</td><td class="r">--</td><td class="r" style="font-weight:700">8.000</td><td class="noprt" style="text-align:center"><button onclick="editMeasRow(4,0)" class="btn-sm" style="background:#1976d2;color:#fff;font-size:.52rem;padding:.1rem .25rem;margin:0 .1rem">✎</button><button onclick="delMeasRow(4,0)" class="btn-sm" style="background:#c62828;color:#fff;font-size:.52rem;padding:.1rem .25rem">✕</button></td><td rowspan="1" style="font-size:.56rem">One Cubic Metre</td></tr><tr><td rowspan="1">6</td><td rowspan="1" class="or">28.01</td><td rowspan="1" style="font-size:.6rem;max-width:125px;line-height:1.23">Providing uncoursed rubble masonry of trap / granite / ...</td><td style="font-size:.61rem"></td><td class="r">1</td><td class="r">8</td><td class="r">--</td><td class="r">--</td><td class="r" style="font-weight:700">8.000</td><td class="noprt" style="text-align:center"><button onclick="editMeasRow(5,0)" class="btn-sm" style="background:#1976d2;color:#fff;font-size:.52rem;padding:.1rem .25rem;margin:0 .1rem">✎</button><button onclick="delMeasRow(5,0)" class="btn-sm" style="background:#c62828;color:#fff;font-size:.52rem;padding:.1rem .25rem">✕</button></td><td rowspan="1" style="font-size:.56rem">One Cubic Metre</td></tr></tbody></table></div><div style="margin-top:2rem;padding:1.5rem 3rem;border-top:1px solid #999;page-break-inside:avoid;min-height:120px"><div style="display:flex;justify-content:space-between"><div style="text-align:left;flex:1"><div style="font-size:.72rem;line-height:1.8;font-style:italic"><div><span class="stmp-se">Section Engineer</span>,</div><div class="sign-space" style="min-height:45px;border-bottom:1px solid #ccc;margin:.3rem 0;width:90%"></div><div class="stmp-loc">P.W. Sub Division</div></div></div><div style="text-align:right;flex:1"><div style="font-size:.72rem;line-height:1.8;font-style:italic"><div><span class="stmp-sde">Sub Divisional Engineer</span>,</div><div class="sign-space" style="min-height:45px;border-bottom:1px solid #ccc;margin:.3rem 0;margin-left:auto;width:90%"></div><div class="stmp-loc">P.W. Sub Division</div></div></div></div></div></div>
 <div class="panel" id="p6" style=""><div class="sh"><div class="n">6</div><h2>Consumption Chart</h2></div><div class="pth"><div class="pth-work"></div><div class="pth-sheet">Consumption Chart</div></div><div class="tw"><table class="cc-tbl"><thead><tr><th>Item No.</th><th>Description</th><th>Unit</th><th class="r">Total Qty</th><th>Material</th><th class="r">Factor</th><th class="r">Net Qty</th></tr></thead><tbody id="ccTb"><tr><td class="cc-no" rowspan="1">3.4</td><td class="cc-desc" rowspan="1">BITUMINOUS MACADAM: Proving and laying bituminous macadam using crushed aggregates of Grading 1, pre...</td><td class="cc-unit" rowspan="1">One Cubic Metre</td><td class="cc-qty" rowspan="1">8.000</td><td style="font-size:.62rem">Bitumen VG-30</td><td class="r" style="font-size:.61rem;font-family:monospace">0.056</td><td class="r" style="font-weight:700;font-family:monospace;color:var(--gr)">0.448</td><td style="font-size:.59rem;color:#666">MT</td></tr><tr style="height:3px"><td colspan="8" style="background:var(--bd);padding:0"></td></tr><tr><td class="cc-no" rowspan="4">25.11</td><td class="cc-desc" rowspan="4">Providing and laying in situ /Ready Mix cement concrete M-20 of trap / granite /quartzite/ gneiss me...</td><td class="cc-unit" rowspan="4">One Cubic Metre</td><td class="cc-qty" rowspan="4">8.000</td><td style="font-size:.62rem">Cement</td><td class="r" style="font-size:.61rem;font-family:monospace">7.000</td><td class="r" style="font-weight:700;font-family:monospace;color:var(--gr)">56</td><td style="font-size:.59rem;color:#666">Bags</td></tr><tr><td style="font-size:.62rem">Screened Sand</td><td class="r" style="font-size:.61rem;font-family:monospace">0.425</td><td class="r" style="font-weight:700;font-family:monospace;color:var(--gr)">3.4</td><td style="font-size:.59rem;color:#666">M3</td></tr><tr><td style="font-size:.62rem">Metal 20mm</td><td class="r" style="font-size:.61rem;font-family:monospace">0.570</td><td class="r" style="font-weight:700;font-family:monospace;color:var(--gr)">4.56</td><td style="font-size:.59rem;color:#666">M3</td></tr><tr><td style="font-size:.62rem">Metal 12-10mm</td><td class="r" style="font-size:.61rem;font-family:monospace">0.280</td><td class="r" style="font-weight:700;font-family:monospace;color:var(--gr)">2.24</td><td style="font-size:.59rem;color:#666">M3</td></tr><tr style="height:3px"><td colspan="8" style="background:var(--bd);padding:0"></td></tr><tr><td class="cc-no" rowspan="3">8.32</td><td class="cc-desc" rowspan="3">Providing 50 mm thick Full grout bituminous treatment including supplying all materials , prepairing...</td><td class="cc-unit" rowspan="3">One Square Meter</td><td class="cc-qty" rowspan="3">8.000</td><td style="font-size:.62rem">Cement</td><td class="r" style="font-size:.61rem;font-family:monospace">0.060</td><td class="r" style="font-weight:700;font-family:monospace;color:var(--gr)">0.48</td><td style="font-size:.59rem;color:#666">Bags</td></tr><tr><td style="font-size:.62rem">Metal 20mm</td><td class="r" style="font-size:.61rem;font-family:monospace">0.027</td><td class="r" style="font-weight:700;font-family:monospace;color:var(--gr)">0.216</td><td style="font-size:.59rem;color:#666">M3</td></tr><tr><td style="font-size:.62rem">Bitumen VG-30</td><td class="r" style="font-size:.61rem;font-family:monospace">0.500</td><td class="r" style="font-weight:700;font-family:monospace;color:var(--gr)">4</td><td style="font-size:.59rem;color:#666">MT</td></tr><tr style="height:3px"><td colspan="8" style="background:var(--bd);padding:0"></td></tr><tr><td class="cc-no" rowspan="2">22.01</td><td class="cc-desc" rowspan="2">Providing and laying cast in situ / Ready Mix Cement Concrete M-20 RCCsingle rim bored pile of 225 m...</td><td class="cc-unit" rowspan="2">One Running Metre</td><td class="cc-qty" rowspan="2">8.000</td><td style="font-size:.62rem">Cement</td><td class="r" style="font-size:.61rem;font-family:monospace">8.000</td><td class="r" style="font-weight:700;font-family:monospace;color:var(--gr)">64</td><td style="font-size:.59rem;color:#666">Bags</td></tr><tr><td style="font-size:.62rem">Screened Sand</td><td class="r" style="font-size:.61rem;font-family:monospace">0.425</td><td class="r" style="font-weight:700;font-family:monospace;color:var(--gr)">3.4</td><td style="font-size:.59rem;color:#666">M3</td></tr><tr style="height:3px"><td colspan="8" style="background:var(--bd);padding:0"></td></tr><tr><td class="cc-no" rowspan="3">27.01</td><td class="cc-desc" rowspan="3">Providing second class Burnt Brick masonry with conventional/ I.S. type bricks in cement mortar 1:6 ...</td><td class="cc-unit" rowspan="3">One Cubic Metre</td><td class="cc-qty" rowspan="3">8.000</td><td style="font-size:.62rem">Cement</td><td class="r" style="font-size:.61rem;font-family:monospace">1.580</td><td class="r" style="font-weight:700;font-family:monospace;color:var(--gr)">12.64</td><td style="font-size:.59rem;color:#666">Bags</td></tr><tr><td style="font-size:.62rem">Screened Sand</td><td class="r" style="font-size:.61rem;font-family:monospace">0.320</td><td class="r" style="font-weight:700;font-family:monospace;color:var(--gr)">2.56</td><td style="font-size:.59rem;color:#666">M3</td></tr><tr><td style="font-size:.62rem">Bricks</td><td class="r" style="font-size:.61rem;font-family:monospace">475.000</td><td class="r" style="font-weight:700;font-family:monospace;color:var(--gr)">3800</td><td style="font-size:.59rem;color:#666">Nos</td></tr><tr style="height:3px"><td colspan="8" style="background:var(--bd);padding:0"></td></tr><tr><td class="cc-no" rowspan="3">28.01</td><td class="cc-desc" rowspan="3">Providing uncoursed rubble masonry of trap / granite / quartzite / gneiss stones in cement mortar 1:...</td><td class="cc-unit" rowspan="3">One Cubic Metre</td><td class="cc-qty" rowspan="3">8.000</td><td style="font-size:.62rem">Rubble</td><td class="r" style="font-size:.61rem;font-family:monospace">1.160</td><td class="r" style="font-weight:700;font-family:monospace;color:var(--gr)">9.28</td><td style="font-size:.59rem;color:#666">M3</td></tr><tr><td style="font-size:.62rem">Cement</td><td class="r" style="font-size:.61rem;font-family:monospace">1.700</td><td class="r" style="font-weight:700;font-family:monospace;color:var(--gr)">13.6</td><td style="font-size:.59rem;color:#666">Bags</td></tr><tr><td style="font-size:.62rem">Screened Sand</td><td class="r" style="font-size:.61rem;font-family:monospace">0.350</td><td class="r" style="font-weight:700;font-family:monospace;color:var(--gr)">2.8</td><td style="font-size:.59rem;color:#666">M3</td></tr><tr style="height:3px"><td colspan="8" style="background:var(--bd);padding:0"></td></tr></tbody></table></div><div style="margin-top:2rem;padding:1.5rem 3rem;border-top:1px solid #999;page-break-inside:avoid;min-height:120px"><div style="display:flex;justify-content:space-between"><div style="text-align:left;flex:1"><div style="font-size:.72rem;line-height:1.8;font-style:italic"><div><span class="stmp-se">Section Engineer</span>,</div><div class="sign-space" style="min-height:45px;border-bottom:1px solid #ccc;margin:.3rem 0;width:90%"></div><div class="stmp-loc">P.W. Sub Division</div></div></div><div style="text-align:right;flex:1"><div style="font-size:.72rem;line-height:1.8;font-style:italic"><div><span class="stmp-sde">Sub Divisional Engineer</span>,</div><div class="sign-space" style="min-height:45px;border-bottom:1px solid #ccc;margin:.3rem 0;margin-left:auto;width:90%"></div><div class="stmp-loc">P.W. Sub Division</div></div></div></div></div></div>
@@ -1006,7 +1018,7 @@ iv><!-- /appShell -->
     </div>
   </div>
 
-<!-- cf email-decode removed --><script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 /* ── PWA: MANIFEST + SERVICE WORKER ──────────────────────────────── */
 (function(){
   /* SVG Icon — Maharashtra PWD colours */
@@ -1174,6 +1186,10 @@ var LEAD_LOC={};
 })();
 
 var items=[],selSSR=null,mrCount=0,stm=null;
+// FLOOR-WISE RATE ANALYSIS
+var FLOOR_RATES={'GF':0,'FF':1,'SF':2,'TF':3,'FoF':3};
+var FLOOR_NAMES={'GF':'Ground Floor','FF':'First Floor','SF':'Second Floor','TF':'Third Floor','FoF':'Fourth Floor'};
+var selectedFloors=[],floorMRCount={};
 function R(id){return document.getElementById(id);}
 function pf(id){return parseFloat((R(id)||{}).value)||0;}
 function se(id,v){var e=R(id);if(e)e.textContent=v;}
@@ -1558,14 +1574,8 @@ function recalcItem(it){
   var out=JSON.parse(JSON.stringify(it));
   out.leadPerUnit=Math.round(lpu*100)/100;
   out.leadMats=lm;
-  /* Preserve floor rate increase if item has floor tag */
-  if(it.isFloorItem && it.floorPct){
-    var baseFr2=Math.round((it.baseRate+lpu+sv)*100)/100;
-    out.finalRate=Math.round(baseFr2*(1+it.floorPct/100)*100)/100;
-  } else {
-    out.finalRate=fr;
-  }
-  out.amount=Math.round(out.finalRate*it.qty*100)/100;
+  out.finalRate=fr;
+  out.amount=Math.round(fr*it.qty*100)/100;
   return out;
 }
 function calcItemLead(cf){
@@ -1680,8 +1690,66 @@ function selItem(no){
     prev.innerHTML=h2;
   }
   mrCount=0;R('measRows').innerHTML='';addMR();
+  selectedFloors=[];floorMRCount={};
+  document.querySelectorAll('.floor-chip').forEach(function(c){c.classList.remove('active');});
+  R('floorMeasSections').innerHTML='';
   R('addForm').classList.add('on');
   R('addForm').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+/* ── FLOOR FUNCTIONS ────────────────────────────────────────────────────── */
+function toggleFloor(f){
+  var c=document.querySelector('.floor-chip[data-floor="'+f+'"]');
+  var i=selectedFloors.indexOf(f);
+  if(i>=0){selectedFloors.splice(i,1);c.classList.remove('active');}
+  else{selectedFloors.push(f);c.classList.add('active');}
+  renderFloorMeas();
+}
+function renderFloorMeas(){
+  var con=R('floorMeasSections');
+  if(!con||!selSSR){return;}
+  if(selectedFloors.length===0){con.innerHTML='';return;}
+  var ord=['GF','FF','SF','TF','FoF'];
+  var sorted=selectedFloors.slice().sort(function(a,b){return ord.indexOf(a)-ord.indexOf(b);});
+  var h='';
+  sorted.forEach(function(f){
+    var inc=FLOOR_RATES[f];
+    var ar=(selSSR.rate*(1+inc/100)).toFixed(2);
+    var bc=f==='GF'?'gf':f==='FF'?'ff':f==='SF'?'sf-c':f==='TF'?'tf':'fof';
+    h+='<div style="margin-bottom:.5rem;padding:.45rem;background:#fff;border-radius:4px;border-left:3px solid var(--'+bc+')">';
+    h+='<div style="font-size:.64rem;font-weight:700;margin-bottom:.3rem;color:var(--bl)">';
+    h+='<span class="floor-badge '+f+'">'+f+'</span>'+FLOOR_NAMES[f];
+    if(inc>0)h+='<span class="rate-inc">(+'+inc+'% = ₹'+ar+')</span>';
+    h+='</div>';
+    h+='<div class="ml">Measurements</div>';
+    h+='<div class="mch"><span>Detail</span><span>No</span><span>L</span><span>B</span><span>H</span><span>Total</span><span></span></div>';
+    h+='<div id="measRows_'+f+'"></div>';
+    h+='<button class="bar" onclick="addFloorMR(\''+f+'\')">+ Add Row</button>';
+    h+='</div>';
+  });
+  con.innerHTML=h;
+  sorted.forEach(function(f){addFloorMR(f,true);});
+}
+function addFloorMR(f,first){
+  if(!floorMRCount[f])floorMRCount[f]=0;
+  floorMRCount[f]++;
+  var id=f+'_'+floorMRCount[f];
+  var con=R('measRows_'+f);
+  if(!con)return;
+  var div=document.createElement('div');div.className='mr';div.id='mr'+id;
+  div.innerHTML='<input type="text" placeholder="Desc" id="ml'+id+'">'
+    +'<input type="number" placeholder="1" step="any" id="mn'+id+'" oninput="cFloorMR(\''+id+'\')" value="1">'
+    +'<input type="number" placeholder="0" step="any" id="ml2'+id+'" oninput="cFloorMR(\''+id+'\')">'
+    +'<input type="number" placeholder="0" step="any" id="mb'+id+'" oninput="cFloorMR(\''+id+'\')">'
+    +'<input type="number" placeholder="0" step="any" id="md'+id+'" oninput="cFloorMR(\''+id+'\')">'
+    +'<span class="mt" id="mt'+id+'">0.000</span>'
+    +'<button class="dr" onclick="this.parentElement.remove()">x</button>';
+  con.appendChild(div);
+}
+function cFloorMR(id){
+  var n=pf('mn'+id)||1,l=pf('ml2'+id)||0,b=pf('mb'+id)||0,d=pf('md'+id)||0;
+  var t=n*l;if(b>0)t*=b;if(d>0)t*=d;
+  var e=R('mt'+id);if(e)e.textContent=t.toFixed(3);
 }
 
 /* ── MEASUREMENTS ────────────────────────────────────────────────────── */
@@ -1703,92 +1771,37 @@ function cMR(id){
   var t=n*l;if(b>0)t*=b;if(dv>0)t*=dv;
   var el=R('mt'+id);if(el)el.textContent=t.toFixed(3);
 }
-var FLOOR_DEFS=[
-  {id:'flGF',label:'GF',pct:0},
-  {id:'flFF',label:'FF',pct:1},
-  {id:'flSF',label:'SF',pct:2},
-  {id:'flTF',label:'TF',pct:3},
-  {id:'fl4F',label:'4F',pct:4}
-];
-function floorToggle(){
-  /* GF cannot be unchecked alone - at minimum one must be checked */
-  var anyChecked=FLOOR_DEFS.some(function(f){var el=R(f.id);return el&&el.checked;});
-  if(!anyChecked){var gf=R('flGF');if(gf)gf.checked=true;}
-}
-function getSelectedFloors(){
-  return FLOOR_DEFS.filter(function(f){var el=R(f.id);return el&&el.checked;});
-}
 function addToEst(){
   if(!selSSR)return;
-  var rows=[],qty=0,allMr,i,id,n,l,b,dv,lbl,q;
-  allMr=document.querySelectorAll('[id^="mr"]');
-  for(i=0;i<allMr.length;i++){
-    id=allMr[i].id.replace('mr','');if(!R('mn'+id))continue;
-    n=pf('mn'+id)||1;l=pf('ml2'+id)||0;b=pf('mb'+id)||0;dv=pf('md'+id)||0;
-    lbl=((R('ml'+id)||{}).value||'');
-    q=n*l;if(b>0)q*=b;if(dv>0)q*=dv;
-    if(q>0){rows.push({lbl:lbl,n:n,l:l,b:b,d:dv,qty:q});qty+=q;}
-  }
-  if(qty<=0){alert('Quantity is 0. Enter measurements.');return;}
-  qty=Math.round(qty*1000)/1000;
-  var cf=selSSR.cf||{},sv=selSSR.scadaVal||0;
-  var res=calcItemLead(cf);
-  var baseRate=selSSR.rate;
-  var baseFr=Math.round((baseRate+res.total+sv)*100)/100;
-
-  /* --- Floor wise logic --- */
-  var selFloors=getSelectedFloors();
-  var multiFloor=(selFloors.length>1)||(selFloors.length===1&&selFloors[0].pct!==0);
-
-  if(multiFloor && selFloors.length>0){
-    /* One item per floor with floor-wise rate increase */
-    for(var fi=0;fi<selFloors.length;fi++){
-      var fd=selFloors[fi];
-      var floorRate=Math.round(baseFr*(1+fd.pct/100)*100)/100;
-      var floorAmt=Math.round(floorRate*qty*100)/100;
-      /* Check if same no+floor item already exists */
-      var existIdx=-1,k;
-      for(k=0;k<items.length;k++){
-        if(items[k].no===selSSR.no && items[k].floor===fd.label){existIdx=k;break;}
-      }
-      if(existIdx>=0){
-        var ex=items[existIdx];ex.rows=ex.rows.concat(rows);
-        ex.qty=Math.round((ex.qty+qty)*1000)/1000;
-        ex.finalRate=floorRate;
-        ex.amount=Math.round(ex.finalRate*ex.qty*100)/100;
-        items[existIdx]=ex;
-      } else {
-        items.push({id:Date.now()+fi,no:selSSR.no,desc:selSSR.desc,unit:selSSR.unit,
-          baseRate:baseRate,cf:cf,scadaVal:sv,
-          leadPerUnit:Math.round(res.total*100)/100,leadMats:res.mats,
-          finalRate:floorRate,qty:qty,rows:rows,amount:floorAmt,
-          floor:fd.label,floorPct:fd.pct,isFloorItem:true});
-      }
+  if(selectedFloors.length===0){alert('Please select at least one floor');return;}
+  selectedFloors.forEach(function(f){
+    var rows=[],qty=0,con=R('measRows_'+f);
+    if(!con)return;
+    var allMr=con.querySelectorAll('[id^="mr"]'),i,id,n,l,b,dv,lbl,q;
+    for(i=0;i<allMr.length;i++){
+      id=allMr[i].id.replace('mr','');if(!R('mn'+id))continue;
+      n=pf('mn'+id)||1;l=pf('ml2'+id)||0;b=pf('mb'+id)||0;dv=pf('md'+id)||0;
+      lbl=((R('ml'+id)||{}).value||'');
+      q=n*l;if(b>0)q*=b;if(dv>0)q*=dv;
+      if(q>0){rows.push({lbl:lbl,n:n,l:l,b:b,d:dv,qty:q});qty+=q;}
     }
-  } else {
-    /* Original single-floor (GF only) behaviour */
-    var existIdx=-1,k;
-    for(k=0;k<items.length;k++){if(items[k].no===selSSR.no && !items[k].floor){existIdx=k;break;}}
-    if(existIdx>=0){
-      var ex=items[existIdx];ex.rows=ex.rows.concat(rows);
-      ex.qty=Math.round((ex.qty+qty)*1000)/1000;
-      ex.amount=Math.round(ex.finalRate*ex.qty*100)/100;items[existIdx]=ex;
-    } else {
-      items.push({id:Date.now(),no:selSSR.no,desc:selSSR.desc,unit:selSSR.unit,
-        baseRate:baseRate,cf:cf,scadaVal:sv,
-        leadPerUnit:Math.round(res.total*100)/100,leadMats:res.mats,
-        finalRate:baseFr,qty:qty,rows:rows,amount:Math.round(baseFr*qty*100)/100});
-    }
-  }
+    if(qty<=0)return;
+    qty=Math.round(qty*1000)/1000;
+    var cf=selSSR.cf||{},sv=selSSR.scadaVal||0;
+    var res=calcItemLead(cf);
+    var inc=FLOOR_RATES[f];
+    var baseR=selSSR.rate+res.total+sv;
+    var fr=Math.round(baseR*(1+inc/100)*100)/100;
+    items.push({id:Date.now()+'_'+f,no:selSSR.no,desc:selSSR.desc,unit:selSSR.unit,
+      baseRate:selSSR.rate,cf:cf,scadaVal:sv,
+      leadPerUnit:Math.round(res.total*100)/100,leadMats:res.mats,
+      floor:f,floorName:FLOOR_NAMES[f],floorInc:inc,
+      finalRate:fr,qty:qty,rows:rows,amount:Math.round(fr*qty*100)/100});
+  });
   closeForm();updateAll();
 }
-function closeForm(){
-  R('addForm').classList.remove('on');selSSR=null;
-  /* Reset floor checkboxes to GF only */
-  var fls=['flGF','flFF','flSF','flTF','fl4F'];
-  for(var _i=0;_i<fls.length;_i++){var _el=R(fls[_i]);if(_el)_el.checked=(_i===0);}
-}
-function removeItem(id){items=items.filter(function(it){return it.id!==id;});updateAll();}
+function closeForm(){R('addForm').classList.remove('on');selSSR=null;}
+function removeItem(id){items=items.filter(function(it){return it.id!=id;});updateAll();}
 
 /* ── ROYALTY & GRAND ─────────────────────────────────────────────────── */
 function calcRoyTotal(S){
@@ -2091,87 +2104,51 @@ function updateAll(){
 /* ── BOQ ─────────────────────────────────────────────────────────────── */
 function rBOQ(){
   var tb=R('boqTb');if(!tb)return;
-  if(!items.length){tb.innerHTML='<tr><td colspan="8" class="ni">Add items to generate</td></tr>';return;}
+  if(!items.length){tb.innerHTML='<tr><td colspan="9" class="ni">Add items to generate</td></tr>';return;}
   var A=0,h='',i,it,desc;
-  for(i=0;i<items.length;i++)A+=items[i].amount;
-
-  /* Group items: find unique item nos and check if any have floor tags */
-  var seen={};  /* key: no -> {hasFloor:bool, indices:[...]} */
+  /* Group by item number */
+  var grp={};
   for(i=0;i<items.length;i++){
     it=items[i];
-    if(!seen[it.no])seen[it.no]={hasFloor:false,indices:[]};
-    seen[it.no].indices.push(i);
-    if(it.isFloorItem)seen[it.no].hasFloor=true;
+    if(!grp[it.no])grp[it.no]=[];
+    grp[it.no].push(it);
   }
-
-  var srNo=0;
-  var processedNos=[];
-  for(i=0;i<items.length;i++){
-    it=items[i];
-    if(processedNos.indexOf(it.no)>=0)continue;
-    processedNos.push(it.no);
-    var grp=seen[it.no];
-
-    if(grp.hasFloor){
-      /* Multi-floor group: show header row (description only, merged) + one row per floor */
-      var floorItems=grp.indices.map(function(idx){return items[idx];});
-      /* Sort floor items by pct */
-      floorItems.sort(function(a,b){return (a.floorPct||0)-(b.floorPct||0);});
-      var grpTotal=floorItems.reduce(function(s,fi){return s+fi.amount;},0);
-      srNo++;
+  var ord=['GF','FF','SF','TF','FoF'];
+  var keys=Object.keys(grp);
+  var srNo=1;
+  for(var ki=0;ki<keys.length;ki++){
+    var itemNo=keys[ki];
+    var group=grp[itemNo];
+    group.sort(function(a,b){return ord.indexOf(a.floor||'GF')-ord.indexOf(b.floor||'GF');});
+    var itemTot=0,itemQty=0;
+    for(i=0;i<group.length;i++){
+      it=group[i];
+      var isFirst=(i===0);
       desc=it.desc.length>90?it.desc.substring(0,90)+'...':it.desc;
-      /* Header row spanning all floor rows */
-      var floorRowCount=floorItems.length;
-      h+='<tr style="background:#fffde7">'
-        +'<td rowspan="'+floorRowCount+'" style="vertical-align:middle;text-align:center;font-weight:700">'+srNo+'</td>'
-        +'<td rowspan="'+floorRowCount+'" class="or" style="vertical-align:middle">'+it.no+'</td>'
-        +'<td rowspan="'+floorRowCount+'" style="max-width:190px;font-size:.62rem;line-height:1.26;vertical-align:top">'+desc+'<br><span style="font-size:.52rem;color:#7a5c00;font-weight:700">🏢 Floor Wise</span></td>'
-        +'<td rowspan="'+floorRowCount+'" style="font-size:.57rem;color:var(--mu);vertical-align:middle">'+it.unit+'</td>';
-      /* First floor row */
-      var ff=floorItems[0];
-      var floorBg=ff.floorPct===0?'':'background:#fff8e1;';
-      h+='<td class="r" style="'+floorBg+'font-size:.61rem"><b>'+ff.floor+'</b></td>'
-        +'<td class="r" style="'+floorBg+'font-size:.6rem">\u20b9'+fmt(ff.finalRate)
-        +(ff.floorPct>0?'<br><span style="font-size:.49rem;color:#7a5c00">(+'+ff.floorPct+'%)</span>':'')+'</td>'
-        +'<td class="r gr" style="'+floorBg+'">\u20b9'+fmt(ff.amount)+'</td>'
-        +'<td class="noprt" style="white-space:nowrap;'+floorBg+'">'
-        +'<button class="dbt" onclick="removeItem('+ff.id+')" title="Del '+ff.floor+'">del</button></td></tr>';
-      /* Remaining floor rows */
-      for(var fi=1;fi<floorItems.length;fi++){
-        var fli=floorItems[fi];
-        var fbg=fli.floorPct===0?'':'background:#fff8e1;';
-        h+='<tr style="'+fbg+'">'
-          +'<td class="r" style="font-size:.61rem"><b>'+fli.floor+'</b></td>'
-          +'<td class="r" style="font-size:.6rem">\u20b9'+fmt(fli.finalRate)
-          +(fli.floorPct>0?'<br><span style="font-size:.49rem;color:#7a5c00">(+'+fli.floorPct+'%)</span>':'')+'</td>'
-          +'<td class="r gr">\u20b9'+fmt(fli.amount)+'</td>'
-          +'<td class="noprt" style="white-space:nowrap">'
-          +'<button class="dbt" onclick="removeItem('+fli.id+')" title="Del '+fli.floor+'">del</button></td></tr>';
-      }
-      /* Sub-total row for this item group */
-      h+='<tr style="background:#fff9c4;font-weight:700">'
-        +'<td colspan="4" style="text-align:right;font-size:.62rem;color:#7a5c00">\u2211 '+it.no+' Total =</td>'
-        +'<td class="r gr" style="font-size:.63rem;color:#18602f">\u20b9'+fmt(grpTotal)+'</td>'
-        +'<td class="noprt"></td></tr>';
-
-    } else {
-      /* Normal single item (GF only or no floor) */
-      srNo++;
-      desc=it.desc.length>90?it.desc.substring(0,90)+'...':it.desc;
-      var cfBtnIdx=i;
-      h+='<tr><td>'+srNo+'</td><td class="or">'+it.no+'</td>'
-        +'<td style="max-width:210px;font-size:.63rem;line-height:1.27">'+desc+'</td>'
+      var floorBadge=it.floor?'<span class="floor-badge '+it.floor+'">'+it.floor+'</span>':'';
+      var rateDisp='\u20b9'+fmt(it.finalRate);
+      if(it.floorInc&&it.floorInc>0)rateDisp+='<span class="rate-inc">+'+it.floorInc+'%</span>';
+      var cls=isFirst?'item-group first-floor':'item-group';
+      h+='<tr class="'+cls+'"><td>'+(isFirst?srNo:'')+'</td>'
+        +'<td class="or">'+(isFirst?it.no:'')+'</td>'
+        +'<td>'+floorBadge+'</td>'
+        +'<td style="max-width:200px;font-size:.63rem;line-height:1.27">'+(isFirst?desc:'')+'</td>'
         +'<td style="font-size:.58rem;color:var(--mu)">'+it.unit+'</td>'
         +'<td class="r">'+it.qty.toFixed(3)+'</td>'
-        +'<td class="r">\u20b9'+fmt(it.finalRate)+'</td>'
+        +'<td class="r">'+rateDisp+'</td>'
         +'<td class="r gr">\u20b9'+fmt(it.amount)+'</td>'
         +'<td class="noprt" style="white-space:nowrap">'
-        +'<button onclick="openCFEditor('+cfBtnIdx+')" class="btn-sm" style="background:#ff6f00;color:#fff;font-size:.52rem;padding:.12rem .3rem;margin-right:.2rem;border:none;border-radius:3px;cursor:pointer">CF</button>'
-        +'<button class="dbt" onclick="removeItem('+it.id+')">del</button>'
+        +'<button onclick="openCFEditor('+items.indexOf(it)+')" class="btn-sm" style="background:#ff6f00;color:#fff;font-size:.52rem;padding:.12rem .3rem;margin-right:.2rem;border:none;border-radius:3px;cursor:pointer">CF</button>'
+        +'<button class="dbt" onclick="removeItem(\''+it.id+'\')">del</button>'
         +'</td></tr>';
+      itemTot+=it.amount;itemQty+=it.qty;
     }
+    h+='<tr class="item-total-row"><td colspan="5" style="text-align:right;font-weight:700">Total for Item '+itemNo+':</td>'
+      +'<td class="r" style="font-weight:700">'+itemQty.toFixed(3)+'</td><td></td>'
+      +'<td class="r" style="font-weight:900">\u20b9'+fmt(itemTot)+'</td><td></td></tr>';
+    A+=itemTot;srNo++;
   }
-  h+='<tr class="tfooter"><td colspan="6" style="text-align:right">Total =</td>'
+  h+='<tr class="tfooter"><td colspan="7" style="text-align:right">Grand Total =</td>'
     +'<td class="r gr">\u20b9'+fmt(A)+'</td><td></td></tr>';
   tb.innerHTML=h;
 }
