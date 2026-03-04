@@ -937,8 +937,6 @@ ii) Water Absorption</td><td style="font-size:.57rem">One test for 50,000 blocks
 </div>
 </div>
 
-<div class="panel" id="p13" style="">
-<div class="sh"><div class="n">13</div><h2>⚙️ CF Table — Consumption Factors</h2></div>
 <div class="panel" id="p14" style="">
   <div class="sh"><div class="n">14</div><h2>&#128194; Browse Estimates</h2></div>
   <div style="padding:.5rem">
@@ -978,6 +976,8 @@ ii) Water Absorption</td><td style="font-size:.57rem">One test for 50,000 blocks
   </div>
 </div>
 
+<div class="panel" id="p13" style="">
+<div class="sh"><div class="n">13</div><h2>⚙️ CF Table — Consumption Factors</h2></div>
 <div class="pth"><div class="pth-work"></div><div class="pth-sheet">CF Table</div></div>
 <div style="background:#fff3cd;border:1px solid #ffc107;border-radius:6px;padding:.6rem .9rem;margin-bottom:.8rem;font-size:.67rem;line-height:1.6">
   <strong>⚠️ Important:</strong> इथे edit केलेले CF values <strong>"💾 Save CF &amp; Download HTML"</strong> button दाबल्यावर नवीन HTML file मध्ये permanently save होतात. 
@@ -1025,7 +1025,7 @@ ii) Water Absorption</td><td style="font-size:.57rem">One test for 50,000 blocks
 
 </div>
 
-iv><!-- /appShell -->
+</div><!-- /appShell -->
 
 <!-- Stamp Editor Modal -->
 <div id="stampModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:10000;padding:2rem">
@@ -3979,6 +3979,7 @@ function loadEst(docId){
 
 function dlEst(docId){if(!canDownload())return;CUR_EST_ID=docId;loadEst(docId);setTimeout(function(){if(typeof printAll==="function")printAll();},600);}
 function delEst(docId){if(!confirm("Delete this record?"))return;firebase.firestore().collection("estimates").doc(docId).delete().then(function(){if(CUR_EST_ID===docId)CUR_EST_ID=null;showToast("Deleted","info");loadCloudList();});}
+function newEstimate(){if(!confirm("Clear all data and start a new estimate?"))return;CUR_EST_ID=null;if(typeof items!=="undefined")items=[];["pReg","pCir","pDiv","pSub","pName"].forEach(function(k){var e=G(k);if(e)e.value="";});if(typeof buildLCT==="function")buildLCT();if(typeof updateAll==="function")updateAll();if(typeof goTab==="function")goTab(0);showToast("New estimate ready ✅","success");}
 
 /* ADMIN DASHBOARD */
 var AD={pays:[],users:[],ests:[],qrFile:null};
@@ -4750,6 +4751,197 @@ function loadEst(docId){
 
 function dlEst(docId){if(!canDownload())return;CUR_EST_ID=docId;loadEst(docId);setTimeout(function(){if(typeof printAll==="function")printAll();},600);}
 function delEst(docId){if(!confirm("Delete?"))return;firebase.firestore().collection("estimates").doc(docId).delete().then(function(){if(CUR_EST_ID===docId)CUR_EST_ID=null;showToast("Deleted","info");loadCloudList();});}
+function newEstimate(){if(!confirm("Clear all data and start a new estimate?"))return;CUR_EST_ID=null;if(typeof items!=="undefined")items=[];["pReg","pCir","pDiv","pSub","pName"].forEach(function(k){var e=G(k);if(e)e.value="";});if(typeof buildLCT==="function")buildLCT();if(typeof updateAll==="function")updateAll();if(typeof goTab==="function")goTab(0);showToast("New estimate ready ✅","success");}
+
+/* ADMIN DASHBOARD */
+var AD={pays:[],users:[],ests:[],qrFile:null};
+function aDt(ts){return ts?new Date(ts.seconds*1000).toLocaleString("en-IN",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}):"—";}
+function doAdminLogout(){if(G("adminDash"))G("adminDash").style.display="none";if(G("adminLoginBox"))G("adminLoginBox").style.display="flex";if(G("portalPwd"))G("portalPwd").value="";}
+
+function aStartPayListener(){
+  firebase.firestore().collection("payments").where("status","==","pending").onSnapshot(function(s){
+    var c=s.size;if(G("pendCnt"))G("pendCnt").textContent=c;
+    if(G("pendBanner"))G("pendBanner").classList[c>0?"add":"remove"]("show");
+    if(G("payDot"))G("payDot").innerHTML=c>0?"<span class='ndot'></span>":"";
+  });
+}
+
+function aLoadAll(){
+  if(!window.firebase||!firebase.firestore)return;
+  if(G("aStats"))G("aStats").innerHTML="<div class='astat'><div class='aloading'><span class='spin2'></span></div></div>";
+  var db=firebase.firestore();
+  function safeGet(col,q){return q.catch(function(){return {forEach:function(){}};});}
+  Promise.all([
+    safeGet("pay",db.collection("payments").orderBy("createdAt","desc").limit(300).get()),
+    safeGet("usr",db.collection("users").limit(500).get()),
+    safeGet("est",db.collection("estimates").orderBy("updatedAt","desc").limit(300).get())
+  ]).then(function(res){
+    AD.pays=[];res[0].forEach(function(d){AD.pays.push(Object.assign({_id:d.id},d.data()));});
+    AD.users=[];res[1].forEach(function(d){AD.users.push(Object.assign({_id:d.id},d.data()));});
+    AD.ests=[];res[2].forEach(function(d){AD.ests.push(Object.assign({_id:d.id},d.data()));});
+    if(!AD.pays.length&&!AD.users.length){
+      showToast("Firestore rules block admin reads — update rules in Firebase Console","warn");
+      if(G("aStats"))G("aStats").innerHTML="<div class='astat rd' style='grid-column:1/-1'><div class='astn' style='font-size:.8rem'>⚠️ Firestore Rules Issue</div><div class='astl'>Firebase Console → Firestore → Rules → set admin read permission</div></div>";
+      return;
+    }
+    aRenderStats();aRenderPays(AD.pays);aRenderUsers(AD.users);aRenderEsts(AD.ests);aRenderRev();showToast("Loaded ✅","success");
+  }).catch(function(e){
+    showToast("Permission error — update Firestore rules","error");
+    if(G("aStats"))G("aStats").innerHTML="<div class='astat rd' style='grid-column:1/-1'><div class='astn' style='font-size:.75rem'>❌ "+e.message+"</div><div class='astl'>Update Firestore security rules to allow admin access</div></div>";
+  });
+}
+
+function aRenderStats(){
+  var pend=AD.pays.filter(function(p){return p.status==="pending";}).length;
+  var vrev=AD.pays.filter(function(p){return p.status==="verified";}).reduce(function(s,p){return s+(p.amount||PAY_AMOUNT);},0);
+  if(G("aStats"))G("aStats").innerHTML=aStat(AD.users.length,"👥 Users","")+aStat(AD.pays.length,"💳 Payments","bl")+aStat(pend,"⏳ Pending","rd")+aStat("₹"+vrev.toLocaleString("en-IN"),"💰 Revenue","gr");
+}
+function aStat(n,l,c){return "<div class='astat "+c+"'><div class='astn'>"+n+"</div><div class='astl'>"+l+"</div></div>";}
+
+function aRenderPays(pays){
+  if(!G("payTbody"))return;
+  if(!pays.length){G("payTbody").innerHTML="<tr><td colspan='5' style='text-align:center;color:#aaa;padding:2rem'>No payments</td></tr>";return;}
+  G("payTbody").innerHTML=pays.map(function(p){
+    var badge=p.status==="pending"?"<span class='abpd'>⏳</span>":p.status==="verified"?"<span class='abv'>✅</span>":"<span class='abrj'>❌</span>";
+    var acts=(p.status==="pending"?"<button class='xbtn xgr' onclick='aVerify(\""+p._id+"\",\""+p.uid+"\")'>✅</button><button class='xbtn xrd' onclick='aReject(\""+p._id+"\")'>❌</button>":"")+
+      "<button class='xbtn xbl' onclick='aViewPay(\""+p._id+"\")'>👁️</button>";
+    return "<tr><td><strong>"+esc(p.name||"—")+"</strong><br><span style='font-size:.62rem;color:#888'>"+esc(p.phone||p.email||"")+"</span></td>"+
+      "<td style='font-weight:800;color:#18602f'>₹"+(p.amount||PAY_AMOUNT)+"</td><td>"+badge+"</td>"+
+      "<td style='font-size:.67rem;color:#888'>"+aDt(p.createdAt)+"</td>"+
+      "<td style='display:flex;gap:.3rem'>"+acts+"</td></tr>";
+  }).join("");
+}
+function fPays(){var q=(G("payQ").value||"").toLowerCase(),f=G("payFlt").value;aRenderPays(AD.pays.filter(function(p){return(!q||(p.name||"").toLowerCase().includes(q)||(p.phone||"").includes(q)||(p.email||"").toLowerCase().includes(q))&&(f==="all"||p.status===f);}));}
+
+function aVerify(payId,uid){
+  var PAID_DL=5; /* downloads per payment — change as needed */
+  if(!confirm("Verify payment? User will get +"+PAID_DL+" downloads."))return;
+  var db=firebase.firestore();
+  /* Step 1: mark payment verified */
+  db.collection("payments").doc(payId).update({
+    status:"verified",
+    verifiedAt:firebase.firestore.FieldValue.serverTimestamp()
+  }).then(function(){
+    if(!uid){showToast("Verified ✅","success");aLoadAll();return;}
+    /* Step 2: fetch user's current dlCount to set correct freeLimit */
+    db.collection("users").doc(uid).get().then(function(ud){
+      var curDL=ud.exists?(ud.data().dlCount||0):0;
+      var curLimit=ud.exists&&ud.data().freeLimit!=null?ud.data().freeLimit:FREE_LIMIT;
+      /* New limit = current limit + PAID_DL (so user can do PAID_DL more downloads) */
+      var newLimit=curLimit+PAID_DL;
+      db.collection("users").doc(uid).update({
+        freeLimit:newLimit
+      }).then(function(){
+        showToast("Verified ✅ — User gets +"+PAID_DL+" downloads (new limit: "+newLimit+")","success");
+        aLoadAll();
+      }).catch(function(e){showToast("Verified but limit update failed: "+e.message,"warn");aLoadAll();});
+    }).catch(function(){
+      /* Fallback: just increment */
+      db.collection("users").doc(uid).update({
+        freeLimit:firebase.firestore.FieldValue.increment(PAID_DL)
+      }).then(function(){showToast("Verified ✅ — User gets +"+PAID_DL+" downloads","success");aLoadAll();})
+      .catch(function(){showToast("Verified ✅","success");aLoadAll();});
+    });
+  }).catch(function(e){showToast("Error: "+e.message,"error");});
+}
+function aReject(payId){if(!confirm("Reject?"))return;firebase.firestore().collection("payments").doc(payId).update({status:"rejected",rejectedAt:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){showToast("Rejected","warn");aLoadAll();}).catch(function(e){showToast("Error: "+e.message,"error");});}
+
+function aViewPay(payId){
+  var p=AD.pays.find(function(x){return x._id===payId;});if(!p)return;
+  var h=pRw("Name",p.name||"—")+pRw("Phone",p.phone||"—")+pRw("Amount","₹"+(p.amount||PAY_AMOUNT))+pRw("Status",p.status)+pRw("Time",aDt(p.createdAt));
+  if(p.screenshotURL)h+="<div style='margin:.7rem 0'><div style='font-size:.65rem;font-weight:800;color:#888;margin-bottom:.3rem'>SCREENSHOT:</div><img src='"+esc(p.screenshotURL)+"' class='pdss' alt='' onerror='this.style.display=\"none\"'></div>";
+  else h+="<div style='background:#f8f6f2;border-radius:6px;padding:.8rem;text-align:center;color:#aaa;font-size:.72rem;margin:.7rem 0'>No screenshot</div>";
+  if(p.status==="pending")h+="<div class='actrow'><button class='xbtn xgr' onclick='aVerify(\""+payId+"\",\""+esc(p.uid||"")+"\");document.getElementById(\"payDetailModal\").style.display=\"none\"' style='flex:1;padding:.55rem'>✅ Verify</button><button class='xbtn xrd' onclick='aReject(\""+payId+"\");document.getElementById(\"payDetailModal\").style.display=\"none\"' style='flex:1;padding:.55rem'>❌ Reject</button></div>";
+  if(G("pdBody"))G("pdBody").innerHTML=h;if(G("payDetailModal"))G("payDetailModal").style.display="flex";
+}
+function pRw(l,v){return "<div class='pdinforow'><span class='pdlbl'>"+l+"</span><span class='pdval'>"+esc(String(v))+"</span></div>";}
+
+function aRenderUsers(users){
+  if(!G("usrTbody"))return;
+  if(!users.length){G("usrTbody").innerHTML="<tr><td colspan='6' style='text-align:center;color:#aaa;padding:2rem'>No users</td></tr>";return;}
+  G("usrTbody").innerHTML=users.map(function(u){
+    return "<tr><td><strong>"+esc(u.name||"—")+"</strong></td><td style='font-size:.7rem;color:#666'>"+esc(u.phone||u.email||"—")+"</td>"+
+      "<td style='text-align:center;font-weight:700'>"+(u.dlCount||0)+" / "+(u.freeLimit!=null?u.freeLimit:FREE_LIMIT)+"</td>"+
+      "<td>"+(u.isPro?"<span class='abp'>💎 Pro</span>":"<span class='abf'>🆓 Free</span>")+"</td>"+
+      "<td style='font-size:.65rem;color:#888'>"+aDt(u.createdAt)+"</td>"+
+      "<td style='display:flex;gap:.3rem'><button class='xbtn xgr' onclick='aGrant(\""+u._id+"\",\""+esc(u.name||u.phone||"")+"\")'>🎁 Pro</button>"+
+      "<button class='xbtn xbl' onclick='aSetFree(\""+u._id+"\",\""+esc(u.name||u.phone||"")+"\")'>🆓</button></td></tr>";
+  }).join("");
+}
+function fUsers(){var q=(G("usrQ").value||"").toLowerCase();if(!q){aRenderUsers(AD.users);return;}aRenderUsers(AD.users.filter(function(u){return(u.name||"").toLowerCase().includes(q)||(u.phone||"").includes(q)||(u.email||"").toLowerCase().includes(q);}));}
+function aGrant(uid,name){if(!confirm("Grant Pro to "+name+"?"))return;firebase.firestore().collection("users").doc(uid).update({isPro:true}).then(function(){showToast("Pro granted 🎉","success");aLoadAll();}).catch(function(e){showToast("Error: "+e.message,"error");});}
+function aSetFree(uid,name){var v=prompt("Free downloads for "+name+" (global: "+FREE_LIMIT+"):","5");if(v===null)return;var n=parseInt(v);if(isNaN(n)||n<0){showToast("Invalid","error");return;}firebase.firestore().collection("users").doc(uid).update({freeLimit:n}).then(function(){showToast("Set free="+n+" for "+name,"success");aLoadAll();}).catch(function(e){showToast("Error: "+e.message,"error");});}
+
+function aRenderEsts(ests){
+  if(!G("estTbody"))return;
+  if(!ests.length){G("estTbody").innerHTML="<tr><td colspan='6' style='text-align:center;color:#aaa;padding:2rem'>No estimates saved yet</td></tr>";return;}
+  G("estTbody").innerHTML=ests.map(function(e){
+    var u=AD.users.find(function(x){return x._id===e.uid||x.uid===e.uid;});
+    return "<tr>"+
+      "<td style='max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700'>"+esc(e.name||"Untitled")+"</td>"+
+      "<td style='font-size:.68rem;color:#555'>"+esc(u?u.name||u.phone||u.email||"—":"?")+"</td>"+
+      "<td style='text-align:center'>"+(e.items?e.items.length:0)+"</td>"+
+      "<td style='font-weight:700;color:#18602f'>Rs."+fmtN(e.grand)+"</td>"+
+      "<td style='font-size:.63rem;color:#888'>"+aDt(e.updatedAt)+"</td>"+
+      "<td style='padding:.2rem'><button class='xbtn xbl' style='padding:.2rem .5rem;font-size:.65rem' data-eid='"+e._id+"' onclick='aViewEst(this.dataset.eid)'>&#128065; View</button></td>"+
+    "</tr>";
+  }).join("");
+}
+function fEsts(){var q=(G("estQ").value||"").toLowerCase();if(!q){aRenderEsts(AD.ests);return;}aRenderEsts(AD.ests.filter(function(e){return(e.name||"").toLowerCase().includes(q);}));}
+
+function aRenderRev(){
+  if(!G("revDiv"))return;
+  var v=AD.pays.filter(function(p){return p.status==="verified";});
+  var total=v.reduce(function(s,p){return s+(p.amount||PAY_AMOUNT);},0);
+  var rows=v.map(function(p){
+    return "<div style='display:flex;align-items:center;gap:.4rem;padding:.22rem 0;border-bottom:1px solid #eee;font-size:.66rem'>" +
+      "<span style='flex:1;font-weight:700'>" + esc(p.name||"--") + "</span>" +
+      "<span style='color:#18602f;font-weight:800'>Rs." + (p.amount||PAY_AMOUNT) + "</span>" +
+      "<span style='font-size:.58rem;color:#aaa'>" + aDt(p.createdAt) + "</span>" +
+      "<button class='xbtn xrd' style='font-size:.56rem;padding:.12rem .3rem' data-pid='" + p._id + "' onclick='aDelPay(this.dataset.pid)'>Delete</button>" +
+    "</div>";
+  }).join("");
+  G("revDiv").innerHTML =
+    "<div style='display:grid;grid-template-columns:1fr 1fr;gap:.4rem;margin-bottom:.6rem'>" +
+    "<div style='background:#e8f5e9;border-radius:5px;padding:.5rem;text-align:center'><div style='font-size:.95rem;font-weight:900;color:#18602f'>Rs." + total.toLocaleString("en-IN") + "</div><div style='font-size:.58rem;color:#555'>Total Revenue</div></div>" +
+    "<div style='background:#fce4ec;border-radius:5px;padding:.5rem;text-align:center'><div style='font-size:.95rem;font-weight:900;color:#c62828'>" + AD.pays.filter(function(p){return p.status==="pending";}).length + "</div><div style='font-size:.58rem;color:#555'>Pending</div></div>" +
+    "</div><div style='font-size:.63rem;font-weight:800;color:#555;margin-bottom:.3rem'>Verified Payments:</div>" +
+    (rows||"<div style='color:#aaa;font-size:.63rem;font-style:italic'>No verified payments yet</div>");
+}
+function aDelPay(payId){
+  if(!confirm("Delete this payment record?"))return;
+  firebase.firestore().collection("payments").doc(payId).delete()
+    .then(function(){showToast("Deleted","info");aLoadAll();})
+    .catch(function(e){showToast("Error: "+e.message,"error");});
+}
+function aLoadSettings(){if(!window.firebase||!firebase.firestore)return;firebase.firestore().collection("config").doc("app").get().then(function(d){if(d.exists){if(d.data().payAmount&&G("setPriceVal"))G("setPriceVal").value=d.data().payAmount;if(d.data().freeLimit&&G("setFreeVal"))G("setFreeVal").value=d.data().freeLimit;}}).catch(function(){});}
+
+function saveAppSetting(type){
+  var val;
+  if(type==="price"){val=parseInt(G("setPriceVal").value);if(isNaN(val)||val<1){showToast("Invalid","error");return;}firebase.firestore().collection("config").doc("app").set({payAmount:val},{merge:true}).then(function(){PAY_AMOUNT=val;showToast("Price=₹"+val,"success");makeQR();var pd=G("payAmtDisplay");if(pd)pd.innerHTML="&#8377;"+val+" <small>/ download</small>";}).catch(function(e){showToast("Error: "+e.message,"error");});}
+  else{val=parseInt(G("setFreeVal").value);if(isNaN(val)||val<0){showToast("Invalid","error");return;}firebase.firestore().collection("config").doc("app").set({freeLimit:val},{merge:true}).then(function(){FREE_LIMIT=val;showToast("Free="+val,"success");renderHeader();}).catch(function(e){showToast("Error: "+e.message,"error");});}
+}
+
+function aLoadCurQR(){if(!window.firebase||!firebase.firestore)return;firebase.firestore().collection("config").doc("upi").get().then(function(d){if(d.exists&&d.data().qrURL){if(G("curQR")){G("curQR").src=d.data().qrURL;G("curQR").style.display="block";}if(G("noQRMsg"))G("noQRMsg").style.display="none";if(d.data().upiId&&G("nUPI"))G("nUPI").placeholder=d.data().upiId;}}).catch(function(){});}
+function onQRfile(input){if(!input.files||!input.files[0])return;AD.qrFile=input.files[0];var r=new FileReader();r.onload=function(e){if(G("qrNew")){G("qrNew").src=e.target.result;G("qrNew").style.display="block";}};r.readAsDataURL(AD.qrFile);}
+function onQRdrop(e){e.preventDefault();if(e.dataTransfer.files[0]){G("qrFile").files=e.dataTransfer.files;onQRfile(G("qrFile"));}}
+function uploadQR(){
+  var newUPI=(G("nUPI").value||"").trim()||UPI_ID;
+  if(!AD.qrFile&&!(G("nUPI").value||"").trim()){showE("qrErr","Upload QR or enter UPI ID");return;}
+  var btn=G("qrUpBtn");btn.disabled=true;btn.textContent="Uploading...";hideE("qrErr");if(G("qrOK"))G("qrOK").style.display="none";
+  function saveFS(url){var d={upiId:newUPI,updatedAt:firebase.firestore.FieldValue.serverTimestamp()};if(url)d.qrURL=url;firebase.firestore().collection("config").doc("upi").set(d,{merge:true}).then(function(){btn.disabled=false;btn.textContent="⬆️ Upload QR";if(G("qrOK"))G("qrOK").style.display="block";if(url&&G("curQR")){G("curQR").src=url;G("curQR").style.display="block";if(G("noQRMsg"))G("noQRMsg").style.display="none";}UPI_ID=newUPI;showToast("QR updated! 📷","success");}).catch(function(e){btn.disabled=false;showToast("Error: "+e.message,"error");});}
+  if(AD.qrFile)uploadCDN(AD.qrFile,"atp-maha-pwd/qr",function(p){btn.textContent="Uploading... "+p+"%";},function(url){saveFS(url);},function(err){console.log(err);saveFS("");});else saveFS("");
+}
+
+function aShowSec(sec){["pay","users","ests","settings"].forEach(function(s){var e=G("asec-"+s);if(e)e.style.display=s===sec?"block":"none";});document.querySelectorAll(".asectab").forEach(function(t,i){t.classList.toggle("on",["pay","users","ests","settings"][i]===sec);});if(sec==="settings"){aLoadCurQR();aLoadSettings();}}
+
+function aDlCSV(type){
+  var rows,fn;
+  if(type==="pay"){rows=[["Name","Phone","Amount","Status","Time"]];AD.pays.forEach(function(p){rows.push([p.name||"",p.phone||"",p.amount||PAY_AMOUNT,p.status,aDt(p.createdAt)]);});fn="payments.csv";}
+  else{rows=[["Name","Phone/Email","Downloads","Free Limit","Status","Joined"]];AD.users.forEach(function(u){rows.push([u.name||"",u.phone||u.email||"",u.dlCount||0,u.freeLimit!=null?u.freeLimit:FREE_LIMIT,u.isPro?"Pro":"Free",aDt(u.createdAt)]);});fn="users.csv";}
+  var csv=rows.map(function(r){return r.map(function(c){return '"'+String(c).replace(/"/g,'""')+'"';}).join(",");}).join("\n");
+  var a=document.createElement("a");a.href="data:text/csv;charset=utf-8,\ufeff"+encodeURIComponent(csv);a.download=fn;a.click();showToast(fn+" downloaded","success");
+}
 
 
 /* ── AUTO SAVE / RESTORE ── */
@@ -4791,6 +4983,126 @@ function autoLoad(){
     if(typeof upCover==='function')upCover();
     if(typeof upMeta==='function')upMeta();
   }catch(e){}
+}
+
+/* ── BROWSE ESTIMATES ─────────────────────────────────────────── */
+var BROWSE_ALL=[];
+function loadBrowse(){
+  var el=G("browseList");if(!el)return;
+  if(!CU){el.innerHTML='<div style="text-align:center;padding:1.5rem;color:#888;font-size:.7rem">Please login to browse estimates</div>';return;}
+  if(!window.firebase||!firebase.firestore){el.innerHTML='<div style="text-align:center;padding:1rem;color:#c00">Firebase not loaded</div>';return;}
+  el.innerHTML='<div style="text-align:center;padding:1rem;color:#888">Loading...</div>';
+  firebase.firestore().collection("estimates").orderBy("updatedAt","desc").limit(50).get()
+    .then(function(snap){
+      BROWSE_ALL=[];
+      snap.forEach(function(d){BROWSE_ALL.push({id:d.id,d:d.data()});});
+      renderBrowse(BROWSE_ALL);
+    }).catch(function(e){
+      el.innerHTML='<div style="padding:1rem;font-size:.65rem"><b style="color:#c00">Could not load.</b><br><span style="color:#666">'+e.message+'</span><br><br><div style="background:#fff8e1;border:1px solid #f5a623;padding:.5rem;border-radius:4px;font-size:.62rem">Firebase Console \u2192 Firestore Rules:<br><code>allow read: if request.auth != null;</code></div></div>';
+    });
+}
+function renderBrowse(arr){
+  var el=G("browseList");if(!el)return;
+  if(!arr||!arr.length){el.innerHTML='<div style="text-align:center;padding:1.5rem;color:#aaa;font-style:italic">No estimates yet.</div>';return;}
+  var qEl=G("browseQ"),q=qEl?qEl.value.toLowerCase():"";
+  var show=q?arr.filter(function(x){return (x.d.name||"").toLowerCase().indexOf(q)>=0||((x.d.cover&&x.d.cover.pDiv)||"").toLowerCase().indexOf(q)>=0;}):arr;
+  if(!show.length){el.innerHTML='<div style="text-align:center;padding:1rem;color:#aaa">No results</div>';return;}
+  el.innerHTML=show.map(function(item){
+    var d=item.d,id=item.id;
+    var dt=d.updatedAt?new Date(d.updatedAt.seconds*1000).toLocaleDateString("en-IN"):"";
+    var div=d.cover&&d.cover.pDiv?d.cover.pDiv:"";
+    var gr=d.grand?"Rs."+fmtN(d.grand):"";
+    var own=(d.uid&&CU&&d.uid===CU.uid)?" (yours)":"";
+    var meta=[div,dt,gr].filter(Boolean).join(" \u00b7 ");
+    return '<div style="background:#fff;border:1px solid #ddd;border-radius:6px;padding:.5rem .7rem;margin-bottom:.4rem;display:flex;align-items:center;gap:.5rem">'+
+      '<div style="flex:1;min-width:0">'+
+        '<div style="font-weight:800;font-size:.72rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(d.name||"Untitled")+esc(own)+'</div>'+
+        (meta?'<div style="font-size:.6rem;color:#888;margin-top:.1rem">'+esc(meta)+'</div>':'')+
+        (d.items?'<div style="font-size:.58rem;color:#aaa">'+d.items.length+' items</div>':'')+
+      '</div>'+
+      '<button class="btn bp" style="font-size:.62rem;padding:.22rem .44rem;flex-shrink:0" data-id="'+id+'" data-isown="'+(d.uid&&CU&&d.uid===CU.uid?'1':'0')+'" onclick="browseLoadEst(this.dataset.id,this.dataset.isown)">&#128194; Load</button>'+
+    '</div>';
+  }).join("");
+}
+function browseSearch(){
+  var q=(G("browseQ").value||"").toLowerCase().trim();
+  var list=G("browseList");if(!list)return;
+  if(!BROWSE_ALL||!BROWSE_ALL.length)return;
+  var filtered=q?BROWSE_ALL.filter(function(x){
+    var nm=(x.d.name||"").toLowerCase();
+    var dv=(x.d.cover&&x.d.cover.pDiv?x.d.cover.pDiv:"").toLowerCase();
+    return nm.includes(q)||dv.includes(q);
+  }):BROWSE_ALL;
+  renderBrowse(filtered);
+}
+function requestEst(estId,estName){
+  if(!CU){showToast("Login first","warn");return;}
+  if(!window.firebase||!firebase.firestore)return;
+  firebase.firestore().collection("requests").add({
+    fromUid:CU.uid,fromName:CU.displayName||CU.email||"",fromEmail:CU.email||"",
+    estId:estId,estName:estName,
+    status:"pending",
+    createdAt:firebase.firestore.FieldValue.serverTimestamp()
+  }).then(function(){showToast("Request sent! Owner will be notified 📩","success");})
+  .catch(function(e){showToast("Error: "+e.message,"error");});
+}
+function browseLoadEst(estId,isOwn){
+  if(!CU){showToast("Login first","warn");return;}
+  if(!window.firebase||!firebase.firestore)return;
+  var msg=isOwn==='1'
+    ?"Load your estimate? Current unsaved work will be lost."
+    :"Load this estimate as a COPY? The original will remain unchanged.\nIf you save after editing, it will be saved as a NEW estimate under your name.";
+  if(!confirm(msg))return;
+  firebase.firestore().collection("estimates").doc(estId).get().then(function(doc){
+    if(!doc.exists){showToast("Estimate not found","error");return;}
+    var d=doc.data();
+    if(typeof items!=="undefined"&&d.items){
+      items=d.items.map(function(x){return Object.assign({},x);});
+    }
+    var m=d.meta||d.cover||{};
+    ["pReg","pCir","pDiv","pSub","pName"].forEach(function(k){var el=G(k);if(el)el.value=m[k]||m["p"+k.slice(1)]||"";});
+    if(d.lkm){for(var ki in d.lkm){var el2=G("lkm_"+ki);if(el2&&typeof onKmChange==="function"){el2.value=d.lkm[ki];onKmChange(parseInt(ki));}}}
+    if(typeof buildLCT==="function")buildLCT();
+    if(typeof updateAll==="function")updateAll();
+    if(typeof upCover==="function")upCover();
+    if(typeof upMeta==="function")upMeta();
+    // If own estimate: keep CUR_EST_ID so saving updates same doc
+    // If someone else's estimate: clear CUR_EST_ID so any save creates a NEW doc
+    CUR_EST_ID=isOwn==='1'?estId:null;
+    if(isOwn!=='1'){
+      showToast("Loaded as copy ✅  Save will create a new estimate under your name.","success");
+    } else {
+      showToast("Estimate loaded! ✅","success");
+    }
+    if(typeof goTab==="function")goTab(0);
+  }).catch(function(e){showToast("Error loading: "+e.message,"error");});
+}
+
+/* ── CONTACT US ─────────────────────────────────────────────── */
+function sendContact(){
+  var name=(G("ctName").value||"").trim();
+  var subj=(G("ctSubj").value||"").trim();
+  var msg=(G("ctMsg").value||"").trim();
+  hideE("ctErr");hideE("ctOK");
+  if(!name){showE("ctErr","Please enter your name");return;}
+  if(!msg){showE("ctErr","Please enter a message");return;}
+  if(!CU||!window.firebase||!firebase.firestore){showE("ctErr","Login required");return;}
+  var btn=G("ctMsg").nextElementSibling;
+  if(btn){btn.disabled=true;btn.textContent="Sending...";}
+  firebase.firestore().collection("contacts").add({
+    uid:CU.uid,name:name,email:CU.email||"",
+    subject:subj||"General Enquiry",message:msg,
+    status:"new",
+    createdAt:firebase.firestore.FieldValue.serverTimestamp()
+  }).then(function(){
+    G("ctName").value="";G("ctSubj").value="";G("ctMsg").value="";
+    if(btn){btn.disabled=false;btn.textContent="Send Message";}
+    if(G("ctOK")){G("ctOK").style.display="block";}
+    showToast("Message sent!","success");
+  }).catch(function(e){
+    if(btn){btn.disabled=false;btn.textContent="Send Message";}
+    showE("ctErr","Error: "+e.message);
+  });
 }
 
 /* ── HOME SCREEN ─────────────────────────────── */
