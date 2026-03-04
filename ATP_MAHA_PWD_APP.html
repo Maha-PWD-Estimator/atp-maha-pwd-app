@@ -449,6 +449,8 @@ tr:hover td{background:#fdf8f3}
       var FBCFG={apiKey:"AIzaSyCdH-k3hH1mYYcND0cBf7J2pLRG6xQydrU",authDomain:"atp-maha-pwd.firebaseapp.com",projectId:"atp-maha-pwd",storageBucket:"atp-maha-pwd.firebasestorage.app",messagingSenderId:"382409286731",appId:"1:382409286731:web:37daae9842bc3687bf99ce"};
       if(!firebase.apps.length) firebase.initializeApp(FBCFG);
     } catch(e) { console.error('Firebase init error:', e); }
+    /* Define ADMIN_EMAIL early so doAdminLogin() can access it */
+    var ADMIN_EMAIL="thongeaditya@gmail.com";
 
 function G(id){return document.getElementById(id);}
 function showE(id,msg){var e=G(id);if(e){e.textContent=msg;e.style.display="block";}}
