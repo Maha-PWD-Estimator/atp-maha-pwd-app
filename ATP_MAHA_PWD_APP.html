@@ -2683,7 +2683,7 @@ function msrUpd(iIdx,rIdx,el,field){
       delete r._f[field];  /* clear formula if plain value */
       el.style.background="";
       var num=raw===""?null:parseFloat(raw);
-      r[field]=(raw===""||isNaN(num))?null:num;
+      r[field]=(raw===""||isNaN(num))?null:Math.round(num*100)/100;
     }
   }
   /* Recalc qty */
@@ -2693,7 +2693,7 @@ function msrUpd(iIdx,rIdx,el,field){
   if(r.d!==null&&r.d!==undefined&&r.d!==0)t*=r.d;
   r.qty=Math.round(t*1000)/1000;
   var qel=R("msrq_"+iIdx+"_"+rIdx);
-  if(qel)qel.textContent=r.qty.toFixed(3);
+  if(qel)qel.textContent=r.qty.toFixed(2);
   var tot=0;it.rows.forEach(function(rw){if(!rw.isTot)tot+=rw.qty||0;});
   it.qty=Math.round(tot*1000)/1000;
   items[iIdx]=recalcItem(it);
@@ -3181,7 +3181,7 @@ function rBOQ(){
         +'<td style="font-size:.63rem;line-height:1.4">'+it.desc+'</td>'
         +'<td style="font-size:.58rem;color:var(--mu)">'+it.unit+'</td>'
         +'<td></td>'
-        +'<td class="r">'+it.qty.toFixed(3)+'</td>'
+        +'<td class="r">'+it.qty.toFixed(2)+'</td>'
         +'<td class="r" style="font-size:.54rem">₹'+fmt(it.finalRate)+'</td>'
         +'<td class="r gr">₹'+fmt(it.amount)+'</td>'
         +'<td class="noprt" style="white-space:nowrap">'
@@ -3217,7 +3217,7 @@ function rBOQ(){
       }
       h+='<tr style="background:#fff9e6">'
         +'<td colspan="1" style="text-align:right;font-size:.56rem;font-weight:700;color:#555">Total</td>'
-        +'<td class="r" style="font-weight:700">'+it.qty.toFixed(3)+'</td>'
+        +'<td class="r" style="font-weight:700">'+it.qty.toFixed(2)+'</td>'
         +'<td></td>'
         +'<td class="r gr" style="font-weight:700">₹'+fmt(itemTotal)+'</td>'
         +'<td class="noprt"></td></tr>';
@@ -3336,7 +3336,7 @@ function rMS(){
         if(r.l!==null&&r.l!==undefined&&r.l!==0)_q*=r.l;
         if(r.b!==null&&r.b!==undefined&&r.b!==0)_q*=r.b;
         if(r.d!==null&&r.d!==undefined&&r.d!==0)_q*=r.d;
-        r.qty=Math.round(_q*1000)/1000;
+        r.qty=Math.round(_q*100)/100;
       }
       var isTotRow=(r.isTot||false);
       var flIdx=(r.fl!=null?r.fl:0);
@@ -3346,7 +3346,7 @@ function rMS(){
         h+='<tr><td></td><td></td><td></td><td></td>'
           +'<td style="font-size:.61rem;font-weight:900"><b>'+(r.lbl||'')+'</b></td>'
           +'<td></td><td></td><td></td><td></td>'
-          +'<td class="r" style="font-weight:700;background:#fff176">'+r.qty.toFixed(3)+'</td>'
+          +'<td class="r" style="font-weight:700;background:#fff176">'+r.qty.toFixed(2)+'</td>'
           +'<td style="font-size:.56rem">'+it.unit+'</td>'
           +'<td class="noprt"></td></tr>';
       } else {
@@ -3355,10 +3355,10 @@ function rMS(){
         h+='<td style="text-align:center"><span class="fl-badge '+fcls+'">'+flbl+'</span></td>';
         h+='<td><input style="'+IS+';width:100%" '+IF+' value="'+esc(r.lbl||'')+'" placeholder="Detail" oninput="msrUpd('+i+','+ri+',this,\'lbl\')"></td>';
         h+='<td class="r"><input style="'+IS+';width:38px;text-align:right" '+IF+' type="number" step="any" min="1" value="'+(r.n||1)+'" oninput="msrUpd('+i+','+ri+',this,\'n\')"></td>';
-        h+='<td class="r"><input style="'+IS+';width:55px;text-align:right;font-family:monospace'+(r._f&&r._f.l?';background:#e8f5e9':'')+';" '+IF+' value="'+(r._f&&r._f.l?esc(r._f.l):(r.l||''))+'" placeholder="—" oninput="msrUpd('+i+','+ri+',this,\'l\')"></td>';
-        h+='<td class="r"><input style="'+IS+';width:55px;text-align:right;font-family:monospace'+(r._f&&r._f.b?';background:#e8f5e9':'')+';" '+IF+' value="'+(r._f&&r._f.b?esc(r._f.b):(r.b||''))+'" placeholder="—" oninput="msrUpd('+i+','+ri+',this,\'b\')"></td>';
-        h+='<td class="r"><input style="'+IS+';width:55px;text-align:right;font-family:monospace'+(r._f&&r._f.d?';background:#e8f5e9':'')+';" '+IF+' value="'+(r._f&&r._f.d?esc(r._f.d):(r.d||''))+'" placeholder="—" oninput="msrUpd('+i+','+ri+',this,\'d\')"></td>';
-        h+='<td class="r" style="font-weight:700" id="msrq_'+i+'_'+ri+'">'+r.qty.toFixed(3)+'</td>';
+        h+='<td class="r"><input style="'+IS+';width:55px;text-align:right;font-family:monospace'+(r._f&&r._f.l?';background:#e8f5e9':'')+';" '+IF+' value="'+(r._f&&r._f.l?esc(r._f.l):(r.l?(+r.l).toFixed(2):''))+'" placeholder="—" oninput="msrUpd('+i+','+ri+',this,\'l\')"></td>';
+        h+='<td class="r"><input style="'+IS+';width:55px;text-align:right;font-family:monospace'+(r._f&&r._f.b?';background:#e8f5e9':'')+';" '+IF+' value="'+(r._f&&r._f.b?esc(r._f.b):(r.b?(+r.b).toFixed(2):''))+'" placeholder="—" oninput="msrUpd('+i+','+ri+',this,\'b\')"></td>';
+        h+='<td class="r"><input style="'+IS+';width:55px;text-align:right;font-family:monospace'+(r._f&&r._f.d?';background:#e8f5e9':'')+';" '+IF+' value="'+(r._f&&r._f.d?esc(r._f.d):(r.d?(+r.d).toFixed(2):''))+'" placeholder="—" oninput="msrUpd('+i+','+ri+',this,\'d\')"></td>';
+        h+='<td class="r" style="font-weight:700" id="msrq_'+i+'_'+ri+'">'+r.qty.toFixed(2)+'</td>';
         /* Unit: show on single-row items, hide on multi-row (total row shows it) */
         h+='<td style="font-size:.56rem">'+(multiRow?'':it.unit)+'</td>';
         h+='<td class="noprt" style="text-align:center"><button onclick="delMeasRow('+i+','+ri+')" class="btn-sm" style="background:#c62828;color:#fff;font-size:.52rem;padding:.1rem .25rem">✕</button></td>';
@@ -3370,7 +3370,7 @@ function rMS(){
     if(multiRow&&!hasIsTot){
       h+='<tr style="background:var(--bg)">'
         +'<td colspan="9" style="text-align:right;font-size:.56rem;color:var(--mu)">Total</td>'
-        +'<td class="r" style="font-weight:700;background:#fff176">'+it.qty.toFixed(3)+'</td>'
+        +'<td class="r" style="font-weight:700;background:#fff176">'+it.qty.toFixed(2)+'</td>'
         +'<td style="font-size:.56rem">'+it.unit+'</td>'
         +'<td class="noprt"></td></tr>';
     }
@@ -3423,7 +3423,7 @@ function rCC(){
         h+='<td class="cc-no" rowspan="'+rowspan+'">'+it.no+'</td>'
           +'<td class="cc-desc" rowspan="'+rowspan+'">'+desc+'</td>'
           +'<td class="cc-unit" rowspan="'+rowspan+'">'+it.unit+'</td>'
-          +'<td class="cc-qty" rowspan="'+rowspan+'">'+it.qty.toFixed(3)+'</td>';
+          +'<td class="cc-qty" rowspan="'+rowspan+'">'+it.qty.toFixed(2)+'</td>';
       }
       h+='<td style="font-size:.62rem">'+itMats[j].lbl+'</td>'
         +'<td class="r" style="font-size:.61rem;font-family:monospace">'+itMats[j].factor.toFixed(3)+'</td>'
@@ -3459,7 +3459,7 @@ function rLC(){
     h+='<tr><td>'+(i+1)+'</td><td class="or">'+it.no+'</td>'
       +'<td style="max-width:145px;font-size:.6rem">'+desc+'</td>'
       +'<td style="font-size:.56rem">'+it.unit+'</td>'
-      +'<td class="r">'+it.qty.toFixed(3)+'</td>'
+      +'<td class="r">'+it.qty.toFixed(2)+'</td>'
       +'<td class="r">'+gkm(it,'cement_bags')+'</td>'
       +'<td class="r">'+gkm(it,'scr_sand')+'</td>'
       +'<td class="r">'+gkm(it,'m40mm')+'</td>'
@@ -3498,7 +3498,7 @@ function rRoy(){
         h+='<td class="cc-no" rowspan="'+rowspan+'">'+it.no+'</td>'
           +'<td class="cc-desc" rowspan="'+rowspan+'">'+desc+'</td>'
           +'<td class="cc-unit" rowspan="'+rowspan+'">'+it.unit+'</td>'
-          +'<td class="cc-qty" rowspan="'+rowspan+'">'+it.qty.toFixed(3)+'</td>';
+          +'<td class="cc-qty" rowspan="'+rowspan+'">'+it.qty.toFixed(2)+'</td>';
       }
       h+='<td style="font-size:.62rem'+(mr.none?';color:var(--mu);font-style:italic':'')+'">'+(mr.lbl)+'</td>'
         +'<td class="r" style="font-family:monospace;font-size:.61rem">'+(mr.factor)+'</td>'
