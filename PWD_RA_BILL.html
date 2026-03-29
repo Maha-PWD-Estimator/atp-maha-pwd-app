@@ -1,0 +1,2970 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PWD RA Bill Generator V4 | महाराष्ट्र सार्वजनिक बांधकाम विभाग</title>
+
+<!-- Firebase SDKs (same as ATP app) -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+<style>
+/* ═══ RESET & VARIABLES ═══════════════════════════════════ */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700&family=Source+Code+Pro:wght@400;600&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#1a2744;--navy2:#243058;--blue:#2e4a8f;--blue2:#3a5bab;
+  --gold:#c8922a;--gold2:#e0a83a;--green:#1e6b3e;--green2:#28884e;
+  --red:#8b1a1a;--bg:#f4f1eb;--bg2:#ede9e0;--bg3:#e5e0d4;
+  --paper:#fdfaf4;--border:#b8ad98;--border2:#d4cabb;
+  --text:#1c1810;--text2:#3d3828;--text3:#6b6050;
+  --shadow:0 2px 12px rgba(26,39,68,.12);--shadow2:0 4px 24px rgba(26,39,68,.18);
+}
+body{font-family:'Noto Serif',serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px}
+
+/* ═══ LOGIN WALL ═══════════════════════════════════════════ */
+#loginWall{position:fixed;inset:0;background:linear-gradient(135deg,var(--navy),var(--blue));
+  display:flex;align-items:center;justify-content:center;z-index:3000;padding:16px}
+.login-box{background:var(--paper);border-radius:16px;padding:32px 28px;width:100%;max-width:420px;
+  box-shadow:var(--shadow2);border-top:4px solid var(--gold)}
+.login-logo{text-align:center;margin-bottom:20px}
+.login-logo .icon{font-size:40px;margin-bottom:6px}
+.login-logo h2{color:var(--navy);font-size:17px;font-weight:700}
+.login-logo p{color:var(--text3);font-size:11px;margin-top:3px;font-family:'Source Code Pro',monospace}
+.login-tabs{display:flex;gap:0;margin-bottom:20px;border-bottom:2px solid var(--border)}
+.ltab{flex:1;padding:9px;text-align:center;cursor:pointer;font-size:12px;font-weight:700;
+  color:var(--text3);border-bottom:3px solid transparent;position:relative;top:2px;transition:all .2s}
+.ltab.on{color:var(--navy);border-bottom-color:var(--gold)}
+.lsec{display:none}.lsec.on{display:block}
+.lfield{margin-bottom:12px}
+.lfield label{display:block;font-size:10px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.3px;color:var(--text3);margin-bottom:4px}
+.lfield input{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:6px;
+  font-size:13px;font-family:'Noto Serif',serif;background:var(--paper);color:var(--text);
+  transition:border-color .15s}
+.lfield input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 2px rgba(46,74,143,.15)}
+.lbtn{width:100%;padding:11px;border-radius:6px;border:none;cursor:pointer;font-family:'Noto Serif',serif;
+  font-size:13px;font-weight:700;transition:all .15s}
+.lbtn-primary{background:var(--blue);color:#fff}
+.lbtn-primary:hover{background:var(--blue2)}
+.lbtn-google{background:#fff;color:var(--text);border:1px solid var(--border);margin-top:10px;
+  display:flex;align-items:center;justify-content:center;gap:8px}
+.lbtn-google:hover{background:var(--bg2)}
+.lerr{color:var(--red);font-size:11px;margin-top:6px;min-height:14px}
+.lotp-row{display:flex;gap:8px}
+.lotp-row input{flex:1}
+.lotp-row .lbtn{width:auto;padding:9px 14px;font-size:11px}
+#rcWrap{margin-top:8px}
+
+/* ═══ HEADER ═════════════════════════════════════════════  */
+.header{background:linear-gradient(135deg,var(--navy),var(--navy2) 50%,var(--blue));
+  padding:0;border-bottom:3px solid var(--gold)}
+.header-inner{max-width:1400px;margin:0 auto;padding:10px 20px;display:flex;align-items:center;gap:14px}
+.header-emblem{width:46px;height:46px;border-radius:50%;background:var(--gold);
+  display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;border:2px solid var(--gold2)}
+.header-title{flex:1}
+.header-title h1{color:#fff;font-size:16px;font-weight:700;letter-spacing:.4px}
+.header-title p{color:rgba(255,255,255,.65);font-size:10px;margin-top:2px;font-family:'Source Code Pro',monospace}
+.header-right{display:flex;align-items:center;gap:10px}
+.header-badge{background:var(--gold);color:var(--navy);padding:3px 10px;border-radius:16px;
+  font-size:11px;font-weight:700;font-family:'Source Code Pro',monospace;white-space:nowrap}
+.user-chip{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.12);
+  border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:4px 12px 4px 8px;cursor:pointer}
+.user-chip .avatar{width:26px;height:26px;border-radius:50%;background:var(--gold);
+  display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--navy)}
+.user-chip .uname{color:#fff;font-size:11px;font-weight:600;max-width:100px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ═══ USER MENU ══════════════════════════════════════════= */
+.user-menu{position:fixed;top:62px;right:16px;background:var(--paper);border-radius:10px;
+  box-shadow:var(--shadow2);border:1px solid var(--border);z-index:500;min-width:200px;
+  display:none;overflow:hidden}
+.user-menu.open{display:block}
+.umitem{padding:10px 16px;cursor:pointer;font-size:12px;display:flex;align-items:center;gap:8px;
+  border-bottom:1px solid var(--border2);transition:background .15s}
+.umitem:last-child{border-bottom:none}
+.umitem:hover{background:var(--bg2)}
+.umitem.danger{color:var(--red)}
+.um-info{padding:10px 16px;border-bottom:1px solid var(--border2)}
+.um-info .um-name{font-size:13px;font-weight:700;color:var(--navy)}
+.um-info .um-email{font-size:10px;color:var(--text3);font-family:'Source Code Pro',monospace}
+
+/* ═══ STATUS BAR ═════════════════════════════════════════= */
+.status-bar{background:var(--navy2);padding:6px 20px}
+.status-inner{max-width:1400px;margin:0 auto;display:flex;gap:20px;align-items:center;flex-wrap:wrap}
+.proj-field{display:flex;align-items:center;gap:5px}
+.proj-field label{color:rgba(255,255,255,.5);font-size:9px;font-family:'Source Code Pro',monospace;
+  text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+.proj-field span{color:#fff;font-size:11px;font-weight:600}
+.proj-badge{background:rgba(200,146,42,.25);border:1px solid var(--gold);color:var(--gold2);
+  padding:2px 8px;border-radius:10px;font-size:10px;font-family:'Source Code Pro',monospace}
+
+/* ═══ MAIN ════════════════════════════════════════════════ */
+.main{max-width:1400px;margin:0 auto;padding:14px 20px}
+
+/* ═══ BUTTONS ════════════════════════════════════════════= */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:6px 13px;border-radius:5px;border:1px solid;
+  cursor:pointer;font-family:'Noto Serif',serif;font-size:12px;font-weight:600;transition:all .15s;text-decoration:none}
+.btn-primary{background:var(--blue);color:#fff;border-color:var(--blue2)}.btn-primary:hover{background:var(--blue2)}
+.btn-success{background:var(--green);color:#fff;border-color:var(--green2)}.btn-success:hover{background:var(--green2)}
+.btn-warning{background:var(--gold);color:var(--navy);border-color:var(--gold2)}.btn-warning:hover{background:var(--gold2)}
+.btn-danger{background:var(--red);color:#fff;border-color:#a02020}.btn-danger:hover{background:#a02020}
+.btn-ghost{background:transparent;color:var(--text2);border-color:var(--border)}.btn-ghost:hover{background:var(--bg2)}
+.btn-sm{padding:4px 10px;font-size:11px}.btn-xs{padding:2px 7px;font-size:10px}
+
+/* ═══ FORMS ══════════════════════════════════════════════= */
+input,select,textarea{font-family:'Noto Serif',serif;font-size:13px;border:1px solid var(--border);
+  border-radius:4px;padding:5px 8px;background:var(--paper);color:var(--text);width:100%;transition:border-color .15s}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 2px rgba(46,74,143,.15)}
+input[type=number]{text-align:right}
+label{font-size:11px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:.3px;display:block;margin-bottom:3px}
+
+/* ═══ TABS ════════════════════════════════════════════════ */
+.tabs{display:flex;gap:0;margin-bottom:14px;border-bottom:2px solid var(--border)}
+.tab{padding:9px 22px;background:var(--bg2);border:1px solid var(--border);border-bottom:none;
+  cursor:pointer;font-family:'Noto Serif',serif;font-size:12px;color:var(--text3);
+  transition:all .2s;position:relative;top:2px;border-radius:6px 6px 0 0}
+.tab:hover{background:var(--bg3);color:var(--text)}
+.tab.active{background:var(--paper);color:var(--navy);font-weight:700;border-bottom-color:var(--paper);z-index:1}
+.tab-badge{display:inline-block;background:var(--blue);color:#fff;padding:1px 6px;
+  border-radius:10px;font-size:10px;margin-left:5px;font-family:'Source Code Pro',monospace}
+.tab.active .tab-badge{background:var(--gold)}
+.tab-content{display:none}.tab-content.active{display:block}
+
+/* ═══ PANELS ══════════════════════════════════════════════ */
+.panel{background:var(--paper);border:1px solid var(--border);border-radius:8px;
+  padding:14px;margin-bottom:14px;box-shadow:var(--shadow)}
+.panel-title{font-size:13px;font-weight:700;color:var(--navy);border-bottom:2px solid var(--border2);
+  padding-bottom:7px;margin-bottom:11px;display:flex;align-items:center;gap:7px}
+.panel-title::before{content:'';display:inline-block;width:4px;height:15px;background:var(--gold);border-radius:2px}
+
+/* ═══ ITEMS TABLE ════════════════════════════════════════= */
+.items-table{width:100%;border-collapse:collapse;font-size:12px}
+.items-table th{background:var(--navy);color:#fff;padding:7px 5px;text-align:left;
+  font-size:10px;font-family:'Source Code Pro',monospace;text-transform:uppercase;white-space:nowrap}
+.items-table th.r{text-align:right}
+.items-table td{padding:5px 5px;border-bottom:1px solid var(--border2);vertical-align:top}
+.items-table tr:hover td{background:rgba(46,74,143,.04)}
+.items-table tr.sub-item td{background:rgba(200,146,42,.06);padding-left:22px}
+.items-table tr.sub-item td:first-child{border-left:3px solid var(--gold)}
+.seq-badge{display:inline-block;background:var(--navy);color:#fff;padding:1px 5px;
+  border-radius:10px;font-size:9px;font-family:'Source Code Pro',monospace;min-width:24px;text-align:center}
+.seq-badge.cat-exc{background:#6b4e2a}.seq-badge.cat-anti{background:#5a4a7a}
+.seq-badge.cat-pcc{background:#3a6b4a}.seq-badge.cat-rcc{background:#2e4a8f}
+.seq-badge.cat-steel{background:#8b3a2a}.seq-badge.cat-mason{background:#5a3a2a}
+.seq-badge.cat-other{background:#556}
+.num-cell{font-family:'Source Code Pro',monospace;font-weight:600;font-size:11px;color:var(--blue)}
+.amt-cell{font-family:'Source Code Pro',monospace;text-align:right;font-weight:600}
+.steel-tag{display:inline-block;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700;font-family:'Source Code Pro',monospace}
+.steel-tag.footing{background:#e8f4ec;color:#1e6b3e;border:1px solid #b8dfc6}
+.steel-tag.column{background:#e8ecf8;color:#1e3a8f;border:1px solid #b8c8e8}
+.steel-tag.slab{background:#f8ecd8;color:#8b5a2a;border:1px solid #e8c890}
+.steel-tag.beam{background:#f4e8f4;color:#6b2a8b;border:1px solid #d8b8e8}
+.steel-tag.other{background:#f0f0f0;color:#556;border:1px solid #ccc}
+
+/* ═══ RE ENTRIES ══════════════════════════════════════════ */
+.re-item{border:1px solid var(--border);border-radius:8px;margin-bottom:14px;overflow:hidden;box-shadow:var(--shadow)}
+.re-item-header{background:var(--navy);color:#fff;padding:9px 13px;display:flex;align-items:center;gap:9px;cursor:pointer}
+.re-item-header:hover{background:var(--navy2)}
+.re-item-title{flex:1;font-size:12px;font-weight:600}
+.re-item-body{padding:11px;background:var(--paper)}
+.re-date-row{display:grid;grid-template-columns:auto auto auto 1fr;gap:9px;align-items:end;
+  margin-bottom:9px;padding-bottom:9px;border-bottom:1px dashed var(--border2)}
+.mb-table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:7px}
+.mb-table th{background:#e8ecf4;color:var(--navy);padding:5px 4px;font-size:10px;
+  font-family:'Source Code Pro',monospace;text-align:center;border-bottom:2px solid var(--border)}
+.mb-table td{border:1px solid var(--border2);padding:3px 4px;vertical-align:middle}
+.mb-table input{border:none;background:transparent;padding:2px 3px;text-align:right;
+  font-family:'Source Code Pro',monospace;font-size:12px;width:100%}
+.mb-table input:focus{background:rgba(46,74,143,.06);border-radius:2px}
+.mb-table td.desc-cell input{text-align:left}
+.mb-table td.calc-cell{background:var(--bg2);font-family:'Source Code Pro',monospace;
+  text-align:right;font-weight:600;font-size:11px;color:var(--blue2)}
+.mb-total-row td{background:rgba(46,74,143,.08);font-weight:700;font-family:'Source Code Pro',monospace}
+.curing-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(30,107,62,.12);
+  border:1px solid rgba(30,107,62,.3);color:var(--green);padding:2px 7px;
+  border-radius:10px;font-size:10px;font-family:'Source Code Pro',monospace}
+.next-date-info{font-size:11px;color:var(--text3);font-style:italic}
+
+/* ═══ ESTIMATES PICKER MODAL ══════════════════════════════ */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1000;
+  display:none;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--paper);border-radius:10px;padding:20px;width:90%;max-width:600px;
+  box-shadow:var(--shadow2);border-top:4px solid var(--gold);max-height:90vh;overflow-y:auto}
+.modal h3{font-size:15px;color:var(--navy);margin-bottom:13px;padding-bottom:7px;border-bottom:1px solid var(--border2)}
+
+/* Estimate cards */
+.est-list{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.est-card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;
+  padding:12px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:12px}
+.est-card:hover{background:var(--bg3);border-color:var(--blue)}
+.est-card.selected{border-color:var(--gold);background:rgba(200,146,42,.08)}
+.est-card-icon{width:40px;height:40px;border-radius:8px;background:var(--blue);
+  display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.est-card-body{flex:1;min-width:0}
+.est-card-name{font-size:13px;font-weight:700;color:var(--navy);white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}
+.est-card-meta{font-size:10px;color:var(--text3);font-family:'Source Code Pro',monospace;margin-top:2px}
+.est-card-count{background:var(--navy);color:#fff;padding:2px 8px;border-radius:10px;
+  font-size:10px;font-family:'Source Code Pro',monospace;white-space:nowrap}
+
+/* ═══ ABSTRACT HEADER EDIT ════════════════════════════════ */
+.abstract-header-edit{background:linear-gradient(135deg,#f8f4e8,#fdfaf4);border:2px solid var(--border);
+  border-radius:10px;padding:14px 18px;margin-bottom:14px;box-shadow:var(--shadow)}
+.ah-edit-title{font-size:12px;font-weight:700;color:var(--navy);text-transform:uppercase;
+  letter-spacing:.5px;margin-bottom:11px;padding-bottom:7px;border-bottom:2px dashed var(--border2);
+  display:flex;align-items:center;gap:6px}
+.ah-edit-title::before{content:'✏️'}
+.ah-row{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:9px;margin-bottom:8px}
+.ah-field{display:flex;flex-direction:column;gap:3px}
+.ah-field label{font-size:10px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:.3px;margin-bottom:0}
+.ah-field input{font-size:13px;font-weight:600;color:var(--navy);border:1px solid var(--border2);
+  border-radius:4px;padding:5px 8px;background:#fff;width:100%}
+.ah-field input:focus{border-color:var(--gold);box-shadow:0 0 0 2px rgba(200,146,42,.2);outline:none}
+.ah-preview{text-align:center;background:var(--paper);border:1px solid var(--border2);
+  border-radius:8px;padding:10px;margin-top:9px}
+.ah-preview .pre-l1{font-size:10px;color:var(--text3);font-family:'Source Code Pro',monospace;margin-bottom:3px}
+.ah-preview .pre-l2{font-size:11px;color:var(--text2);margin-bottom:2px}
+.ah-preview .pre-l3{font-size:11px;color:var(--text2);margin-bottom:5px}
+.ah-preview .pre-l4{font-size:13px;font-weight:700;color:var(--navy)}
+
+/* ═══ SMART DATE PANEL ════════════════════════════════════ */
+.start-date-panel{background:linear-gradient(135deg,rgba(46,74,143,.05),rgba(200,146,42,.05));
+  border:1px solid var(--border2);border-radius:8px;padding:11px;margin-bottom:11px}
+.start-date-panel h4{font-size:12px;font-weight:700;color:var(--navy);margin-bottom:7px;
+  display:flex;align-items:center;gap:5px}
+.start-date-panel h4::before{content:'📅'}
+.curing-chain{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+.chain-item{background:var(--paper);border:1px solid var(--border2);border-radius:6px;padding:5px 9px;font-size:11px;font-family:'Source Code Pro',monospace}
+.chain-item.active-item{border-color:var(--gold);background:rgba(200,146,42,.08)}
+.chain-item .ci-label{color:var(--text3);font-size:9px}
+.chain-item .ci-date{color:var(--navy);font-weight:700;font-size:11px}
+.chain-item .ci-curing{color:var(--green);font-size:9px}
+
+/* ═══ ABSTRACT TABLE ══════════════════════════════════════ */
+.abstract-table{width:100%;border-collapse:collapse;font-size:12px}
+.abstract-table th{background:var(--navy);color:#fff;padding:7px 7px;font-size:10px;
+  font-family:'Source Code Pro',monospace;text-transform:uppercase}
+.abstract-table th.r{text-align:right}
+.abstract-table td{padding:6px 7px;border:1px solid var(--border2)}
+.abstract-table tr.total-row td{background:rgba(46,74,143,.1);font-weight:700;font-family:'Source Code Pro',monospace}
+.amount-col{font-family:'Source Code Pro',monospace;text-align:right;font-weight:600}
+
+/* ═══ SUMMARY ══════════════════════════════════════════════ */
+.summary-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:11px;margin-top:11px}
+.summary-box{background:var(--paper);border:1px solid var(--border);border-radius:8px;padding:13px;text-align:center}
+.summary-box.total-a{border-top:4px solid var(--blue)}
+.summary-box.total-b{border-top:4px solid var(--gold)}
+.summary-box.total-c{border-top:4px solid var(--green)}
+.summary-box.grand{border-top:4px solid var(--navy);grid-column:1/-1}
+.summary-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;font-family:'Source Code Pro',monospace}
+.summary-amount{font-size:20px;font-weight:700;font-family:'Source Code Pro',monospace;color:var(--navy)}
+.summary-box.grand .summary-amount{font-size:26px;color:var(--blue)}
+
+/* ═══ RA BILLS SAVED LIST ════════════════════════════════= */
+.bill-list-item{display:flex;align-items:center;gap:10px;padding:8px 11px;border:1px solid var(--border2);
+  border-radius:6px;margin-bottom:6px;background:var(--paper);cursor:pointer;transition:all .15s}
+.bill-list-item:hover{background:var(--bg2);border-color:var(--blue2)}
+.bi-no{font-family:'Source Code Pro',monospace;font-weight:700;color:var(--blue);min-width:70px;font-size:11px}
+.bi-name{flex:1;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bi-date{font-size:10px;color:var(--text3);font-family:'Source Code Pro',monospace}
+
+/* ═══ SPLIT MODAL ════════════════════════════════════════= */
+.split-row-item input,.split-row-item select{font-size:12px}
+
+/* ═══ UTILITY ═════════════════════════════════════════════ */
+.flex{display:flex}.gap8{gap:8px}.gap4{gap:4px}.items-center{align-items:center}
+.flex-wrap{flex-wrap:wrap}.flex1{flex:1}.text-right{text-align:right}
+.text-sm{font-size:11px}.text-xs{font-size:10px}.text-muted{color:var(--text3)}
+.text-code{font-family:'Source Code Pro',monospace}
+.mt8{margin-top:8px}.mt12{margin-top:12px}.mb8{margin-bottom:8px}.mb12{margin-bottom:12px}
+.badge{display:inline-block;padding:1px 7px;border-radius:10px;font-size:10px;font-family:'Source Code Pro',monospace;font-weight:700}
+.badge-info{background:rgba(46,74,143,.12);color:var(--blue);border:1px solid rgba(46,74,143,.25)}
+.badge-warn{background:rgba(200,146,42,.15);color:var(--gold);border:1px solid rgba(200,146,42,.3)}
+.divider{border:none;border-top:1px dashed var(--border2);margin:9px 0}
+.empty-state{text-align:center;padding:36px 20px;color:var(--text3)}
+.empty-state .icon{font-size:38px;margin-bottom:7px}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--navy);color:#fff;
+  padding:10px 16px;border-radius:8px;font-size:13px;z-index:9999;
+  box-shadow:var(--shadow2);opacity:0;transition:opacity .3s;pointer-events:none;
+  border-left:4px solid var(--gold)}
+.toast.show{opacity:1}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px}
+.table-wrap{overflow-x:auto}
+.curing-info{background:rgba(30,107,62,.07);border:1px solid rgba(30,107,62,.2);
+  border-radius:6px;padding:7px 11px;font-size:11px;color:var(--green);
+  margin-bottom:9px;display:flex;align-items:center;gap:5px}
+
+/* ═══ PRINT ═══════════════════════════════════════════════ */
+@media print{
+  #loginWall,.user-menu,.header,.tabs,.btn,.action-bar,.status-bar,
+  .abstract-header-edit .ah-edit-title,.ah-row,.start-date-panel{display:none!important}
+  .abstract-header-edit{border:none;padding:0;background:none;box-shadow:none}
+  .ah-preview{border:none;padding:4px 0;background:none}
+  .panel{box-shadow:none;border:1px solid #ccc}
+  .tab-content{display:block!important}
+  body{background:#fff}
+}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+/* ═══ LOAD SCREEN ════════════════════════════════════════= */
+.load-screen{background:rgba(244,241,235,.97);position:fixed;inset:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:2500;gap:11px}
+.load-screen h2{color:var(--navy);font-size:17px}
+.load-screen p{color:var(--text3);font-size:12px}
+.spinner{width:34px;height:34px;border:3px solid var(--border2);border-top-color:var(--blue);
+  border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<!-- ═══ LOAD SCREEN ═══════════════════════════════════════ -->
+<div class="load-screen" id="loadScreen">
+  <div class="spinner"></div>
+  <h2>⚖️ PWD RA Bill</h2>
+  <p>Initializing…</p>
+</div>
+
+<!-- ═══ TOAST ═════════════════════════════════════════════ -->
+<div class="toast" id="toast"></div>
+
+<!-- ═══ LOGIN WALL ════════════════════════════════════════ -->
+<div id="loginWall" style="display:none">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="icon">🏛️</div>
+      <h2>PWD RA Bill Generator V4</h2>
+      <p>महाराष्ट्र सार्वजनिक बांधकाम विभाग | SSR 2022-23</p>
+    </div>
+    <div class="login-tabs">
+      <div class="ltab on" onclick="switchLTab('google')">🔵 Google</div>
+      <div class="ltab" onclick="switchLTab('email')">📧 Email</div>
+    </div>
+
+    <!-- Google -->
+    <div class="lsec on" id="lsec-google">
+      <button class="lbtn lbtn-google" onclick="loginGoogle()">
+        <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Google ने Login करा
+      </button>
+      <div class="lerr" id="googleErr"></div>
+    </div>
+
+    <!-- Email -->
+    <div class="lsec" id="lsec-email">
+      <div class="lfield">
+        <label>Email</label>
+        <input type="email" id="lEmail" placeholder="you@example.com">
+      </div>
+      <div class="lfield">
+        <label>Password</label>
+        <input type="password" id="lPass" placeholder="Password" onkeydown="if(event.key==='Enter')loginEmail()">
+      </div>
+      <button class="lbtn lbtn-primary" onclick="loginEmail()">Login</button>
+      <div class="lerr" id="emailErr"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ USER MENU ══════════════════════════════════════════ -->
+<div class="user-menu" id="userMenu">
+  <div class="um-info">
+    <div class="um-name" id="umName">—</div>
+    <div class="um-email" id="umEmail">—</div>
+  </div>
+  <div class="umitem" onclick="openRaBills()">📂 Saved RA Bills</div>
+  <div class="umitem danger" onclick="doLogout()">🚪 Logout</div>
+</div>
+
+<!-- ═══ ESTIMATES PICKER MODAL ══════════════════════════════ -->
+<div class="modal-overlay" id="estModal">
+  <div class="modal">
+    <h3>📋 तुमचे Estimates — Firebase</h3>
+    <div id="estList"><div class="empty-state"><div class="icon">⏳</div><p>Loading…</p></div></div>
+    <div class="flex gap8 mt12" style="justify-content:flex-end">
+      <button class="btn btn-ghost btn-sm" onclick="closeEstModal()">रद्द</button>
+      <button class="btn btn-primary btn-sm" id="btnLoadEst" onclick="loadSelectedEst()" disabled>✓ Load करा</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SPLIT MODAL ════════════════════════════════════════ -->
+<div class="modal-overlay" id="splitModal">
+  <div class="modal" style="max-width:640px">
+    <h3 id="splitModalTitle">Item Split करा</h3>
+
+    <!-- Total qty tracker -->
+    <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:8px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+      <div style="font-size:12px">
+        <span style="color:var(--text3)">Original Qty:</span>
+        <strong id="spOrigQty" style="font-family:'Source Code Pro',monospace;color:var(--navy)">0</strong>
+        <span id="spOrigUnit" style="color:var(--text3);font-size:11px"></span>
+      </div>
+      <div style="font-size:12px">
+        <span style="color:var(--text3)">Split बेरीज:</span>
+        <strong id="spUsedQty" style="font-family:'Source Code Pro',monospace;color:var(--blue)">0</strong>
+      </div>
+      <div style="font-size:12px">
+        <span style="color:var(--text3)">शिल्लक:</span>
+        <strong id="spRemQty" style="font-family:'Source Code Pro',monospace">0</strong>
+      </div>
+      <div style="font-size:11px;color:var(--text3);margin-left:auto">
+        💡 सर्व parts ची बेरीज = Original Qty असणे आवश्यक
+      </div>
+    </div>
+
+    <!-- Column headers -->
+    <div id="splitColHeader" style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px;padding:0 2px"></div>
+
+    <!-- Split rows -->
+    <div id="splitRows" style="max-height:340px;overflow-y:auto;padding-right:2px"></div>
+
+    <div class="flex gap8 mt12" style="justify-content:space-between;align-items:center;flex-wrap:wrap">
+      <button class="btn btn-warning btn-sm" onclick="addSplitRow()">+ Part Add करा</button>
+      <div class="flex gap8">
+        <button class="btn btn-ghost btn-sm" onclick="closeSplitModal()">रद्द</button>
+        <button class="btn btn-primary btn-sm" onclick="applySplit()">✓ Split लागू करा</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ TESTS MODAL ════════════════════════════════════════ -->
+<div class="modal-overlay" id="testsModal">
+  <div class="modal">
+    <h3>Tests (Total C)</h3>
+    <div id="testsRows"></div>
+    <div class="flex gap8 mt12" style="justify-content:flex-end">
+      <button class="btn btn-ghost btn-sm" onclick="closeTestsModal()">बंद</button>
+      <button class="btn btn-warning btn-sm" onclick="addTestRow()">+ Test</button>
+      <button class="btn btn-primary btn-sm" onclick="saveTests()">✓ Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ RA BILLS MODAL ════════════════════════════════════= -->
+<div class="modal-overlay" id="raBillsModal">
+  <div class="modal" style="max-width:640px">
+    <h3>📂 Saved RA Bills</h3>
+    <div id="raBillsList"><div class="empty-state"><div class="icon">📂</div><p>Loading…</p></div></div>
+    <div class="flex gap8 mt12" style="justify-content:flex-end">
+      <button class="btn btn-ghost btn-sm" onclick="closeRaBills()">बंद</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ HEADER ═════════════════════════════════════════════ -->
+<div class="header">
+  <div class="header-inner">
+    <div class="header-emblem">🏛️</div>
+    <div class="header-title">
+      <h1>RA Bill Generator — महाराष्ट्र PWD</h1>
+      <p>RUNNING ACCOUNT BILL &nbsp;|&nbsp; SSR 2022-23 &nbsp;|&nbsp; सा.बां.वि. ९ म.</p>
+    </div>
+    <div class="header-right">
+      <div class="header-badge" id="billBadge">B/No. ___</div>
+      <div class="user-chip" id="userChip" onclick="toggleUserMenu()" style="display:none">
+        <div class="avatar" id="userAvatar">?</div>
+        <span class="uname" id="userChipName">—</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ STATUS BAR ════════════════════════════════════════= -->
+<div class="status-bar">
+  <div class="status-inner" id="projBar">
+    <span class="text-sm" style="color:rgba(255,255,255,.5)">Estimate load करा →</span>
+  </div>
+</div>
+
+<!-- ═══ MAIN ═══════════════════════════════════════════════ -->
+<div class="main">
+
+  <!-- ACTION BAR -->
+  <div class="flex gap8 mb8 flex-wrap items-center action-bar">
+    <button class="btn btn-primary" onclick="openEstModal()">📥 Estimate Load करा</button>
+    <button class="btn btn-ghost" onclick="switchTab('tab-items')">📋 Items</button>
+    <button class="btn btn-ghost" onclick="switchTab('tab-re')">📐 RE Entries</button>
+    <button class="btn btn-ghost" onclick="switchTab('tab-abstract')">📊 Abstract</button>
+    <div style="flex:1"></div>
+    <div class="flex gap8 items-center">
+      <label style="display:inline;margin:0;font-size:11px;color:var(--text3)">Bill No:</label>
+      <input type="text" id="billNo" placeholder="904" style="width:75px" oninput="syncBillNo('billNo')">
+      <label style="display:inline;margin:0;font-size:11px;color:var(--text3)">Date:</label>
+      <input type="date" id="billDate" style="width:135px" onchange="syncBillDate('billDate')">
+    </div>
+    <button class="btn btn-success" onclick="saveRaBill()">☁️ Save Bill</button>
+    <button class="btn btn-success" onclick="printAbstract()">🖨️ Print</button>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <div class="tab active" id="tab-items" onclick="switchTab('tab-items')">
+      📋 Items & Sequence<span class="tab-badge" id="itemsBadge">0</span>
+    </div>
+    <div class="tab" id="tab-re" onclick="switchTab('tab-re')">
+      📐 RE Entries (MB)<span class="tab-badge" id="reBadge">0</span>
+    </div>
+    <div class="tab" id="tab-abstract" onclick="switchTab('tab-abstract')">
+      📊 Abstract of Bill
+    </div>
+    <div class="tab" id="tab-royalty" onclick="switchTab('tab-royalty')">
+      💰 Royalty
+    </div>
+    <div class="tab" id="tab-consumption" onclick="switchTab('tab-consumption')">
+      📦 Consumption
+    </div>
+    <div class="tab" id="tab-cement" onclick="switchTab('tab-cement')">
+      🏗️ Cement Consumption
+    </div>
+    <div class="tab" id="tab-comparative" onclick="switchTab('tab-comparative')">
+      📑 Comparative Statement
+    </div>
+  </div>
+
+  <!-- TAB 1: ITEMS -->
+  <div class="tab-content active" id="content-tab-items">
+    <div class="curing-info">
+      ⏱️ IS 456 नुसार Curing Days: PCC=3d | RCC Footing/Column=7d | RCC Slab/Beam=14d | Brick Masonry=3d | Plaster=7d
+    </div>
+    <div class="panel">
+      <div class="panel-title">
+        Bill Items — Construction Sequence नुसार
+        <div style="margin-left:auto" class="flex gap8">
+          <button class="btn btn-ghost btn-sm" onclick="collapseAllSubs()">Collapse</button>
+          <button class="btn btn-ghost btn-sm" onclick="expandAllSubs()">Expand</button>
+          <button class="btn btn-warning btn-sm" onclick="autoSortItems();renderItems();renderREEntries()" title="Category नुसार sort करा — Board items शेवटी जातात">🔄 Category Sort</button>
+          <button class="btn btn-ghost btn-sm" onclick="showRateDebug()" title="Rate fields debug">🔍 Rate Debug</button>
+        </div>
+      </div>
+      <div id="emptyState" class="empty-state">
+        <div class="icon">📂</div>
+        <p>Firebase मधून Estimate load करा</p>
+        <button class="btn btn-primary mt12" onclick="openEstModal()">📥 Load करा</button>
+      </div>
+      <div class="table-wrap">
+        <table class="items-table" id="itemsTable" style="display:none">
+          <thead>
+            <tr>
+              <th style="width:28px">#</th><th style="width:46px">Seq</th>
+              <th style="width:60px">Item No.</th><th>कामाचा तपशील</th>
+              <th style="width:60px">Unit</th><th style="width:65px" class="r">Qty</th>
+              <th style="width:75px" class="r">Rate</th><th style="width:85px" class="r">Amount</th>
+              <th style="width:115px">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="itemsTbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: RE ENTRIES -->
+  <div class="tab-content" id="content-tab-re">
+    <div class="start-date-panel" id="startDatePanel" style="display:none">
+      <h4>Construction Start Date — Smart Curing Calculator</h4>
+      <p class="text-sm text-muted mb8">एकदा Start Date टाका — curing days नुसार सर्व items च्या dates automatically calculate होतात.</p>
+      <div class="grid3" style="align-items:end">
+        <div><label>Construction Start Date</label><input type="date" id="globalStartDate" onchange="applySmartDates()"></div>
+        <button class="btn btn-success btn-sm" style="margin-top:18px" onclick="applySmartDates()">✅ Apply Dates</button>
+        <button class="btn btn-ghost btn-sm" style="margin-top:18px" onclick="resetAllDates()">🔄 Reset</button>
+      </div>
+      <div class="curing-chain" id="curingChain"></div>
+    </div>
+    <div class="flex gap8 mb8 items-center flex-wrap">
+      <div class="text-sm text-muted flex1">प्रत्येक item साठी RE entries टाका — No × L × B × H = Qty</div>
+      <button class="btn btn-primary btn-sm" onclick="expandAllRE()">सर्व उघडा</button>
+      <button class="btn btn-ghost btn-sm" onclick="collapseAllRE()">सर्व बंद करा</button>
+    </div>
+    <div id="reEntriesContainer">
+      <div class="empty-state"><div class="icon">📐</div><p>आधी Items load करा</p></div>
+    </div>
+  </div>
+
+  <!-- TAB 3: ABSTRACT -->
+  <div class="tab-content" id="content-tab-abstract">
+
+    <!-- EDITABLE ABSTRACT HEADER -->
+    <div class="abstract-header-edit">
+      <div class="ah-edit-title">Abstract of Bill — Header Edit करा</div>
+      <div class="ah-row">
+        <div class="ah-field" style="grid-column:span 2">
+          <label>कामाचे नाव (Work Name)</label>
+          <input type="text" id="ahWorkName" placeholder="कामाचे नाव टाका" oninput="updateAbstractPreview()">
+        </div>
+        <div class="ah-field" style="grid-column:span 2">
+          <label>&nbsp;</label>
+          <input type="text" id="ahWorkName2" placeholder="(पुढे)" oninput="updateAbstractPreview()">
+        </div>
+      </div>
+      <div class="ah-row">
+        <div class="ah-field">
+          <label>B/No.</label>
+          <input type="text" id="ahBillNo" placeholder="904" oninput="syncBillNo('ahBillNo')">
+        </div>
+        <div class="ah-field">
+          <label>दिनांक</label>
+          <input type="date" id="ahBillDate" onchange="syncBillDate('ahBillDate')">
+        </div>
+        <div class="ah-field">
+          <label>ठेकेदार</label>
+          <input type="text" id="ahContractor" placeholder="Contractor नाव" oninput="updateAbstractPreview()">
+        </div>
+        <div class="ah-field">
+          <label>Agreement No.</label>
+          <input type="text" id="ahAgreementNo" placeholder="Agr. No." oninput="updateAbstractPreview()">
+        </div>
+      </div>
+      <div class="ah-preview">
+        <div class="pre-l1">सा. बां. वि. ९ म. &nbsp;|&nbsp; P.W.D. 9 m.</div>
+        <div class="pre-l2" id="prevWorkName">कामाचे नाव: ___</div>
+        <div class="pre-l3" id="prevContractor">ठेकेदार: ___</div>
+        <div class="pre-l4" id="prevBillInfo">ABSTRACT | RA Bill | B/No. ___ | Date: ___</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="table-wrap">
+        <table class="abstract-table" id="abstractTable">
+          <thead>
+            <tr>
+              <th style="width:36px">#</th><th style="width:72px">Item No.</th>
+              <th>कामाचा तपशील</th><th style="width:75px" class="r">Qty</th>
+              <th style="width:55px">Unit</th><th style="width:85px" class="r">Rate ₹</th>
+              <th style="width:95px" class="r">Amount ₹</th>
+            </tr>
+          </thead>
+          <tbody id="abstractTbody">
+            <tr><td colspan="7" class="empty-state">Items load करा आणि RE entries टाका</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="summary-grid mt12" id="summaryGrid" style="display:none">
+        <div class="summary-box total-a">
+          <div class="summary-label">Total (A) — Work Items</div>
+          <div class="summary-amount" id="sumA">₹ 0</div>
+        </div>
+        <div class="summary-box total-b">
+          <div class="summary-label">Total (B) — Royalty</div>
+          <div class="summary-amount" id="sumB">₹ 0</div>
+          <div class="mt8" style="font-size:10px;color:var(--text3);text-align:center">
+            <div id="royaltyAutoLine" style="color:var(--blue);font-weight:700;margin-bottom:4px"></div>
+            <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:5px">
+              <span>🪨 Sand: <span id="roySandTotal" style="font-weight:700;color:var(--navy)">0.000</span> M³</span>
+              <span>🏔️ Murum: <span id="royMurumTotal" style="font-weight:700;color:var(--navy)">0.000</span> M³</span>
+            </div>
+            <div style="color:var(--text3);font-size:9px">CF Factor वरून auto-calculated | Sand ₹237.37 | Murum/Coarse ₹216.18</div>
+            <button class="btn btn-ghost btn-xs mt6" onclick="showRoyaltyChart()" style="font-size:9px">📊 Royalty Chart</button>
+          </div>
+        </div>
+        <div class="summary-box total-c">
+          <div class="summary-label">Total (C) — Tests</div>
+          <div class="summary-amount" id="sumC">₹ 0</div>
+          <button class="btn btn-ghost btn-xs mt8" onclick="openTestsEditor()">Tests Edit</button>
+        </div>
+        <div class="summary-box grand">
+          <div class="summary-label">GRAND TOTAL = A + B + C</div>
+          <div class="summary-amount" id="sumGrand">₹ 0</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- TAB 4: ROYALTY -->
+  <div class="tab-content" id="content-tab-royalty">
+    <div style="padding:12px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+        <h3 style="margin:0;font-size:14px;font-weight:700">💰 Royalty Statement</h3>
+        <div style="font-size:11px;color:var(--text3);background:var(--bg2);padding:3px 9px;border-radius:12px">CF Factor वरून Auto-Calculated</div>
+        <div style="margin-left:auto;display:flex;gap:8px">
+          <div style="font-size:11px;color:var(--text3)">Sand ₹<input type="number" id="rRateSand" value="237.37" style="width:60px;font-size:11px" oninput="renderRoyaltyTab()"> /M³</div>
+          <div style="font-size:11px;color:var(--text3)">Murum ₹<input type="number" id="rRateMurum" value="216.18" style="width:60px;font-size:11px" oninput="renderRoyaltyTab()"> /M³</div>
+        </div>
+      </div>
+      <div id="royaltyTabContent">
+        <div class="empty-state"><div class="icon">💰</div><p>Abstract tab मध्ये items load करा</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 5: CONSUMPTION -->
+  <div class="tab-content" id="content-tab-consumption">
+    <div style="padding:12px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+        <h3 style="margin:0;font-size:14px;font-weight:700">📦 Consumption Chart</h3>
+        <div style="font-size:11px;color:var(--text3);background:var(--bg2);padding:3px 9px;border-radius:12px">Material-wise Consumption per Item</div>
+      </div>
+      <div id="consumptionTabContent">
+        <div class="empty-state"><div class="icon">📦</div><p>Items load करा</p></div>
+      </div>
+    </div>
+  </div>
+  <!-- TAB 6: CEMENT CONSUMPTION STATEMENT -->
+  <div class="tab-content" id="content-tab-cement">
+    <div style="padding:12px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+        <h3 style="margin:0;font-size:14px;font-weight:700">🏗️ Cement Consumption Statement</h3>
+        <button class="btn btn-ghost btn-sm" onclick="window.print()">🖨️ Print</button>
+      </div>
+
+      <!-- Print Header -->
+      <div class="print-header" style="display:none">
+        <div style="text-align:center;font-size:14px;font-weight:700;margin-bottom:4px">CEMENT CONSUMPTION STATEMENT</div>
+        <div style="font-size:12px;margin-bottom:2px">Name of works :- <span id="ccs-workname"></span></div>
+        <div style="font-size:12px;margin-bottom:2px">Name of Agency :- <span id="ccs-contractor"></span></div>
+        <div style="font-size:12px;margin-bottom:8px">Authority :- <span id="ccs-billno"></span></div>
+      </div>
+
+      <!-- Cement Rate Input -->
+      <div class="panel" style="margin-bottom:12px">
+        <div class="panel-title">⚙️ Settings</div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end">
+          <div>
+            <label>Cement Rate (₹ per Bag)</label>
+            <input type="number" id="cementRate" value="380" min="0" step="1" style="width:110px" oninput="renderCementConsumption()">
+          </div>
+          <div style="font-size:11px;color:var(--text3);max-width:400px;padding-bottom:4px">
+            💡 CF Factor नुसार Theoretical Consumption calculate होतो. Actual = Theoretical (same). Cement brought by contractor असेल तर Remark मध्ये दिसेल.
+          </div>
+        </div>
+      </div>
+
+      <div id="cementConsumptionContent">
+        <div class="empty-state"><div class="icon">🏗️</div><p>Items load करा</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 7: COMPARATIVE STATEMENT -->
+  <div class="tab-content" id="content-tab-comparative">
+    <div style="padding:12px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+        <h3 style="margin:0;font-size:14px;font-weight:700">📑 Comparative Statement</h3>
+        <span style="font-size:10px;color:var(--text3);background:var(--bg2);padding:3px 9px;border-radius:12px">Estimate → Tender | MB → Actual | Auto calculated</span>
+        <button class="btn btn-primary btn-sm" onclick="printComparative()">🖨️ Print (नवीन Window)</button>
+      </div>
+
+      <!-- Signature Settings Panel -->
+      <div class="panel" style="margin-bottom:12px">
+        <div class="panel-title">✍️ Signature Block Settings — Print साठी</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <div>
+            <label style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.3px">Left Signature — Name</label>
+            <input type="text" id="sig1Name" value="Sectional Engineer" style="margin-bottom:5px">
+            <label style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.3px">Designation Line</label>
+            <input type="text" id="sig1Desig" value="P.W. Sub Division Kaij" style="margin-bottom:5px">
+          </div>
+          <div>
+            <label style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.3px">Right Signature — Name</label>
+            <input type="text" id="sig2Name" value="Sub Divisional Engineer" style="margin-bottom:5px">
+            <label style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.3px">Designation Line</label>
+            <input type="text" id="sig2Desig" value="P.W. Division Kaij" style="margin-bottom:5px">
+          </div>
+        </div>
+        <div style="font-size:10px;color:var(--text3);margin-top:4px">💡 वरील fields बदला → Print केल्यावर त्या प्रमाणे signature block येईल</div>
+      </div>
+
+      <!-- Print Header (only visible on print) -->
+      <div class="print-header" style="display:none">
+        <div style="text-align:center;font-size:14px;font-weight:700;margin-bottom:6px">Comparative statement</div>
+        <div style="font-size:12px;margin-bottom:2px">Name of works :- <span class="cs-workname"></span></div>
+        <div style="font-size:12px;margin-bottom:2px">Name of Agency :- <span class="cs-contractor"></span></div>
+        <div style="font-size:12px;margin-bottom:8px">Agancy :- <span class="cs-billno"></span></div>
+      </div>
+
+      <!-- Auto-generated table -->
+      <div id="comparativeInputArea"></div>
+      <div id="comparativeOutput" style="display:none">
+        <div id="comparativeTable"></div>
+        <div id="comparativeSummary" style="margin-top:12px;font-weight:700;font-size:13px"></div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<!-- ═══ ROYALTY CHART MODAL ════════════════════════════════ -->
+<div class="modal-overlay" id="royaltyChartModal">
+  <div class="modal" style="max-width:820px;max-height:85vh;overflow-y:auto">
+    <h3>📊 Royalty Statement — CF Factor वरून Auto-Calculated</h3>
+    <div id="royaltyChartContent" style="overflow-y:auto;max-height:65vh"></div>
+    <div class="flex gap8 mt12" style="justify-content:flex-end">
+      <button class="btn btn-ghost btn-sm" onclick="window.print()">🖨️ Print</button>
+      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('royaltyChartModal').classList.remove('open')">बंद</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ RATE DEBUG MODAL ════════════════════════════════════ -->
+<div class="modal-overlay" id="rateDebugModal">
+  <div class="modal" style="max-width:700px">
+    <h3>🔍 Rate Debug — Firebase मधून काय आलं?</h3>
+    <div id="rateDebugContent" style="font-family:'Source Code Pro',monospace;font-size:11px;overflow-y:auto;max-height:60vh"></div>
+    <div class="flex gap8 mt12" style="justify-content:flex-end">
+      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('rateDebugModal').classList.remove('open')">बंद</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   CF MAP — SSR Item Number → Material Consumption Factors
+   Source: ATP Maha PWD App (same project)
+   Keys: scr_sand=Screened Sand(M3), sand=Natural Sand(M3),
+         m20mm/m12_10/m40mm=Metal(M3), rubble=Rubble/Murum(M3),
+         quarry=Quarry/Soling(M3), cement_bags=Cement(bags),
+         bricks=Bricks(nos), ms_bars=Steel(MT)
+   Royalty applies on: sand,scr_sand (Sand) | m20mm,m12_10,m40mm,rubble,quarry (Murum/Coarse)
+   ═══════════════════════════════════════════════════════════ */
+var CF_MAP={
+  "11.25":{scr_sand:0.425,m40mm:0.57,m20mm:0.28,cement_bags:7.0},
+  "14.07":{cement_bags:7.0,scr_sand:0.425,m40mm:0.57,m20mm:0.28},
+  "21.37":{rubble:1.0,quarry:0.2},
+  "21.38":{rubble:1.0,quarry:0.2},
+  "21.39":{sand:1.0},
+  "22.01":{cement_bags:8.0,scr_sand:0.425},
+  "22.02":{cement_bags:8.0,scr_sand:0.425},
+  "22.03":{cement_bags:8.0,scr_sand:0.425},
+  "22.04":{cement_bags:8.0,scr_sand:0.425},
+  "22.05":{cement_bags:8.0,scr_sand:0.425},
+  "22.06":{cement_bags:8.0,scr_sand:0.425},
+  "22.11":{cement_bags:8.0,scr_sand:0.425},
+  "22.12":{cement_bags:8.0,scr_sand:0.425},
+  "22.13":{cement_bags:8.0,scr_sand:0.425},
+  "22.14":{cement_bags:8.0,scr_sand:0.425},
+  "24.01":{cement_bags:3.4,scr_sand:0.47,m40mm:0.7,m20mm:0.24},
+  "24.04":{cement_bags:4.4,scr_sand:0.47,m40mm:0.7,m20mm:0.24},
+  "24.06":{cement_bags:6.4,scr_sand:0.445,m40mm:0.7,m20mm:0.22,m12_10:0.11},
+  "24.08":{cement_bags:6.0,scr_sand:0.44,m40mm:0.56,m20mm:0.22,m12_10:0.11},
+  "24.1":{cement_bags:7.0,scr_sand:0.425,m40mm:0.56,m20mm:0.22,m12_10:0.11},
+  "24.12":{cement_bags:7.0,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "24.14":{cement_bags:6.0,scr_sand:0.44,m40mm:0.56,m20mm:0.22,m12_10:0.11},
+  "24.15":{cement_bags:7.0,scr_sand:0.425,m40mm:0.56,m20mm:0.22,m12_10:0.11},
+  "24.16":{cement_bags:6.0,scr_sand:0.425,m20mm:0.67,m12_10:0.22},
+  "25.11":{cement_bags:7.0,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "25.13":{cement_bags:7.5,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "25.15":{cement_bags:8.0,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "25.17":{cement_bags:8.25,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "25.19":{cement_bags:8.5,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "25.31":{cement_bags:7.0,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "25.33":{cement_bags:7.5,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "25.35":{cement_bags:8.0,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "25.37":{cement_bags:8.25,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "25.39":{cement_bags:8.5,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "25.5":{cement_bags:7.0,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "25.52":{cement_bags:7.5,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "25.54":{cement_bags:8.0,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "25.56":{cement_bags:8.25,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "25.58":{cement_bags:8.5,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "25.7":{cement_bags:7.0,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "25.72":{cement_bags:7.5,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "25.74":{cement_bags:8.0,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "25.76":{cement_bags:8.25,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "25.78":{cement_bags:8.5,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "26.05":{cement_bags:7.0,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "26.07":{cement_bags:7.5,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "26.09":{cement_bags:7.0,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "26.11":{cement_bags:7.5,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "26.17":{cement_bags:7.0,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "26.19":{cement_bags:7.5,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "26.23":{cement_bags:7.0,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "26.25":{cement_bags:7.0,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "26.26":{cement_bags:7.5,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "26.27":{cement_bags:7.0,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "26.28":{cement_bags:7.5,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "26.29":{cement_bags:7.0,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "26.3":{cement_bags:7.5,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "26.31":{cement_bags:7.0,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "26.32":{cement_bags:7.5,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "26.33":{ms_bars:1.0},
+  "26.34":{ms_bars:1.0},
+  "26.58":{cement_bags:7.0,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "26.6":{cement_bags:7.5,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "26.62":{cement_bags:8.0,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "26.64":{cement_bags:8.25,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "26.66":{cement_bags:8.5,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "27.01":{cement_bags:1.58,scr_sand:0.32,bricks:475.0},
+  "27.02":{cement_bags:1.24,scr_sand:0.25,bricks:475.0},
+  "27.03":{cement_bags:1.58,scr_sand:0.32,bricks:475.0},
+  "27.05":{cement_bags:1.58,scr_sand:0.32,bricks:475.0},
+  "27.08":{cement_bags:2.6,scr_sand:0.25,bricks:475.0},
+  "27.1":{cement_bags:2.6,scr_sand:0.25,bricks:475.0},
+  "27.12":{cement_bags:1.58,scr_sand:0.32,bricks:475.0},
+  "27.13":{cement_bags:1.58,scr_sand:0.32,bricks:475.0},
+  "28.01":{rubble:1.16,cement_bags:1.7,scr_sand:0.35},
+  "28.02":{rubble:1.16,cement_bags:1.7,scr_sand:0.35},
+  "28.03":{rubble:1.16,cement_bags:2.05,scr_sand:0.35},
+  "28.04":{rubble:1.16,cement_bags:1.7,scr_sand:0.35},
+  "28.05":{rubble:1.16,cement_bags:1.7,scr_sand:0.35},
+  "28.06":{rubble:1.16,cement_bags:1.7,scr_sand:0.35},
+  "28.07":{rubble:1.16,cement_bags:1.7,scr_sand:0.35},
+  "28.08":{rubble:1.16,cement_bags:0.7,scr_sand:0.35},
+  "28.09":{rubble:0.35,m40mm:1.7,m20mm:0.35},
+  "28.1":{rubble:0.35,m40mm:1.7,m20mm:0.35},
+  "28.11":{rubble:0.35,m40mm:1.5,m20mm:0.3},
+  "28.12":{rubble:0.35,m40mm:1.5,m20mm:0.3},
+  "32.01":{cement_bags:0.054,scr_sand:0.0076},
+  "32.02":{cement_bags:0.07,scr_sand:0.0076},
+  "32.03":{cement_bags:0.09,scr_sand:0.015},
+  "32.04":{cement_bags:0.11,scr_sand:0.015},
+  "32.05":{cement_bags:0.14,scr_sand:0.015},
+  "32.08":{cement_bags:0.228,scr_sand:0.024},
+  "32.11":{cement_bags:0.25,scr_sand:0.033},
+  "32.12":{cement_bags:0.25,scr_sand:0.021},
+  "33.01":{cement_bags:0.135,scr_sand:0.022},
+  "33.02":{cement_bags:0.14,scr_sand:0.02},
+  "33.03":{cement_bags:0.15,scr_sand:0.02},
+  "33.04":{cement_bags:0.135,scr_sand:0.022},
+  "33.09":{cement_bags:0.185,scr_sand:0.02},
+  "33.11":{cement_bags:0.185,scr_sand:0.02},
+  "33.24":{cement_bags:0.19,scr_sand:0.02},
+  "33.4":{cement_bags:0.19,scr_sand:0.02},
+  "33.42":{cement_bags:0.19,scr_sand:0.02},
+  "33.49":{scr_sand:0.03},
+  "33.5":{scr_sand:0.03},
+  "41.56":{cement_bags:0.35,scr_sand:0.024,m12_10:0.048},
+  "44.01":{cement_bags:0.23,scr_sand:0.028},
+  "44.02":{cement_bags:0.29,scr_sand:0.035},
+  "44.03":{cement_bags:0.46,scr_sand:0.056},
+  "44.04":{cement_bags:0.576,scr_sand:0.07},
+  "44.07":{cement_bags:0.206,scr_sand:0.025},
+  "44.08":{cement_bags:0.257,scr_sand:0.031},
+  "44.09":{cement_bags:0.132,scr_sand:0.018,m12_10:0.036}
+};
+/* Royalty Keys: SAND group → sand, scr_sand | MURUM/COARSE group → m20mm, m12_10, m40mm, rubble, quarry */
+var ROYALTY_RATE_SAND=237.37;
+var ROYALTY_RATE_MURUM=216.18;
+
+/* ═══════════════════════════════════════════════════════════
+   FIREBASE INIT — same project as ATP app
+   ═══════════════════════════════════════════════════════════ */
+var FBCFG={
+  apiKey:"AIzaSyCdH-k3hH1mYYcND0cBf7J2pLRG6xQydrU",
+  authDomain:"atp-maha-pwd.firebaseapp.com",
+  projectId:"atp-maha-pwd",
+  storageBucket:"atp-maha-pwd.firebasestorage.app",
+  messagingSenderId:"382409286731",
+  appId:"1:382409286731:web:37daae9842bc3687bf99ce"
+};
+if(!firebase.apps.length) firebase.initializeApp(FBCFG);
+var DB = firebase.firestore();
+var AUTH = firebase.auth();
+var CU = null; // current user
+
+/* ═══════════════════════════════════════════════════════════
+   AUTH
+   ═══════════════════════════════════════════════════════════ */
+var _confirmResult = null;
+var _rcVerifier = null;
+
+AUTH.onAuthStateChanged(function(user){
+  CU = user;
+  document.getElementById('loadScreen').style.display='none';
+  if(!user){
+    document.getElementById('loginWall').style.display='flex';
+    document.getElementById('userChip').style.display='none';
+  } else {
+    document.getElementById('loginWall').style.display='none';
+    document.getElementById('userChip').style.display='flex';
+    var n = user.displayName||user.phoneNumber||user.email||'User';
+    document.getElementById('userChipName').textContent = n;
+    document.getElementById('userAvatar').textContent = n.charAt(0).toUpperCase();
+    document.getElementById('umName').textContent = n;
+    document.getElementById('umEmail').textContent = user.email||user.phoneNumber||'';
+    // init date
+    var today=new Date().toISOString().split('T')[0];
+    if(!document.getElementById('billDate').value) document.getElementById('billDate').value=today;
+    if(!document.getElementById('ahBillDate').value) document.getElementById('ahBillDate').value=today;
+    var totalC=0;APP.tests.forEach(function(t){totalC+=t.qty*t.rate;});
+    document.getElementById('sumC').textContent='₹ '+fmt(totalC);
+  }
+});
+
+function switchLTab(t){
+  document.querySelectorAll('.ltab').forEach(function(el,i){
+    el.classList.toggle('on',['google','email'][i]===t);
+  });
+  document.querySelectorAll('.lsec').forEach(function(el){el.classList.remove('on');});
+  document.getElementById('lsec-'+t).classList.add('on');
+}
+function showLE(id,msg){document.getElementById(id).textContent=msg;}
+
+function sendOTP(){
+  var num=(document.getElementById('lPhone').value||'').trim();
+  if(num.length!==10){showLE('phoneErr','10-digit number टाका');return;}
+  showLE('phoneErr','');
+  if(!_rcVerifier){
+    _rcVerifier=new firebase.auth.RecaptchaVerifier('rcWrap',{size:'invisible',callback:function(){}});
+  }
+  AUTH.signInWithPhoneNumber('+91'+num,_rcVerifier)
+    .then(function(r){_confirmResult=r;document.getElementById('otpField').style.display='';showLE('phoneErr','OTP पाठवला!');})
+    .catch(function(e){showLE('phoneErr',e.message);if(_rcVerifier){_rcVerifier.clear();_rcVerifier=null;}});
+}
+function verifyOTP(){
+  var code=(document.getElementById('lOTP').value||'').trim();
+  if(!_confirmResult){showLE('phoneErr','आधी OTP मागवा');return;}
+  _confirmResult.confirm(code).catch(function(e){showLE('phoneErr',e.message);});
+}
+function loginGoogle(){
+  AUTH.signInWithPopup(new firebase.auth.GoogleAuthProvider())
+    .catch(function(e){showLE('googleErr',e.message);});
+}
+function loginEmail(){
+  var em=(document.getElementById('lEmail').value||'').trim();
+  var pw=document.getElementById('lPass').value;
+  if(!em||!pw){showLE('emailErr','Email आणि Password टाका');return;}
+  AUTH.signInWithEmailAndPassword(em,pw).catch(function(e){showLE('emailErr',e.message);});
+}
+function doLogout(){
+  if(!confirm('Logout करायचे आहे का?'))return;
+  AUTH.signOut();
+  document.getElementById('userMenu').classList.remove('open');
+}
+function toggleUserMenu(){document.getElementById('userMenu').classList.toggle('open');}
+document.addEventListener('click',function(e){
+  if(!e.target.closest('#userChip')&&!e.target.closest('#userMenu'))
+    document.getElementById('userMenu').classList.remove('open');
+});
+
+/* ═══════════════════════════════════════════════════════════
+   DATA STORE
+   ═══════════════════════════════════════════════════════════ */
+var APP={
+  items:[],
+  tests:[
+    {desc:'Basic Test of Cement',      qty:4, rate:3770,  unit:'Test'},
+    {desc:'Fine Aggregate Test',        qty:1, rate:1380,  unit:'Test'},
+    {desc:'Basic Test of Aggregate',    qty:1, rate:2600,  unit:'Test'},
+    {desc:'Concrete Test',              qty:1, rate:690,   unit:'Test'},
+    {desc:'Concrete Mix Design',        qty:1, rate:13755, unit:'Test'},
+    {desc:'Brick Test',                 qty:1, rate:2175,  unit:'Test'},
+    {desc:'Steel 16mm below',           qty:1, rate:1275,  unit:'Test'},
+  ],
+  meta:{},
+  splitSrcIdx:-1,
+};
+var SELECTED_EST_ID = null;
+var CUR_RA_BILL_ID = null;
+
+/* ═══════════════════════════════════════════════════════════
+   ESTIMATES MODAL — load from Firebase
+   ═══════════════════════════════════════════════════════════ */
+function openEstModal(){
+  if(!CU){showToast('पहिले Login करा','warn');return;}
+  SELECTED_EST_ID=null;
+  document.getElementById('btnLoadEst').disabled=true;
+  document.getElementById('estModal').classList.add('open');
+  document.getElementById('estList').innerHTML='<div class="empty-state"><div class="icon">⏳</div><p>Loading…</p></div>';
+  DB.collection('estimates').where('uid','==',CU.uid).orderBy('updatedAt','desc').limit(50).get()
+    .then(function(snap){
+      if(snap.empty){
+        document.getElementById('estList').innerHTML='<div class="empty-state"><div class="icon">📂</div><p>कोणतेही saved estimates नाहीत.<br><span style="font-size:11px">ATP Maha PWD app मधून estimate save करा.</span></p></div>';
+        return;
+      }
+      var html='<div class="est-list">';
+      snap.forEach(function(doc){
+        var d=doc.data();
+        var itemCount=(d.items||[]).length;
+        var dt=d.updatedAt&&d.updatedAt.toDate?d.updatedAt.toDate().toLocaleDateString('en-IN'):'—';
+        var grand=d.grand?'₹'+fmt(d.grand):'';
+        html+='<div class="est-card" id="ecard_'+doc.id+'" onclick="selectEst(\''+doc.id+'\')">';
+        html+='<div class="est-card-icon">📋</div>';
+        html+='<div class="est-card-body">';
+        html+='<div class="est-card-name">'+(d.name||'Untitled Estimate')+'</div>';
+        html+='<div class="est-card-meta">'+dt+' &nbsp;|&nbsp; '+itemCount+' items'+(grand?' &nbsp;|&nbsp; '+grand:'')+'</div>';
+        html+='</div>';
+        html+='<span class="est-card-count">'+itemCount+' items</span>';
+        html+='</div>';
+      });
+      html+='</div>';
+      document.getElementById('estList').innerHTML=html;
+    })
+    .catch(function(e){
+      document.getElementById('estList').innerHTML='<div class="empty-state"><div class="icon">❌</div><p>'+e.message+'</p></div>';
+    });
+}
+function selectEst(id){
+  SELECTED_EST_ID=id;
+  document.querySelectorAll('.est-card').forEach(function(c){c.classList.remove('selected');});
+  var el=document.getElementById('ecard_'+id);if(el)el.classList.add('selected');
+  document.getElementById('btnLoadEst').disabled=false;
+}
+function closeEstModal(){document.getElementById('estModal').classList.remove('open');}
+
+function loadSelectedEst(){
+  if(!SELECTED_EST_ID){return;}
+  DB.collection('estimates').doc(SELECTED_EST_ID).get()
+    .then(function(doc){
+      if(!doc.exists){showToast('Estimate सापडला नाही','error');return;}
+      var d=doc.data();
+      var srcItems=d.items||[];
+      if(!srcItems.length){showToast('⚠️ Items नाहीत','warn');return;}
+
+      // ── DEBUG: पहिल्या item चे सर्व fields console मध्ये दाखव ──
+      if(srcItems[0]){
+        console.log('=== ESTIMATE ITEM DEBUG ===');
+        console.log('First item keys:', Object.keys(srcItems[0]));
+        console.log('First item full data:', JSON.stringify(srcItems[0], null, 2));
+        console.log('rate field value:', srcItems[0].rate);
+        console.log('===========================');
+        // Rate field कोणता येतोय ते शोधा
+        var s0=srcItems[0];
+        var rateFields=['rate','rateAmt','ssrRate','unitRate','basicRate','amt','amount','r','Rate'];
+        var foundRateField='—', foundRateVal=0;
+        rateFields.forEach(function(f){
+          if(s0[f]!==undefined&&s0[f]!==null&&s0[f]!==''){
+            if(!foundRateVal){foundRateField=f;foundRateVal=parseFloat(s0[f])||0;}
+          }
+        });
+        console.log('Detected rate field:', foundRateField, '=', foundRateVal);
+        // App state मध्ये save करा पुढे वापरासाठी
+        window._detectedRateField = foundRateField;
+      }
+      APP.meta=d.cover||d.meta||{};
+      APP.items=[];
+      srcItems.forEach(function(it,i){
+        // ── ATP app च्या exact Firebase field names ──
+        // Firebase मध्ये: no, desc, unit, baseRate, finalRate, qty, cf, rows, amount
+        var descVal = it.desc||it.description||'';
+        var itemNo  = String(it.no||'').trim();
+
+        // Rate: सर्व possible field names try करा
+        var rate = parseFloat(it.finalRate)||parseFloat(it.baseRate)||parseFloat(it.rate)||
+                   parseFloat(it.rateAmt)||parseFloat(it.ssrRate)||parseFloat(it.unitRate)||
+                   parseFloat(it.basicRate)||parseFloat(it.amt)||parseFloat(it.Rate)||
+                   parseFloat(it.r)||parseFloat(it.RATE)||parseFloat(it.item_rate)||0;
+
+        // Qty: ATP app stores as it.qty
+        var estQty = parseFloat(it.qty)||parseFloat(it.estQty)||0;
+
+        // CF: ATP app stores cf DIRECTLY on item {scr_sand:0.425, m20mm:0.57 ...}
+        // CF_MAP lookup नको — Firebase मधूनच येतो!
+        var itemCF = (it.cf && typeof it.cf==='object') ? it.cf : null;
+
+        var cat = getItemCategory(itemNo, it.steelTag||'', descVal);
+
+        APP.items.push({
+          id       : 'item_'+i+'_'+Date.now(),
+          no       : itemNo,
+          desc     : descVal,
+          unit     : it.unit||'',
+          rate     : rate,
+          estQty   : estQty,
+          cf       : itemCF,   // Firebase मधून directly — CF_MAP lookup नको
+          steelTag : it.steelTag||'',
+          cat      : cat,
+          isSplit:false, splitOf:null, reEntries:[],
+          reDate:'', reNo:'', billQty:0, dispDesc:descVal,
+          _origSeq : i,
+          _rawItem : it
+        });
+      });
+      // Populate abstract header from meta
+      var m=APP.meta;
+      if(m.pName) document.getElementById('ahWorkName').value=m.pName;
+      if(m.contractor) document.getElementById('ahContractor').value=m.contractor;
+      updateAbstractPreview();
+      // Auto-sort by construction sequence on load
+      autoSortItems();
+      updateProjBar();renderItems();renderREEntries();
+      document.getElementById('emptyState').style.display='none';
+      document.getElementById('itemsTable').style.display='table';
+      document.getElementById('itemsBadge').textContent=APP.items.length;
+      document.getElementById('startDatePanel').style.display='';
+      closeEstModal();
+      // Rate debug summary
+      var withRate=APP.items.filter(function(x){return x.rate>0;}).length;
+      var noRate=APP.items.length-withRate;
+      if(noRate>0){
+        // Rate नसलेल्या items चे raw data console मध्ये टाका
+        var sample=APP.items.find(function(x){return x.rate===0;});
+        if(sample&&sample._rawItem){
+          console.warn('Rate=0 असलेला item:', JSON.stringify(sample._rawItem,null,2));
+          console.warn('त्या item चे सर्व keys:', Object.keys(sample._rawItem));
+        }
+        showToast('⚠️ '+withRate+' items ला rate मिळाला | '+noRate+' items ला rate=0 — Console (F12) बघा','warn');
+      } else {
+        showToast('✅ '+APP.items.length+' items load — सर्वांना rate मिळाला!','success');
+      }
+    })
+    .catch(function(e){showToast('❌ Load error: '+e.message,'error');});
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SAVE RA BILL TO FIREBASE (ra_bills sub-collection)
+   ═══════════════════════════════════════════════════════════ */
+function saveRaBill(){
+  if(!CU){showToast('Login करा','warn');return;}
+  var billNo=document.getElementById('billNo').value||document.getElementById('ahBillNo').value||'';
+  if(!billNo){showToast('⚠️ Bill No. टाका','warn');return;}
+  var payload={
+    uid:CU.uid,
+    billNo:billNo,
+    billDate:document.getElementById('billDate').value||'',
+    workName:(document.getElementById('ahWorkName').value||'').trim()+' '+(document.getElementById('ahWorkName2').value||'').trim(),
+    contractor:document.getElementById('ahContractor').value||'',
+    agreementNo:document.getElementById('ahAgreementNo').value||'',
+    meta:APP.meta,items:APP.items,tests:APP.tests,
+    royaltySand:parseFloat(document.getElementById('royaltySandQty').value)||0,
+    royaltyMurum:parseFloat(document.getElementById('royaltyMurumQty').value)||0,
+    globalStartDate:document.getElementById('globalStartDate').value||'',
+    savedAt:firebase.firestore.FieldValue.serverTimestamp()
+  };
+  var prm;
+  if(CUR_RA_BILL_ID) prm=DB.collection('ra_bills').doc(CUR_RA_BILL_ID).update(payload);
+  else prm=DB.collection('ra_bills').add(payload).then(function(ref){CUR_RA_BILL_ID=ref.id;return ref;});
+  prm.then(function(){showToast('✅ RA Bill saved to Firebase!','success');})
+     .catch(function(e){showToast('❌ Save error: '+e.message,'error');});
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SAVED RA BILLS LIST
+   ═══════════════════════════════════════════════════════════ */
+function openRaBills(){
+  document.getElementById('raBillsModal').classList.add('open');
+  document.getElementById('userMenu').classList.remove('open');
+  if(!CU){document.getElementById('raBillsList').innerHTML='<div class="empty-state"><p>Login करा</p></div>';return;}
+  DB.collection('ra_bills').where('uid','==',CU.uid).orderBy('savedAt','desc').limit(30).get()
+    .then(function(snap){
+      if(snap.empty){document.getElementById('raBillsList').innerHTML='<div class="empty-state"><div class="icon">📂</div><p>कोणतेही saved RA bills नाहीत</p></div>';return;}
+      var html='';
+      snap.forEach(function(doc){
+        var d=doc.data();
+        html+='<div class="bill-list-item" onclick="loadRaBill(\''+doc.id+'\')">';
+        html+='<span class="bi-no">B/No. '+(d.billNo||'—')+'</span>';
+        html+='<span class="bi-name">'+(d.workName||'—').substring(0,50)+'</span>';
+        html+='<span class="bi-date">'+(d.billDate||'')+'</span>';
+        html+='<button class="btn btn-danger btn-xs" onclick="event.stopPropagation();deleteRaBill(\''+doc.id+'\')">✕</button>';
+        html+='</div>';
+      });
+      document.getElementById('raBillsList').innerHTML=html;
+    })
+    .catch(function(e){document.getElementById('raBillsList').innerHTML='<div class="empty-state"><p>'+e.message+'</p></div>';});
+}
+function closeRaBills(){document.getElementById('raBillsModal').classList.remove('open');}
+
+function loadRaBill(id){
+  DB.collection('ra_bills').doc(id).get().then(function(doc){
+    if(!doc.exists){showToast('Bill सापडला नाही','error');return;}
+    var d=doc.data();
+    CUR_RA_BILL_ID=id;
+    // Recalculate category for each item with updated logic
+    APP.items=(d.items||[]).map(function(it,i){
+      it.cat=getItemCategory(it.no||'',it.steelTag||'',it.desc||it.dispDesc||'');
+      if(it._origSeq==null)it._origSeq=i;
+      return it;
+    });
+    APP.tests=d.tests||APP.tests;APP.meta=d.meta||{};
+    document.getElementById('billNo').value=d.billNo||'';
+    document.getElementById('billDate').value=d.billDate||'';
+    document.getElementById('ahBillNo').value=d.billNo||'';
+    document.getElementById('ahBillDate').value=d.billDate||'';
+    var wn=(d.workName||'').split(' ');
+    document.getElementById('ahWorkName').value=wn.slice(0,6).join(' ');
+    document.getElementById('ahWorkName2').value=wn.slice(6).join(' ');
+    document.getElementById('ahContractor').value=d.contractor||'';
+    document.getElementById('ahAgreementNo').value=d.agreementNo||'';
+    document.getElementById('globalStartDate').value=d.globalStartDate||'';
+    document.getElementById('royaltySandQty').value=d.royaltySand||'';
+    document.getElementById('royaltyMurumQty').value=d.royaltyMurum||'';
+    updateBillBadge();updateAbstractPreview();updateProjBar();
+    if(APP.items.length){
+      document.getElementById('emptyState').style.display='none';
+      document.getElementById('itemsTable').style.display='table';
+      document.getElementById('itemsBadge').textContent=APP.items.length;
+      document.getElementById('startDatePanel').style.display='';
+      autoSortItems();renderItems();renderREEntries();renderAbstract();
+    }
+    closeRaBills();showToast('✅ RA Bill loaded!','success');
+  }).catch(function(e){showToast('❌ '+e.message,'error');});
+}
+function deleteRaBill(id){
+  if(!confirm('Delete करायचे आहे का?'))return;
+  DB.collection('ra_bills').doc(id).delete()
+    .then(function(){showToast('🗑️ Deleted','success');openRaBills();})
+    .catch(function(e){showToast('❌ '+e.message,'error');});
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ABSTRACT HEADER — SYNCED
+   ═══════════════════════════════════════════════════════════ */
+function syncBillNo(src){
+  var v=document.getElementById(src).value;
+  document.getElementById('billNo').value=v;
+  document.getElementById('ahBillNo').value=v;
+  updateBillBadge();updateAbstractPreview();
+}
+function syncBillDate(src){
+  var v=document.getElementById(src).value;
+  document.getElementById('billDate').value=v;
+  document.getElementById('ahBillDate').value=v;
+  updateAbstractPreview();
+}
+function updateAbstractPreview(){
+  var wn=(document.getElementById('ahWorkName').value||'').trim()+' '+(document.getElementById('ahWorkName2').value||'').trim();
+  var bn=document.getElementById('ahBillNo').value||'___';
+  var dt=document.getElementById('ahBillDate').value||'___';
+  var con=document.getElementById('ahContractor').value||'___';
+  var agr=document.getElementById('ahAgreementNo').value;
+  document.getElementById('prevWorkName').textContent='कामाचे नाव: '+(wn.trim()||'___');
+  document.getElementById('prevContractor').textContent='ठेकेदार: '+con+(agr?' | Agr: '+agr:'');
+  document.getElementById('prevBillInfo').textContent='ABSTRACT | RA Bill | B/No. '+bn+' | Date: '+dt;
+  document.getElementById('billNo').value=document.getElementById('ahBillNo').value;
+  document.getElementById('billDate').value=document.getElementById('ahBillDate').value;
+  updateBillBadge();
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CATEGORY / SEQUENCE
+   ─────────────────────────────────────────────────────────
+   PWD Maharashtra SSR 2022-23 — Actual construction sequence:
+
+   SUBSTRUCTURE (underground / foundation work)
+   01  Excavation                    (SSR 21.01–21.21)
+   02  Anti-termite treatment         (SSR 21.22–21.29)
+   03  Sand filling / Murrum filling  (SSR 21.30–21.35)
+   04  Soling (stone/brick)           (SSR 21.36–21.40)
+   05  Pile Work                      (SSR 22.xx)
+   06  PCC (Plain Cement Concrete)    (SSR 24.xx)  — bedding under footing
+   07  Steel — Footing / Foundation   (SSR 26.33/26.34, tag=footing)
+   08  RCC Footing / Foundation       (SSR 25.11–25.19)
+   09  Steel — Column starter bars    (SSR 26.33/26.34, tag=column)
+   10  RCC Column / Pedestal          (SSR 25.31–25.39)
+   11  Damp Proof Course (DPC)        (SSR 27.xx + 'DPC' in desc)
+   12  RCC Retaining Wall / Basement  (SSR 26.05–26.15)
+
+   SUPERSTRUCTURE
+   13  Steel — Beam bars              (SSR 26.33/26.34, tag=beam)
+   14  RCC Beam / Lintel / Band       (SSR 25.50–25.58)
+   15  Steel — Slab bars              (SSR 26.33/26.34, tag=slab)
+   16  RCC Slab / Roof                (SSR 25.70–25.78)
+   17  RCC Misc (staircase/chajja…)   (SSR 26.16–26.32)
+   18  Brick Masonry / Partition      (SSR 27.01–27.16)  — after slab
+   19  Stone Masonry                  (SSR 28.01–28.13)
+   20  Block / Hollow Block Masonry   (SSR 29.01–29.13)
+   21  Lintels (if precast / separate)(SSR 25.41–25.49)
+
+   FINISHING
+   22  Plaster — inside & outside     (SSR 32.xx)
+   23  Waterproofing                  (SSR 34.xx)
+   24  Flooring / Dado / Skirting     (SSR 33.xx)
+   25  Doors, Windows, Shutters       (SSR 39.xx)
+   26  Paint / Whitewash / Distemper  (SSR 35.xx–36.xx)
+
+   SERVICES & MISC
+   27  Sanitary / Plumbing / Drainage (SSR 41.xx–44.xx)
+   28  Electrical / Water Supply      (SSR 45.xx–49.xx)
+   29  Road / Compound Wall / Gate    (SSR 30.xx, 37.xx–38.xx)
+   30  Miscellaneous / Other          (anything not matched above)
+   99  Kamala lagnara board / Nameboard (desc contains 'board','name board',
+                                        'sign board','nameboard' — always LAST)
+   ═══════════════════════════════════════════════════════════ */
+function getItemCategory(no, steelTag, desc){
+  var n   = parseFloat(no) || 0;
+  var t   = (steelTag || '').toLowerCase();
+  var d   = (desc     || '').toLowerCase();
+
+  // ── Board / Name board → always very last ──────────────
+  if(/\b(name\s?board|sign\s?board|nameboard|notice\s?board|display\s?board)\b/.test(d) ||
+     /\bboard\b/.test(d) && /\b(name|sign|notice|display|kamala|project)\b/.test(d))
+    return{seq:99,cat:'other',label:'Name Board',curing:0};
+
+  // ── SUBSTRUCTURE ────────────────────────────────────────
+  if(n>=21.01&&n<=21.21) return{seq:1, cat:'exc',  label:'Excavation',          curing:0};
+  if(n>=21.22&&n<=21.29) return{seq:2, cat:'anti', label:'Anti-termite',         curing:0};
+  if(n>=21.30&&n<=21.35) return{seq:3, cat:'other',label:'Sand/Murrum Filling',  curing:0};
+  if(n>=21.36&&n<=21.40) return{seq:4, cat:'other',label:'Soling',               curing:0};
+  if(n>=22.01&&n<=22.99) return{seq:5, cat:'pcc',  label:'Pile Work',            curing:7};
+  // PCC (24.xx) — plain cement concrete, laid before steel+footing
+  if(n>=24.01&&n<=24.99) return{seq:6, cat:'pcc',  label:'PCC',                  curing:3};
+  // Steel — footing first (bars placed before concrete is poured)
+  if((no==='26.33'||no==='26.34')&&(t==='footing'||t==='foundation'))
+                          return{seq:7, cat:'steel',label:'Steel — Footing',      curing:0};
+  // RCC Footing concrete
+  if(n>=25.11&&n<=25.19) return{seq:8, cat:'rcc',  label:'RCC Footing',          curing:7};
+  // Steel — column starter bars (placed right after footing concrete)
+  if((no==='26.33'||no==='26.34')&&t==='column')
+                          return{seq:9, cat:'steel',label:'Steel — Column',       curing:0};
+  // RCC Column concrete
+  if(n>=25.31&&n<=25.39) return{seq:10,cat:'rcc',  label:'RCC Column',           curing:7};
+  // DPC — done after column/plinth, before superstructure masonry
+  if((n>=27.01&&n<=27.16)&&/dpc|damp\s?proof/.test(d))
+                          return{seq:11,cat:'mason',label:'DPC',                  curing:3};
+  // RCC Retaining / basement walls
+  if(n>=26.05&&n<=26.15) return{seq:12,cat:'rcc',  label:'RCC Retaining/Wall',   curing:14};
+
+  // ── SUPERSTRUCTURE ──────────────────────────────────────
+  // Steel — beam bars placed before beam/slab concrete
+  if((no==='26.33'||no==='26.34')&&t==='beam')
+                          return{seq:13,cat:'steel',label:'Steel — Beam',         curing:0};
+  // RCC Beam / Lintel / Band
+  if(n>=25.50&&n<=25.58) return{seq:14,cat:'rcc',  label:'RCC Beam/Lintel',      curing:14};
+  if(n>=25.41&&n<=25.49) return{seq:14,cat:'rcc',  label:'RCC Lintel',           curing:14};
+  // Steel — slab bars
+  if((no==='26.33'||no==='26.34')&&t==='slab')
+                          return{seq:15,cat:'steel',label:'Steel — Slab',         curing:0};
+  // RCC Slab / Roof
+  if(n>=25.70&&n<=25.78) return{seq:16,cat:'rcc',  label:'RCC Slab',             curing:14};
+  // Steel tag not set — put after slabs (user should set tag)
+  if(no==='26.33'||no==='26.34')
+                          return{seq:17,cat:'steel',label:'Steel (tag नाही)',     curing:0};
+  // RCC Misc (staircase, chajja, etc.)
+  if(n>=26.16&&n<=26.32) return{seq:17,cat:'rcc',  label:'RCC Misc',             curing:14};
+  // Masonry — only after slab is cast
+  if(n>=27.01&&n<=27.16) return{seq:18,cat:'mason',label:'Brick Masonry',        curing:3};
+  if(n>=28.01&&n<=28.13) return{seq:19,cat:'mason',label:'Stone Masonry',        curing:3};
+  if(n>=29.01&&n<=29.13) return{seq:20,cat:'mason',label:'Block Masonry',        curing:3};
+
+  // ── FINISHING ───────────────────────────────────────────
+  if(n>=32.01&&n<=32.99) return{seq:22,cat:'other',label:'Plaster',              curing:7};
+  if(n>=34.01&&n<=34.99) return{seq:23,cat:'other',label:'Waterproofing',        curing:0};
+  if(n>=33.01&&n<=33.99) return{seq:24,cat:'other',label:'Flooring/Dado',        curing:3};
+  if(n>=39.01&&n<=39.99) return{seq:25,cat:'other',label:'Doors/Windows',        curing:0};
+  if(n>=35.01&&n<=36.99) return{seq:26,cat:'other',label:'Paint/Whitewash',      curing:0};
+
+  // ── SERVICES ────────────────────────────────────────────
+  if(n>=41.01&&n<=44.99) return{seq:27,cat:'other',label:'Sanitary/Plumbing',    curing:0};
+  if(n>=45.01&&n<=49.99) return{seq:28,cat:'other',label:'Electrical/Water',     curing:0};
+  if((n>=30.01&&n<=30.99)||(n>=37.01&&n<=38.99))
+                          return{seq:29,cat:'other',label:'Road/Compound/Gate',   curing:0};
+
+  // ── Miscellaneous — unrecognised SSR number ─────────────
+  return{seq:30,cat:'other',label:'Misc/Other',curing:0};
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SMART DATES
+   ═══════════════════════════════════════════════════════════ */
+function applySmartDates(){
+  var sv=document.getElementById('globalStartDate').value;
+  if(!sv){showToast('⚠️ Start Date टाका','warn');return;}
+  var start=new Date(sv);
+  var seqMap={},seqDates={};
+  APP.items.forEach(function(it){
+    var cat=it.cat||{seq:99,curing:0};
+    if(!seqMap[cat.seq])seqMap[cat.seq]={curing:cat.curing,label:cat.label};
+  });
+  var seqs=Object.keys(seqMap).map(Number).sort(function(a,b){return a-b;});
+  var cur=new Date(start);
+  seqs.forEach(function(s){
+    seqDates[s]=new Date(cur);
+    cur.setDate(cur.getDate()+(seqMap[s].curing||0)+1);
+  });
+  APP.items.forEach(function(it){
+    var cat=it.cat||{seq:99};
+    if(seqDates[cat.seq])it.reDate=seqDates[cat.seq].toISOString().split('T')[0];
+  });
+  // Build chain display
+  var ch='';
+  seqs.forEach(function(s){
+    if(seqDates[s]){
+      var ds=seqDates[s].toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+      ch+='<div class="chain-item active-item"><div class="ci-label">'+seqMap[s].label+'</div>';
+      ch+='<div class="ci-date">'+ds+'</div>';
+      if(seqMap[s].curing>0)ch+='<div class="ci-curing">⏱️ '+seqMap[s].curing+'d</div>';
+      ch+='</div>';
+    }
+  });
+  document.getElementById('curingChain').innerHTML=ch;
+  renderREEntries();
+  showToast('✅ Dates apply झाल्या!','success');
+}
+function resetAllDates(){
+  APP.items.forEach(function(it){it.reDate='';it.reNo='';});
+  document.getElementById('globalStartDate').value='';
+  document.getElementById('curingChain').innerHTML='';
+  renderREEntries();showToast('🔄 Dates reset','success');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   PROJ BAR
+   ═══════════════════════════════════════════════════════════ */
+function updateProjBar(){
+  var m=APP.meta;var html='';
+  if(m.pName)html+='<div class="proj-field"><label>काम</label><span>'+m.pName+'</span></div>';
+  if(m.pSub)html+='<div class="proj-field"><label>Sub-Div</label><span>'+m.pSub+'</span></div>';
+  if(m.pDiv)html+='<div class="proj-field"><label>Division</label><span>'+m.pDiv+'</span></div>';
+  html+='<span class="proj-badge">SSR 2022-23</span>';
+  document.getElementById('projBar').innerHTML=html||'<span style="color:rgba(255,255,255,.5);font-size:11px">Project info —</span>';
+}
+function autoSortItems(){
+  // Board/Kamala Lagnara items (seq 99) go to the very end.
+  // Within each seq group, preserve the original estimate order (_origSeq).
+  APP.items.sort(function(a,b){
+    var sa=a.cat?a.cat.seq:99,sb=b.cat?b.cat.seq:99;
+    // seq:99 always last
+    var aLast=(sa===99)?1:0,bLast=(sb===99)?1:0;
+    if(aLast!==bLast)return aLast-bLast;
+    if(sa!==sb)return sa-sb;
+    // same seq → keep original estimate order
+    var oa=(a._origSeq!=null)?a._origSeq:999,ob=(b._origSeq!=null)?b._origSeq:999;
+    return oa-ob;
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════
+   RENDER ITEMS  (with drag-to-reorder)
+   ═══════════════════════════════════════════════════════════ */
+function renderItems(){
+  var tbody=document.getElementById('itemsTbody');
+  if(!APP.items.length){tbody.innerHTML='';return;}
+  var html='';
+  APP.items.forEach(function(it,i){
+    var cat=it.cat||{seq:99,cat:'other',label:'Other',curing:0};
+    var amt=(it.billQty||it.estQty)*it.rate;
+    var stHtml='';
+    if(it.no==='26.33'||it.no==='26.34'){stHtml='<span class="steel-tag '+(it.steelTag||'other')+'">'+(it.steelTag||'other').toUpperCase()+'</span> ';}
+    var isSteelBase=(it.no==='26.33'||it.no==='26.34')&&!it.isSplit;
+    // Show sequential position number (1,2,3…), NOT cat.seq (#99 problem fix)
+    var seqDisplay=i+1;
+    // Rate display — editable input
+    var rateDisplay='<input type="number" step="0.01" min="0" value="'+(it.rate||0)+'" style="width:80px;text-align:right;font-family:\'Source Code Pro\',monospace;font-size:11px;border:1px solid var(--border2);border-radius:3px;padding:2px 4px;background:'+(it.rate>0?'var(--paper)':'#fff0f0')+';" oninput="updateItemRate('+i+',this.value)" title="Rate बदलण्यासाठी येथे टाइप करा">';
+    html+='<tr class="'+(it.isSplit?'sub-item':'item-row')+'" draggable="'+(it.isSplit?'false':'true')+'" data-idx="'+i+'" '+(it.isSplit?'':'ondragstart="dragStart(event)" ondragover="dragOver(event)" ondrop="dropItem(event)" ondragend="dragEnd(event)"')+'>';
+    html+='<td class="text-muted text-xs" style="cursor:'+(it.isSplit?'default':'grab')+';">'+(it.isSplit?'↳':('☰ '+seqDisplay))+'</td>';
+    html+='<td><span class="seq-badge cat-'+cat.cat+'">'+seqDisplay+'</span><br><span class="text-xs text-muted">'+cat.label+'</span></td>';
+    html+='<td class="num-cell">'+it.no+'</td>';
+    html+='<td><div>'+stHtml+(it.dispDesc||it.desc).substring(0,75)+'…</div>';
+    if(cat.curing>0&&!it.isSplit)html+='<div class="mt8"><span class="curing-badge">⏱️ '+cat.curing+'d wait</span></div>';
+    html+='</td>';
+    html+='<td class="text-xs text-muted">'+it.unit+'</td>';
+    html+='<td class="amt-cell text-xs">'+(it.billQty||it.estQty).toFixed(3)+'</td>';
+    html+='<td class="amt-cell">'+rateDisplay+'</td>';
+    html+='<td class="amt-cell text-code" id="amt-'+i+'">'+( it.rate>0?'₹'+fmt(amt):'-' )+'</td>';
+    html+='<td>';
+    if(isSteelBase){
+      html+='<select style="font-size:10px;padding:2px;margin-bottom:3px;width:100%" onchange="setSteelTag('+i+',this.value)">';
+      ['','footing','column','slab','beam','other'].forEach(function(t){
+        html+='<option value="'+t+'"'+(it.steelTag===t?' selected':'')+'>'+(t?t.charAt(0).toUpperCase()+t.slice(1):'-- Location --')+'</option>';
+      });
+      html+='</select><br>';
+    }
+    if(!it.isSplit){
+      html+='<button class="btn btn-ghost btn-xs" onclick="openSplitModal('+i+')">✂️ Split</button> ';
+      html+='<button class="btn btn-ghost btn-xs" onclick="moveItemUp('+i+')" title="वर न्या">▲</button>';
+      html+='<button class="btn btn-ghost btn-xs" onclick="moveItemDown('+i+')" title="खाली न्या">▼</button>';
+    }
+    if(it.isSplit)html+='<button class="btn btn-ghost btn-xs" onclick="moveSplitUp('+i+')" title="वर न्या">▲</button> <button class="btn btn-ghost btn-xs" onclick="moveSplitDown('+i+')" title="खाली न्या">▼</button> <button class="btn btn-danger btn-xs" onclick="removeSplit('+i+')">✕</button>';
+    html+='</td></tr>';
+  });
+  tbody.innerHTML=html;
+  document.getElementById('itemsBadge').textContent=APP.items.length;
+}
+
+/* ── Manual Move ─────────────────────────────────────── */
+function moveItemUp(idx){
+  if(idx===0)return;
+  // skip over splits above
+  var target=idx-1;
+  while(target>0&&APP.items[target].isSplit)target--;
+  if(APP.items[target].isSplit)return;
+  var tmp=APP.items[idx];APP.items[idx]=APP.items[target];APP.items[target]=tmp;
+  renderItems();renderREEntries();
+}
+function moveItemDown(idx){
+  if(idx>=APP.items.length-1)return;
+  var target=idx+1;
+  while(target<APP.items.length-1&&APP.items[target].isSplit)target++;
+  if(APP.items[target].isSplit)return;
+  var tmp=APP.items[idx];APP.items[idx]=APP.items[target];APP.items[target]=tmp;
+  renderItems();renderREEntries();
+}
+
+/* ── Drag-to-reorder ─────────────────────────────────── */
+var _dragSrcIdx=-1;
+function dragStart(e){
+  _dragSrcIdx=parseInt(e.currentTarget.dataset.idx);
+  e.currentTarget.style.opacity='0.5';
+}
+function dragEnd(e){e.currentTarget.style.opacity='';}
+function dragOver(e){e.preventDefault();}
+function dropItem(e){
+  e.preventDefault();
+  var destIdx=parseInt(e.currentTarget.dataset.idx);
+  if(_dragSrcIdx<0||_dragSrcIdx===destIdx)return;
+  var moved=APP.items.splice(_dragSrcIdx,1)[0];
+  APP.items.splice(destIdx,0,moved);
+  _dragSrcIdx=-1;
+  renderItems();renderREEntries();
+}
+function updateItemRate(idx, val) {
+  var r = parseFloat(val) || 0;
+  APP.items[idx].rate = r;
+  APP.items[idx].finalRate = r; // sync both fields
+  // Update amount cell live
+  var qty = APP.items[idx].billQty || APP.items[idx].estQty || 0;
+  var amtEl = document.getElementById('amt-' + idx);
+  if (amtEl) amtEl.innerHTML = r > 0 ? '₹' + fmt(r * qty) : '-';
+  // Re-render abstract if open
+  renderAbstract();
+}
+function setSteelTag(idx,val){
+  APP.items[idx].steelTag=val;
+  APP.items[idx].cat=getItemCategory(APP.items[idx].no,val,APP.items[idx].desc||'');
+  // Re-sort after tag change so steel item moves to correct position
+  autoSortItems();renderItems();renderREEntries();renderAbstract();
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SPLIT MODAL — unlimited parts, qty guard, move up/down
+   ═══════════════════════════════════════════════════════════ */
+var _splitSrcId=null; // track by item id, not index (index shifts)
+
+function openSplitModal(idx){
+  var srcIt=APP.items[idx];
+  _splitSrcId=srcIt.id;
+
+  document.getElementById('splitModalTitle').textContent='✂️ Split: '+srcIt.no+' — '+(srcIt.dispDesc||srcIt.desc).substring(0,45);
+
+  // Show original qty
+  var origQty=srcIt._origQty!=null?srcIt._origQty:srcIt.estQty;
+  // Store original qty on the item for reference
+  if(srcIt._origQty==null) srcIt._origQty=srcIt.estQty||0;
+  document.getElementById('spOrigQty').textContent=(srcIt._origQty||0).toFixed(3);
+  document.getElementById('spOrigUnit').textContent=srcIt.unit||'';
+
+  var isSteelItem=(srcIt.no==='26.33'||srcIt.no==='26.34');
+
+  // Column header
+  var hdr='<div style="display:grid;grid-template-columns:28px 1fr '+(isSteelItem?'110px ':'')+'100px 36px;gap:6px;align-items:center">'
+    +'<span>#</span><span>Part Description</span>'+(isSteelItem?'<span>Location</span>':'')+'<span>Qty ('+srcIt.unit+')</span><span></span></div>';
+  document.getElementById('splitColHeader').innerHTML=hdr;
+
+  // Load existing splits or default 2 rows
+  var existSplits=APP.items.filter(function(x){return x.splitOf===srcIt.id;});
+  var rows=existSplits.length>0
+    ? existSplits.map(function(x,i){return{desc:x.dispDesc||x.desc,tag:x.steelTag||'',qty:x.estQty,id:x.id};})
+    : [
+        {desc:(srcIt.dispDesc||srcIt.desc).substring(0,40)+' - Part 1',tag:'footing',qty:'',id:''},
+        {desc:(srcIt.dispDesc||srcIt.desc).substring(0,40)+' - Part 2',tag:'column',qty:'',id:''}
+      ];
+
+  document.getElementById('splitRows').innerHTML='';
+  document._splitRowCount=0;
+  document._splitIsSteelItem=isSteelItem;
+  rows.forEach(function(r){ _addSplitRowDOM(r.desc,r.tag,r.qty); });
+  _updateSplitTotals();
+
+  document.getElementById('splitModal').classList.add('open');
+}
+
+function _addSplitRowDOM(desc,tag,qty){
+  var c=document._splitRowCount||0;
+  var isSteelItem=document._splitIsSteelItem;
+  var div=document.createElement('div');
+  div.className='split-row-item';
+  div.id='sr_'+c;
+  div.style.cssText='display:grid;grid-template-columns:28px 1fr '+(isSteelItem?'110px ':'')+'100px 36px;gap:6px;align-items:center;margin-bottom:5px;background:var(--paper);border:1px solid var(--border2);border-radius:5px;padding:5px 7px';
+  var tagSel=isSteelItem?('<select id="sp_tag_'+c+'" style="font-size:11px;padding:3px">'
+    +'<option value="footing"'+(tag==='footing'?' selected':'')+'>Footing</option>'
+    +'<option value="column"'+(tag==='column'?' selected':'')+'>Column</option>'
+    +'<option value="slab"'+(tag==='slab'?' selected':'')+'>Slab</option>'
+    +'<option value="beam"'+(tag==='beam'?' selected':'')+'>Beam</option>'
+    +'<option value="other"'+(tag==='other'?' selected':'')+'>Other</option>'
+    +'</select>'):'';
+  div.innerHTML='<span style="font-size:11px;color:var(--text3);font-family:\'Source Code Pro\',monospace;text-align:center">'+(c+1)+'</span>'
+    +'<input type="text" id="sp_desc_'+c+'" value="'+escHtml(desc||'')+'" placeholder="Part description (e.g. G+1 Floor)">'
+    +tagSel
+    +'<input type="number" id="sp_qty_'+c+'" value="'+(qty||'')+'" placeholder="qty" step="0.001" min="0" oninput="_updateSplitTotals()" style="text-align:right;font-family:\'Source Code Pro\',monospace">'
+    +'<button class="btn btn-danger btn-xs" onclick="_removeSplitRowDOM('+c+')" title="काढा">✕</button>';
+  document.getElementById('splitRows').appendChild(div);
+  document._splitRowCount=c+1;
+}
+
+window.addSplitRow=function(){
+  var srcIt=APP.items.find(function(x){return x.id===_splitSrcId;});
+  var c=document._splitRowCount||0;
+  _addSplitRowDOM((srcIt?((srcIt.dispDesc||srcIt.desc).substring(0,30)):'')+ ' - Part '+(c+1),'other','');
+};
+
+window._removeSplitRowDOM=function(c){
+  var el=document.getElementById('sr_'+c);
+  if(el)el.remove();
+  _updateSplitTotals();
+};
+
+window._updateSplitTotals=function(){
+  var srcIt=APP.items.find(function(x){return x.id===_splitSrcId;});
+  var origQty=srcIt?srcIt._origQty||srcIt.estQty||0:0;
+  var used=0;
+  document.querySelectorAll('[id^="sp_qty_"]').forEach(function(el){
+    used+=parseFloat(el.value)||0;
+  });
+  var rem=origQty-used;
+  document.getElementById('spUsedQty').textContent=used.toFixed(3);
+  var remEl=document.getElementById('spRemQty');
+  remEl.textContent=rem.toFixed(3);
+  remEl.style.color=Math.abs(rem)<0.001?'var(--green)':(rem<0?'var(--red)':'var(--gold)');
+};
+
+function applySplit(){
+  var srcIt=APP.items.find(function(x){return x.id===_splitSrcId;});
+  if(!srcIt){closeSplitModal();return;}
+  var isSteelItem=(srcIt.no==='26.33'||srcIt.no==='26.34');
+
+  // Collect rows
+  var ns=[];
+  var totalQty=0;
+  document.querySelectorAll('#splitRows .split-row-item').forEach(function(row){
+    var cIdx=row.id.replace('sr_','');
+    var descEl=document.getElementById('sp_desc_'+cIdx);
+    var qtyEl=document.getElementById('sp_qty_'+cIdx);
+    var tagEl=document.getElementById('sp_tag_'+cIdx);
+    var desc=(descEl?descEl.value:'').trim();
+    var qty=parseFloat(qtyEl?qtyEl.value:0)||0;
+    var tag=tagEl?tagEl.value:(srcIt.steelTag||'');
+    if(!desc&&qty===0)return;
+    totalQty+=qty;
+    ns.push({desc:desc,qty:qty,tag:tag});
+  });
+
+  // Qty validation
+  var origQty=srcIt._origQty!=null?srcIt._origQty:srcIt.estQty||0;
+  if(ns.length===0){showToast('⚠️ कमीत कमी एक part टाका','warn');return;}
+  if(Math.abs(totalQty-origQty)>0.005){
+    var diff=totalQty-origQty;
+    showToast('⚠️ Split qty बेरीज ('+totalQty.toFixed(3)+') ≠ Original qty ('+origQty.toFixed(3)+') — फरक: '+(diff>0?'+':'')+diff.toFixed(3),'warn');
+    return;
+  }
+
+  // Remove old splits for this item
+  APP.items=APP.items.filter(function(x){return x.splitOf!==srcIt.id;});
+
+  // Build new split items
+  var newSplits=ns.map(function(r,i){
+    return {
+      id:srcIt.id+'_s'+i+'_'+Date.now(),
+      no:srcIt.no,
+      desc:srcIt.desc,
+      dispDesc:r.desc||srcIt.desc,
+      unit:srcIt.unit,
+      rate:srcIt.rate,
+      finalRate:srcIt.rate,
+      estQty:r.qty,
+      cf:srcIt.cf||null,          // ← parent कडून CF copy करा (royalty/consumption साठी)
+      _rawItem:srcIt._rawItem||null, // ← raw item pn copy (CF_MAP fallback साठी)
+      steelTag:r.tag||srcIt.steelTag,
+      cat:getItemCategory(srcIt.no,r.tag||srcIt.steelTag||'',r.desc||srcIt.desc||''),
+      isSplit:true,
+      splitOf:srcIt.id,
+      reEntries:[],reDate:'',reNo:'',billQty:0
+    };
+  });
+
+  // Insert split items right after parent
+  srcIt.hasSplits=true;
+  srcIt.estQty=0;
+  var insertIdx=APP.items.indexOf(srcIt)+1;
+  APP.items.splice.apply(APP.items,[insertIdx,0].concat(newSplits));
+
+  autoSortItems();renderItems();renderREEntries();renderAbstract();
+  closeSplitModal();
+  showToast('✅ '+ns.length+' parts मध्ये split केले (Total: '+totalQty.toFixed(3)+' '+srcIt.unit+')','success');
+}
+
+/* Move a split part up/down independently */
+/* Move a split part up/down — freely swap with ANY item (no parent restriction) */
+function moveSplitUp(idx){
+  if(idx<=0)return;
+  var it=APP.items[idx];
+  if(!it.isSplit)return;
+  APP.items[idx]=APP.items[idx-1];APP.items[idx-1]=it;
+  renderItems();renderREEntries();
+}
+function moveSplitDown(idx){
+  if(idx>=APP.items.length-1)return;
+  var it=APP.items[idx];
+  if(!it.isSplit)return;
+  APP.items[idx]=APP.items[idx+1];APP.items[idx+1]=it;
+  renderItems();renderREEntries();
+}
+
+function removeSplit(idx){
+  var it=APP.items[idx];
+  APP.items.splice(idx,1);
+  // Check if parent still has splits
+  var parent=APP.items.find(function(x){return x.id===it.splitOf;});
+  if(parent){
+    var remaining=APP.items.filter(function(x){return x.splitOf===parent.id;});
+    if(remaining.length===0){
+      parent.hasSplits=false;
+      // Restore original qty
+      parent.estQty=parent._origQty||0;
+    }
+  }
+  renderItems();renderREEntries();renderAbstract();
+}
+function closeSplitModal(){document.getElementById('splitModal').classList.remove('open');_splitSrcId=null;}
+
+/* ═══════════════════════════════════════════════════════════
+   RE ENTRIES
+   ═══════════════════════════════════════════════════════════ */
+function renderREEntries(){
+  var cont=document.getElementById('reEntriesContainer');
+  if(!APP.items.length){cont.innerHTML='<div class="empty-state"><div class="icon">📐</div><p>Items load करा</p></div>';return;}
+  var html='';
+  var billable=APP.items.filter(function(x){return x.estQty>0||x.isSplit;});
+  document.getElementById('reBadge').textContent=billable.length;
+
+  billable.forEach(function(it,billIdx){
+    var cat=it.cat||{seq:99,cat:'other',label:'',curing:0};
+    var isSteelItem=(it.no==='26.33'||it.no==='26.34');
+    var tagBadge=isSteelItem&&it.steelTag?'<span class="steel-tag '+it.steelTag+'" style="margin-left:7px">'+it.steelTag.toUpperCase()+'</span>':'';
+    var curBadge=cat.curing>0?'<span class="curing-badge" style="margin-left:7px">'+cat.curing+'d</span>':'';
+    var col=it._reCollapsed?'display:none':'';
+
+    // Auto-init: reEntries नसेल तर estQty वरून एक row आपोआप बनव
+    if((!it.reEntries||it.reEntries.length===0)&&it.estQty>0){
+      it.reEntries=[{
+        desc:(it.dispDesc||it.desc).substring(0,50),
+        no:1, L:it.estQty, B:1, H:1,
+        bars:1, sets:1, wt:1,
+        isDeduct:false, _isEstRow:true,
+        rowQty:it.estQty, runTotal:it.estQty
+      }];
+      it.billQty=it.estQty;
+    }
+
+    // Comparison calc
+    var estQty=it.estQty||0;
+    var actualQty=it.billQty||0;
+    var diffQty=actualQty-estQty;
+    var diffPct=estQty>0?(diffQty/estQty*100):0;
+    var diffAmt=diffQty*(it.rate||0);
+    var compHtml='';
+    if(estQty>0&&Math.abs(diffQty)>0.0005){
+      var isOver=diffQty>0;
+      var clr=isOver?'var(--red)':'var(--green)';
+      var arrow=isOver?'▲':'▼';
+      compHtml='<span style="display:inline-flex;align-items:center;gap:6px;'
+        +'background:'+(isOver?'rgba(139,26,26,.08)':'rgba(30,107,62,.08)')
+        +';border:1px solid '+(isOver?'rgba(139,26,26,.3)':'rgba(30,107,62,.3)')
+        +';border-radius:6px;padding:3px 9px;font-size:11px;font-family:\'Source Code Pro\',monospace">'
+        +'<span style="color:'+clr+';font-weight:700">'+arrow+' '+(isOver?'+':'')+diffQty.toFixed(3)+' '+it.unit+'</span>'
+        +'<span style="color:'+clr+'">('+(isOver?'+':'')+diffPct.toFixed(1)+'%)</span>'
+        +'<span style="color:var(--text3)">|</span>'
+        +'<span style="color:'+clr+';font-weight:700">'+(isOver?'+':'-')+'&#8377;'+fmt(Math.abs(diffAmt))+'</span>'
+        +'</span>';
+    } else if(estQty>0&&Math.abs(diffQty)<=0.0005){
+      compHtml='<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(30,107,62,.08);border:1px solid rgba(30,107,62,.3);border-radius:6px;padding:3px 9px;font-size:11px;font-family:\'Source Code Pro\',monospace;color:var(--green)">&#10003; Estimate प्रमाण</span>';
+    }
+
+    // Single header per item — एकच dark header
+    html+='<div class="re-item" id="rei_'+it.id+'">';
+    html+='<div class="re-item-header" onclick="toggleRE(\''+it.id+'\')" style="cursor:pointer">';
+    html+='<span class="seq-badge cat-'+cat.cat+'" style="font-size:10px;flex-shrink:0">'+(billIdx+1)+'</span>';
+    html+='<div class="re-item-title" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+it.no+' — '+(it.dispDesc||it.desc).substring(0,50)+tagBadge+curBadge+'</div>';
+    html+='<div style="display:flex;align-items:center;gap:10px;flex-shrink:0;margin-left:8px">';
+    html+='<span style="font-size:10px;color:rgba(255,255,255,.55);font-family:\'Source Code Pro\',monospace;white-space:nowrap">Est: <b>'+estQty.toFixed(3)+'</b> '+it.unit+'</span>';
+    html+='<span style="font-size:10px;color:rgba(255,255,255,.9);font-family:\'Source Code Pro\',monospace;white-space:nowrap">MB: <b id="bq_'+it.id+'">'+(actualQty).toFixed(3)+'</b> '+it.unit+'</span>';
+    html+='</div>';
+    html+='</div>';
+
+    // Body
+    html+='<div class="re-item-body" id="reb_'+it.id+'" style="'+col+'">';
+
+    // Meta row
+    html+='<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding-bottom:9px;margin-bottom:9px;border-bottom:1px dashed var(--border2)">';
+    html+='<div><label>RE No.</label><input type="text" id="rno_'+it.id+'" value="'+(it.reNo||'')+'" placeholder="RE-1" style="width:80px" onchange="updateREMeta(\''+it.id+'\',\'reNo\',this.value)"></div>';
+    html+='<div><label>Date</label><input type="date" id="rdt_'+it.id+'" value="'+(it.reDate||'')+'" onchange="updateREMeta(\''+it.id+'\',\'reDate\',this.value)"></div>';
+    html+='<div><label>Estimate Qty</label><div style="font-family:\'Source Code Pro\',monospace;font-weight:700;font-size:13px;padding:5px 0">'+estQty.toFixed(3)+' '+it.unit+'</div></div>';
+    if(cat.curing>0)html+='<div class="next-date-info" id="ndi_'+it.id+'">'+getNextDateInfo(it)+'</div>';
+    html+='<div id="comp_'+it.id+'" style="margin-left:auto">'+compHtml+'</div>';
+    html+='</div>';
+
+    // MB Table
+    html+='<table class="mb-table"><thead><tr>';
+    html+='<th style="width:26px">#</th><th style="min-width:160px">तपशील</th><th style="width:42px">No.</th>';
+    if(isSteelItem){
+      html+='<th style="width:55px">Bars</th><th style="width:50px">Sets</th><th style="width:58px">L(m)</th><th style="width:55px">Wt</th><th style="width:68px">Qty(MT)</th>';
+    }else{
+      html+='<th style="width:58px">L</th><th style="width:58px">B</th><th style="width:58px">H</th><th style="width:68px">परिमाण</th>';
+    }
+    html+='<th style="width:68px">बेरीज</th><th style="width:32px"></th>';
+    html+='</tr></thead><tbody id="mbr_'+it.id+'">';
+    (it.reEntries||[]).forEach(function(row,ri){html+=renderMBRow(it,ri,row,isSteelItem);});
+    html+='</tbody>';
+    html+='<tfoot><tr class="mb-total-row"><td colspan="'+(isSteelItem?7:5)+'"></td>';
+    html+='<td colspan="2" style="text-align:right;color:var(--blue)"><strong>बिल qty = <span id="mbsum_'+it.id+'">'+(actualQty).toFixed(3)+'</span> '+it.unit+'</strong></td><td></td></tr></tfoot>';
+    html+='</table>';
+    html+='<div class="flex gap8 mt8">';
+    html+='<button class="btn btn-ghost btn-sm" onclick="addMBRow(\''+it.id+'\','+isSteelItem+')">+ Row</button>';
+    html+='<button class="btn btn-ghost btn-sm" onclick="addMBDeductRow(\''+it.id+'\','+isSteelItem+')">(-) Deduct</button>';
+    html+='</div></div></div>';
+  });
+  cont.innerHTML=html;
+}
+
+window.renderMBRow=function(it,ri,row,isSteelItem){
+  var ded=row.isDeduct?'(-)':'';
+  var h='<tr id="mbrow_'+it.id+'_'+ri+'">';
+  h+='<td class="text-xs text-muted">'+(ri+1)+'</td>';
+  h+='<td class="desc-cell"><input type="text" value="'+escHtml(row.desc||'')+'" placeholder="Description…" onchange="updateMBRow(\''+it.id+'\','+ri+',\'desc\',this.value)"></td>';
+  h+='<td><input type="number" value="'+(row.no||1)+'" min="0" step="1" oninput="updateMBRow(\''+it.id+'\','+ri+',\'no\',this.value)"></td>';
+  if(isSteelItem){
+    h+='<td><input type="number" value="'+(row.bars||'')+'" placeholder="bars" oninput="updateMBRow(\''+it.id+'\','+ri+',\'bars\',this.value)"></td>';
+    h+='<td><input type="number" value="'+(row.sets||'')+'" placeholder="sets" oninput="updateMBRow(\''+it.id+'\','+ri+',\'sets\',this.value)"></td>';
+    h+='<td><input type="number" value="'+(row.L||'')+'" placeholder="m" step="0.01" oninput="updateMBRow(\''+it.id+'\','+ri+',\'L\',this.value)"></td>';
+    h+='<td><input type="number" value="'+(row.wt||'')+'" placeholder="kg/m" step="0.001" oninput="updateMBRow(\''+it.id+'\','+ri+',\'wt\',this.value)"></td>';
+  }else{
+    h+='<td><input type="number" value="'+(row.L||'')+'" placeholder="L" step="0.01" oninput="updateMBRow(\''+it.id+'\','+ri+',\'L\',this.value)"></td>';
+    h+='<td><input type="number" value="'+(row.B||'')+'" placeholder="B" step="0.01" oninput="updateMBRow(\''+it.id+'\','+ri+',\'B\',this.value)"></td>';
+    h+='<td><input type="number" value="'+(row.H||'')+'" placeholder="H" step="0.01" oninput="updateMBRow(\''+it.id+'\','+ri+',\'H\',this.value)"></td>';
+  }
+  h+='<td class="calc-cell">'+ded+(row.rowQty||0).toFixed(3)+'</td>';
+  h+='<td class="calc-cell">'+(row.runTotal||0).toFixed(3)+'</td>';
+  h+='<td><button class="btn btn-danger btn-xs" onclick="deleteMBRow(\''+it.id+'\','+ri+')">✕</button></td>';
+  h+='</tr>';
+  return h;
+};
+
+function addMBRow(itemId){
+  var it=getItemById(itemId);if(!it)return;
+  if(!it.reEntries)it.reEntries=[];
+  it.reEntries.push({desc:'',no:1,L:'',B:'',H:'',bars:'',sets:'',wt:'',isDeduct:false,rowQty:0,runTotal:0});
+  recalcMB(itemId);renderREEntries();
+}
+function addMBDeductRow(itemId){
+  var it=getItemById(itemId);if(!it)return;
+  if(!it.reEntries)it.reEntries=[];
+  it.reEntries.push({desc:'Deduct',no:1,L:'',B:'',H:'',bars:'',sets:'',wt:'',isDeduct:true,rowQty:0,runTotal:0});
+  recalcMB(itemId);renderREEntries();
+}
+function updateMBRow(itemId,ri,field,val){
+  var it=getItemById(itemId);if(!it||!it.reEntries||!it.reEntries[ri])return;
+  it.reEntries[ri][field]=(field==='desc')?val:parseFloat(val)||0;
+  recalcMB(itemId);
+  var tr=document.getElementById('mbrow_'+itemId+'_'+ri);
+  if(tr){var cs=tr.querySelectorAll('.calc-cell');
+    if(cs[0])cs[0].textContent=(it.reEntries[ri].isDeduct?'(-)':'')+(it.reEntries[ri].rowQty||0).toFixed(3);
+    if(cs[1])cs[1].textContent=(it.reEntries[ri].runTotal||0).toFixed(3);
+  }
+  var se=document.getElementById('mbsum_'+itemId);if(se)se.textContent=it.billQty.toFixed(3);
+  var bqe=document.getElementById('bq_'+itemId);if(bqe)bqe.textContent=it.billQty.toFixed(3);
+  // Live comparison update
+  var compEl=document.getElementById('comp_'+itemId);
+  if(compEl){
+    var estQty=it.estQty||0;var actualQty=it.billQty||0;
+    var diffQty=actualQty-estQty;var diffPct=estQty>0?(diffQty/estQty*100):0;
+    var diffAmt=diffQty*(it.rate||0);
+    var compHtml='';
+    if(estQty>0&&Math.abs(diffQty)>0.0005){
+      var isOver=diffQty>0;var clr=isOver?'var(--red)':'var(--green)';var arrow=isOver?'▲':'▼';
+      compHtml='<span style="display:inline-flex;align-items:center;gap:6px;background:'+(isOver?'rgba(139,26,26,.08)':'rgba(30,107,62,.08)')+';border:1px solid '+(isOver?'rgba(139,26,26,.3)':'rgba(30,107,62,.3)')+';border-radius:6px;padding:3px 9px;font-size:11px;font-family:\'Source Code Pro\',monospace">'
+        +'<span style="color:'+clr+';font-weight:700">'+arrow+' '+(isOver?'+':'')+diffQty.toFixed(3)+' '+it.unit+'</span>'
+        +'<span style="color:'+clr+'">('+(isOver?'+':'')+diffPct.toFixed(1)+'%)</span>'
+        +'<span style="color:var(--text3)">|</span>'
+        +'<span style="color:'+clr+';font-weight:700">'+(isOver?'+':'-')+'₹'+fmt(Math.abs(diffAmt))+'</span>'
+        +'</span>';
+    } else if(estQty>0){
+      compHtml='<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(30,107,62,.08);border:1px solid rgba(30,107,62,.3);border-radius:6px;padding:3px 9px;font-size:11px;font-family:\'Source Code Pro\',monospace;color:var(--green)">✓ Estimate प्रमाण</span>';
+    }
+    compEl.innerHTML=compHtml;
+  }
+  renderAbstract();
+}
+function deleteMBRow(itemId,ri){
+  var it=getItemById(itemId);if(!it||!it.reEntries)return;
+  it.reEntries.splice(ri,1);recalcMB(itemId);renderREEntries();renderAbstract();
+}
+function calcMBRowQty(row,isSteelItem){
+  var no=parseFloat(row.no)||1;
+  if(isSteelItem)return(no*(parseFloat(row.bars)||1)*(parseFloat(row.sets)||1)*(parseFloat(row.L)||0)*(parseFloat(row.wt)||0))/1000;
+  return no*(parseFloat(row.L)||0)*(parseFloat(row.B)||1)*(parseFloat(row.H)||1);
+}
+function recalcMB(itemId){
+  var it=getItemById(itemId);if(!it||!it.reEntries)return;
+  var isSteelItem=(it.no==='26.33'||it.no==='26.34'),run=0;
+  it.reEntries.forEach(function(r){
+    var q=calcMBRowQty(r,isSteelItem);r.rowQty=q;
+    run+=r.isDeduct?-Math.abs(q):q;r.runTotal=run;
+  });
+  it.billQty=Math.max(0,run);
+}
+function showRateDebug(){
+  if(!APP.items.length){showToast('आधी Estimate load करा','warn');return;}
+  var html='';
+  // Summary
+  var withRate=APP.items.filter(function(x){return x.rate>0;}).length;
+  html+='<div style="background:var(--bg2);padding:8px 10px;border-radius:6px;margin-bottom:10px">';
+  html+='<strong>Total items: '+APP.items.length+' | Rate मिळाला: '+withRate+' | Rate=0: '+(APP.items.length-withRate)+'</strong>';
+  html+='</div>';
+
+  // Show first item raw fields
+  var sample=APP.items[0];
+  if(sample&&sample._rawItem){
+    html+='<div style="margin-bottom:8px;font-weight:700;color:var(--navy)">📦 Firebase मधून आलेला पहिला item (raw):</div>';
+    html+='<table style="width:100%;border-collapse:collapse;font-size:11px">';
+    html+='<tr style="background:var(--navy);color:#fff"><td style="padding:4px 8px">Field Name (Key)</td><td style="padding:4px 8px">Value</td><td style="padding:4px 8px">Type</td></tr>';
+    Object.keys(sample._rawItem).forEach(function(k){
+      var v=sample._rawItem[k];
+      var isRate=/rate|Rate|amt|amount|price|cost/i.test(k);
+      html+='<tr style="background:'+(isRate?'rgba(200,146,42,.15)':'')+'"><td style="padding:3px 8px;border-bottom:1px solid var(--border2);font-weight:'+(isRate?'700':'400')+'">'+k+(isRate?' ⭐':'')+'</td>';
+      html+='<td style="padding:3px 8px;border-bottom:1px solid var(--border2);color:var(--blue)">'+JSON.stringify(v)+'</td>';
+      html+='<td style="padding:3px 8px;border-bottom:1px solid var(--border2);color:var(--text3)">'+typeof v+'</td></tr>';
+    });
+    html+='</table>';
+  } else {
+    html+='<div style="color:var(--red)">⚠️ Raw item data available नाही — estimate reload करा</div>';
+  }
+
+  // Show all items rate status
+  html+='<div style="margin:10px 0 5px;font-weight:700;color:var(--navy)">📋 सर्व items — rate status:</div>';
+  html+='<table style="width:100%;border-collapse:collapse;font-size:11px">';
+  html+='<tr style="background:var(--navy);color:#fff"><td style="padding:3px 6px">#</td><td style="padding:3px 6px">Item No</td><td style="padding:3px 6px">Rate</td><td style="padding:3px 6px">Status</td></tr>';
+  APP.items.forEach(function(it,i){
+    var ok=it.rate>0;
+    html+='<tr style="background:'+(ok?'':'rgba(139,26,26,.08)')+'"><td style="padding:2px 6px;border-bottom:1px solid var(--border2)">'+(i+1)+'</td>';
+    html+='<td style="padding:2px 6px;border-bottom:1px solid var(--border2)">'+it.no+'</td>';
+    html+='<td style="padding:2px 6px;border-bottom:1px solid var(--border2);font-weight:700;color:'+(ok?'var(--green)':'var(--red)')+'">'+it.rate+'</td>';
+    html+='<td style="padding:2px 6px;border-bottom:1px solid var(--border2)">'+(ok?'✅':'❌ rate=0')+'</td></tr>';
+  });
+  html+='</table>';
+
+  document.getElementById('rateDebugContent').innerHTML=html;
+  document.getElementById('rateDebugModal').classList.add('open');
+}
+
+function updateREMeta(itemId,field,val){
+  var it=getItemById(itemId);if(it)it[field]=val;
+  if(field==='reDate'){var el=document.getElementById('ndi_'+itemId);if(el)el.textContent=getNextDateInfo(it);}
+}
+function getNextDateInfo(it){
+  if(!it.reDate||!it.cat||!it.cat.curing)return'';
+  var d=new Date(it.reDate);d.setDate(d.getDate()+it.cat.curing);
+  return'⏭️ पुढील काम: '+d.toLocaleDateString('en-IN')+' नंतर ('+it.cat.curing+'d curing)';
+}
+function toggleRE(itemId){
+  var it=getItemById(itemId);if(!it)return;
+  it._reCollapsed=!it._reCollapsed;
+  var b=document.getElementById('reb_'+itemId);if(b)b.style.display=it._reCollapsed?'none':'';
+}
+function expandAllRE(){APP.items.forEach(function(x){x._reCollapsed=false;});renderREEntries();}
+function collapseAllRE(){APP.items.forEach(function(x){x._reCollapsed=true;});renderREEntries();}
+function expandAllSubs(){APP.items.forEach(function(x){x._reCollapsed=false;});renderItems();}
+function collapseAllSubs(){APP.items.forEach(function(x){x._reCollapsed=true;});renderItems();}
+
+/* ═══════════════════════════════════════════════════════════
+   ABSTRACT
+   ═══════════════════════════════════════════════════════════ */
+function renderAbstract(){
+  var tbody=document.getElementById('abstractTbody');
+
+  // getGroupedBillableItems() — split असलेल्या parent साठी splits billQty sum → एकच row
+  var grouped=getGroupedBillableItems();
+
+  if(!grouped.length){
+    tbody.innerHTML='<tr><td colspan="7" class="empty-state">RE entries टाका</td></tr>';
+    document.getElementById('summaryGrid').style.display='none';return;
+  }
+  var totalA=0,html='';
+  grouped.forEach(function(it,i){
+    var qty=it.billQty>0?it.billQty:(it.estQty||0);
+    var amt=qty*(it.rate||0); totalA+=amt;
+    var isSteelItem=(it.no==='26.33'||it.no==='26.34');
+    var descHtml=(it.dispDesc||it.desc||'').substring(0,75)+'…';
+    if(isSteelItem&&it.steelTag)descHtml='<strong>['+it.steelTag.toUpperCase()+']</strong> '+descHtml;
+    html+='<tr><td class="text-xs text-muted">'+(i+1)+'</td><td class="num-cell">'+it.no+'</td>';
+    html+='<td>'+descHtml+'</td><td class="amount-col">'+qty.toFixed(3)+'</td>';
+    html+='<td class="text-xs text-muted">'+it.unit+'</td>';
+    html+='<td class="amount-col">'+fmt(it.rate||0)+'</td><td class="amount-col">'+fmt(amt)+'</td></tr>';
+  });
+  html+='<tr class="total-row"><td colspan="6" style="text-align:right;font-weight:700">Total (A) — Work Items</td><td class="amount-col">'+fmt(totalA)+'</td></tr>';
+  tbody.innerHTML=html;
+  document.getElementById('sumA').textContent='₹ '+fmt(totalA);
+  document.getElementById('summaryGrid').style.display='grid';
+  calcRoyalty();updateAbstractPreview();
+}
+function calcRoyalty(){
+  /* Bridge — uses calcCFRoyalty() which uses normNo() for item no. matching */
+  if(typeof calcCFRoyalty !== 'function')return;
+  var res=calcCFRoyalty();
+  document.getElementById('sumB').textContent='₹ '+fmt(res.totalRoy||0);
+  var sandEl=document.getElementById('roySandTotal');
+  var murumEl=document.getElementById('royMurumTotal');
+  var lineEl=document.getElementById('royaltyAutoLine');
+  if(sandEl)sandEl.textContent=(res.sandM3||0).toFixed(3);
+  if(murumEl)murumEl.textContent=(res.murumM3||0).toFixed(3);
+  if(lineEl){
+    var billable=getGroupedBillableItems();
+    var cfCount=billable.filter(function(x){return itemHasCF(x);}).length;
+    if(!billable.length)lineEl.textContent='';
+    else if(cfCount>0)lineEl.textContent='✅ CF मिळाले: '+cfCount+'/'+billable.length+' items';
+    else lineEl.textContent='⚠️ CF नाही — SSR no. check करा';
+  }
+  calcGrand();
+}
+function calcGrand(){
+  var a=parseFloat((document.getElementById('sumA').textContent||'0').replace(/[₹,]/g,''))||0;
+  var b=parseFloat((document.getElementById('sumB').textContent||'0').replace(/[₹,]/g,''))||0;
+  var c=parseFloat((document.getElementById('sumC').textContent||'0').replace(/[₹,]/g,''))||0;
+  document.getElementById('sumGrand').textContent='₹ '+fmt(a+b+c);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TESTS
+   ═══════════════════════════════════════════════════════════ */
+function openTestsEditor(){
+  var html='<div style="font-size:10px;color:var(--text3);margin-bottom:7px;display:grid;grid-template-columns:2fr 60px 80px 50px;gap:5px"><span>Description</span><span>Qty</span><span>Rate ₹</span><span></span></div>';
+  APP.tests.forEach(function(t,i){
+    html+='<div style="display:grid;grid-template-columns:2fr 60px 80px 50px;gap:5px;margin-bottom:5px" id="trow_'+i+'">';
+    html+='<input type="text" id="td_'+i+'" value="'+escHtml(t.desc)+'">';
+    html+='<input type="number" id="tq_'+i+'" value="'+t.qty+'" step="1">';
+    html+='<input type="number" id="tr_'+i+'" value="'+t.rate+'">';
+    html+='<button class="btn btn-danger btn-xs" onclick="document.getElementById(\'trow_'+i+'\').remove()">✕</button>';
+    html+='</div>';
+  });
+  document.getElementById('testsRows').innerHTML=html;
+  document._testRowCount=APP.tests.length;
+  document.getElementById('testsModal').classList.add('open');
+}
+function addTestRow(){
+  var c=document._testRowCount||0;
+  var div=document.createElement('div');div.id='trow_'+c;
+  div.style.cssText='display:grid;grid-template-columns:2fr 60px 80px 50px;gap:5px;margin-bottom:5px';
+  div.innerHTML='<input type="text" id="td_'+c+'" placeholder="Test name"><input type="number" id="tq_'+c+'" value="1"><input type="number" id="tr_'+c+'" value="0"><button class="btn btn-danger btn-xs" onclick="document.getElementById(\'trow_'+c+'\').remove()">✕</button>';
+  document.getElementById('testsRows').appendChild(div);
+  document._testRowCount=c+1;
+}
+function saveTests(){
+  APP.tests=[];var n=document._testRowCount||0;var totalC=0;
+  for(var i=0;i<n;i++){
+    var d=document.getElementById('td_'+i);
+    var q=document.getElementById('tq_'+i);
+    var r=document.getElementById('tr_'+i);
+    if(!d)continue;
+    var qty=parseFloat((q||{value:1}).value)||1;
+    var rate=parseFloat((r||{value:0}).value)||0;
+    APP.tests.push({desc:d.value,qty:qty,rate:rate,unit:'Test'});
+    totalC+=qty*rate;
+  }
+  document.getElementById('sumC').textContent='₹ '+fmt(totalC);
+  calcGrand();closeTestsModal();
+  showToast('Tests saved — ₹'+fmt(totalC),'success');
+}
+function closeTestsModal(){document.getElementById('testsModal').classList.remove('open');}
+
+/* ═══════════════════════════════════════════════════════════
+   TABS / UTILS
+   ═══════════════════════════════════════════════════════════ */
+function switchTab(tabId){
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});
+  document.querySelectorAll('.tab-content').forEach(function(t){t.classList.remove('active');});
+  document.getElementById(tabId).classList.add('active');
+  document.getElementById('content-'+tabId).classList.add('active');
+  if(tabId==='tab-abstract')renderAbstract();
+  if(tabId==='tab-re')renderREEntries();
+  if(tabId==='tab-royalty')renderRoyaltyTab();
+  if(tabId==='tab-consumption')renderConsumptionTab();
+  if(tabId==='tab-cement')renderCementConsumption();
+  if(tabId==='tab-comparative')renderComparativeInput();
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CF KEY HELPERS
+   ═══════════════════════════════════════════════════════════ */
+var SAND_KEYS=['sand','scr_sand'];
+var MURUM_KEYS=['m20mm','m12_10','m40mm','rubble','quarry'];
+var MAT_LABEL={
+  sand:'Sand (Natural)',scr_sand:'Screened Sand',
+  m20mm:'Metal 20mm',m12_10:'Metal 12-10mm',m40mm:'Metal 40mm',
+  rubble:'Rubble / Murum',quarry:'Quarry / Soling',
+  cement_bags:'Cement (bags)',bricks:'Bricks (nos)',ms_bars:'Steel TMT (MT)',bitumen:'Bitumen VG-30 (MT)'
+};
+var MAT_UNIT={
+  sand:'M³',scr_sand:'M³',m20mm:'M³',m12_10:'M³',m40mm:'M³',
+  rubble:'M³',quarry:'M³',cement_bags:'Bags',bricks:'Nos',ms_bars:'MT',bitumen:'MT'
+};
+
+/* Normalize SSR no — trim spaces, handle "25.11 " → "25.11" */
+function normNo(n){
+  if(!n)return'';
+  var s=(n+'').trim().replace(/[\r\n\t\s]/g,'');
+  // Remove leading zeros from major part: "025.11" → "25.11"
+  s=s.replace(/^0+(\d)/,'$1');
+  return s;
+}
+/* Try all possible CF_MAP lookups for an item no */
+function getCF(no){
+  if(!no)return null;
+  var n=normNo(no);
+  if(CF_MAP[n])return CF_MAP[n];
+  var n2=n.replace(/\.0$/,'');
+  if(CF_MAP[n2])return CF_MAP[n2];
+  return null;
+}
+/* Get CF for item — Firebase stored CF first, then CF_MAP fallback */
+function getItemCF(it){
+  if(it.cf && typeof it.cf==='object' && Object.keys(it.cf).length>0) return it.cf;
+  return getCF(it.no);
+}
+/* Check if item has any CF (Firebase or CF_MAP) */
+function itemHasCF(it){
+  return !!getItemCF(it);
+}
+
+/* ── Billable items helper — split parent skip, MB qty use ── */
+function getBillableItems(){
+  return APP.items.filter(function(x){
+    if(x.hasSplits) return false; // parent with splits → skip (splits individually घेतले जातात)
+    var qty=x.billQty>0?x.billQty:x.estQty;
+    return qty>0;
+  });
+}
+/* Get effective qty for an item — MB (billQty) > estQty */
+function getEffectiveQty(it){
+  return it.billQty>0 ? it.billQty : (it.estQty||0);
+}
+
+/* ── GROUPED billable items ──────────────────────────────────────────────────
+   Split असलेल्या item साठी: सर्व splits च्या billQty ची sum → parent item म्हणून
+   एकच row. Royalty / Consumption / Cement / Comparative / Abstract सर्वांसाठी.
+   ─────────────────────────────────────────────────────────────────────────── */
+function getGroupedBillableItems(){
+  var result=[];
+  var handledParents={};
+
+  APP.items.forEach(function(it){
+    // Split item असेल तर — parent grouped म्हणून एकदाच add करा
+    if(it.isSplit){
+      var pid=it.splitOf;
+      if(handledParents[pid]) return; // आधीच processed
+      handledParents[pid]=true;
+
+      var parent=APP.items.find(function(x){return x.id===pid;});
+      if(!parent) return;
+
+      // सर्व splits शोधा आणि billQty sum करा
+      var splits=APP.items.filter(function(x){return x.splitOf===pid;});
+      var totalQty=0;
+      splits.forEach(function(s){
+        totalQty+=(s.billQty>0?s.billQty:(s.estQty||0));
+      });
+      if(totalQty<=0) return;
+
+      // Parent चा clone — billQty = splits MB sum, estQty = original estimate qty
+      result.push(Object.assign({},parent,{
+        billQty:totalQty,
+        estQty:parent._origQty||parent.estQty||totalQty,  // original estimate qty preserve करा
+        cf:parent.cf||null,
+        _rawItem:parent._rawItem||null,
+        dispDesc:parent.dispDesc||parent.desc
+      }));
+      return;
+    }
+
+    // hasSplits=true असलेला parent directly skip (वर splits मध्ये handle झाला)
+    if(it.hasSplits) return;
+
+    // Normal item — qty असेल तरच
+    var qty=it.billQty>0?it.billQty:(it.estQty||0);
+    if(qty>0) result.push(it);
+  });
+
+  return result;
+}
+
+function calcCFRoyalty(){
+  var sandM3=0,murumM3=0,rows=[];
+  var rSand=parseFloat((document.getElementById('rRateSand')||{value:237.37}).value)||237.37;
+  var rMurum=parseFloat((document.getElementById('rRateMurum')||{value:216.18}).value)||216.18;
+  var billable=getGroupedBillableItems();
+  billable.forEach(function(it){
+    // CF Priority: 1) Firebase मधून directly (it.cf)  2) CF_MAP fallback
+    var cf=getItemCF(it);
+    if(!cf)return;
+    var qty=getEffectiveQty(it); // MB qty first, estQty fallback
+    if(!qty)return;
+    Object.keys(cf).forEach(function(k){
+      if(SAND_KEYS.indexOf(k)>=0){
+        var net=qty*cf[k];sandM3+=net;
+        rows.push({no:it.no,desc:(it.dispDesc||it.desc).substring(0,55),unit:it.unit,qty:qty,mat:MAT_LABEL[k]||k,matUnit:MAT_UNIT[k]||'',cf:cf[k],netQty:net,type:'sand',royAmt:net*rSand});
+      } else if(MURUM_KEYS.indexOf(k)>=0){
+        var net=qty*cf[k];murumM3+=net;
+        rows.push({no:it.no,desc:(it.dispDesc||it.desc).substring(0,55),unit:it.unit,qty:qty,mat:MAT_LABEL[k]||k,matUnit:MAT_UNIT[k]||'',cf:cf[k],netQty:net,type:'murum',royAmt:net*rMurum});
+      }
+    });
+  });
+  return {sandM3:sandM3,murumM3:murumM3,rows:rows,
+          sandRoy:sandM3*rSand,murumRoy:murumM3*rMurum,
+          totalRoy:sandM3*rSand+murumM3*rMurum};
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ROYALTY TAB
+   ═══════════════════════════════════════════════════════════ */
+function renderRoyaltyTab(){
+  var el=document.getElementById('royaltyTabContent');
+  if(!el)return;
+  var billable=getGroupedBillableItems();
+  if(!billable.length){el.innerHTML='<div class="empty-state"><div class="icon">💰</div><p>Items load करा</p></div>';return;}
+  var rSand=parseFloat((document.getElementById('rRateSand')||{value:237.37}).value)||237.37;
+  var rMurum=parseFloat((document.getElementById('rRateMurum')||{value:216.18}).value)||216.18;
+  var res=calcCFRoyalty();
+
+  // Check which items matched CF
+  var cfMatched=billable.filter(function(x){return itemHasCF(x);});
+  var cfMissed=billable.filter(function(x){return !itemHasCF(x);});
+
+  var h='';
+
+  // Summary row
+  h+='<div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">';
+  h+='<div style="flex:1;min-width:130px;background:rgba(26,74,117,.08);border:1px solid rgba(26,74,117,.25);border-radius:8px;padding:10px;text-align:center">';
+  h+='<div style="font-size:10px;color:var(--text3)">🪨 Total Sand</div>';
+  h+='<div style="font-size:18px;font-weight:900;color:var(--blue)">'+res.sandM3.toFixed(3)+' M³</div>';
+  h+='<div style="font-size:12px;color:var(--blue)">₹ '+fmt(res.sandRoy)+'</div></div>';
+  h+='<div style="flex:1;min-width:130px;background:rgba(139,101,26,.08);border:1px solid rgba(139,101,26,.25);border-radius:8px;padding:10px;text-align:center">';
+  h+='<div style="font-size:10px;color:var(--text3)">🏔️ Total Murum</div>';
+  h+='<div style="font-size:18px;font-weight:900;color:#b87000">'+res.murumM3.toFixed(3)+' M³</div>';
+  h+='<div style="font-size:12px;color:#b87000">₹ '+fmt(res.murumRoy)+'</div></div>';
+  h+='<div style="flex:1;min-width:130px;background:rgba(30,107,62,.08);border:1px solid rgba(30,107,62,.25);border-radius:8px;padding:10px;text-align:center">';
+  h+='<div style="font-size:10px;color:var(--text3)">✅ CF मिळाले</div>';
+  h+='<div style="font-size:18px;font-weight:900;color:var(--green)">'+cfMatched.length+' / '+billable.length+'</div>';
+  h+='<div style="font-size:10px;color:var(--text3)">items</div></div>';
+  h+='<div style="flex:1;min-width:130px;background:rgba(139,26,26,.08);border:1px solid rgba(139,26,26,.25);border-radius:8px;padding:10px;text-align:center">';
+  h+='<div style="font-size:10px;color:var(--text3)">💰 Total Royalty (B)</div>';
+  h+='<div style="font-size:18px;font-weight:900;color:var(--red)">₹ '+fmt(res.totalRoy)+'</div></div>';
+  h+='</div>';
+
+  if(res.rows.length===0){
+    h+='<div style="background:rgba(255,200,0,.08);border:1px solid rgba(255,200,0,.3);border-radius:8px;padding:16px;color:var(--text2)">';
+    h+='<div style="font-size:18px;margin-bottom:8px;text-align:center">⚠️ Royalty Calculate होऊ शकली नाही</div>';
+    h+='<div style="font-size:11px;margin-bottom:10px;text-align:center;color:var(--text3)">Items चे SSR Item Numbers CF_MAP शी match झाले नाहीत.</div>';
+    h+='<table style="width:100%;border-collapse:collapse;font-size:10px">';
+    h+='<thead><tr style="background:rgba(0,0,0,.05)"><th style="padding:4px 8px;text-align:left">Item No. (Firebase मधून)</th><th style="padding:4px 8px;text-align:left">normNo() नंतर</th><th style="padding:4px 8px;text-align:left">CF मिळाला?</th></tr></thead><tbody>';
+    billable.forEach(function(x){
+      var nn=normNo(x.no);
+      var cf=getItemCF(x);
+      h+='<tr style="border-bottom:1px solid var(--border2)">';
+      h+='<td style="padding:3px 8px;font-family:monospace">'+escHtml(x.no||'(empty)')+'</td>';
+      h+='<td style="padding:3px 8px;font-family:monospace;color:var(--blue)">'+escHtml(nn||'(empty)')+'</td>';
+      h+='<td style="padding:3px 8px">'+(cf?'<span style="color:var(--green);font-weight:700">✅ Yes</span>':'<span style="color:var(--red)">❌ No</span>')+'</td>';
+      h+='</tr>';
+    });
+    h+='</tbody></table>';
+    h+='<div style="margin-top:10px;font-size:10px;color:var(--text3)">💡 CF_MAP मध्ये आहेत: 24.xx, 25.xx, 26.xx, 27.xx, 28.xx, 32.xx, 33.xx, 22.xx इ. — Item No. format check करा.</div>';
+    h+='</div>';
+  } else {
+    // SAND table
+    var sandRows=res.rows.filter(function(r){return r.type==='sand';});
+    if(sandRows.length){
+      h+='<div style="font-size:12px;font-weight:700;color:var(--blue);margin:14px 0 7px;padding-bottom:4px;border-bottom:2px solid var(--blue)">🪨 Sand / Screened Sand — ₹'+rSand.toFixed(2)+'/M³</div>';
+      h+=buildRoyaltyTable(sandRows,'var(--blue)');
+      h+='<div style="text-align:right;font-size:12px;font-weight:700;color:var(--blue);margin:4px 0 12px">Total Sand Royalty = <strong>₹ '+fmt(res.sandRoy)+'</strong></div>';
+    }
+
+    // MURUM table
+    var murumRows=res.rows.filter(function(r){return r.type==='murum';});
+    if(murumRows.length){
+      h+='<div style="font-size:12px;font-weight:700;color:#b87000;margin:14px 0 7px;padding-bottom:4px;border-bottom:2px solid #b87000">🏔️ Murum / Coarse Aggregate — ₹'+rMurum.toFixed(2)+'/M³</div>';
+      h+=buildRoyaltyTable(murumRows,'#b87000');
+      h+='<div style="text-align:right;font-size:12px;font-weight:700;color:#b87000;margin:4px 0 12px">Total Murum Royalty = <strong>₹ '+fmt(res.murumRoy)+'</strong></div>';
+    }
+
+    // Grand total bar
+    h+='<div style="background:rgba(139,26,26,.08);border:1px solid rgba(139,26,26,.2);border-radius:8px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;margin-top:8px">';
+    h+='<div><div style="font-weight:700;font-size:13px">💰 Total Royalty = Total (B)</div>';
+    h+='<div style="font-size:10px;color:var(--text3)">Sand ₹'+fmt(res.sandRoy)+' + Murum ₹'+fmt(res.murumRoy)+'</div></div>';
+    h+='<div style="font-size:22px;font-weight:900;color:var(--red)">₹ '+fmt(res.totalRoy)+'</div></div>';
+  }
+
+  // Items without CF warning
+  if(cfMissed.length){
+    h+='<div style="margin-top:12px;padding:10px 14px;background:rgba(255,200,0,.06);border:1px solid rgba(255,200,0,.3);border-radius:6px;font-size:10px">';
+    h+='⚠️ <strong>खालील Items ला CF नाही (Royalty लागत नाही)</strong>:<br>';
+    cfMissed.forEach(function(it){
+      h+='<span style="display:inline-block;margin:2px 4px 2px 0;background:var(--bg2);padding:1px 7px;border-radius:10px;color:var(--text2)">'+it.no+'</span>';
+    });
+    h+='</div>';
+  }
+
+  el.innerHTML=h;
+  // Also update Abstract royalty
+  calcRoyalty();
+}
+
+function buildRoyaltyTable(rows,color){
+  var h='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:11px">';
+  h+='<thead><tr style="background:rgba(0,0,0,.04)">';
+  ['Item No.','Description','Bill Qty','Material','CF Factor','Net M³','Royalty ₹'].forEach(function(col,i){
+    h+='<th style="padding:5px 7px;text-align:'+(i>1?'right':'left')+';border-bottom:2px solid var(--border2);white-space:nowrap;font-size:10px">'+col+'</th>';
+  });
+  h+='</tr></thead><tbody>';
+  rows.forEach(function(r,i){
+    var bg=i%2===0?'':'background:rgba(0,0,0,.015)';
+    h+='<tr style="'+bg+'">';
+    h+='<td style="padding:4px 7px;font-weight:700;color:'+color+';border-bottom:1px solid var(--border2)">'+r.no+'</td>';
+    h+='<td style="padding:4px 7px;color:var(--text2);border-bottom:1px solid var(--border2);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+r.desc+'</td>';
+    h+='<td style="padding:4px 7px;text-align:right;border-bottom:1px solid var(--border2);font-family:\'Source Code Pro\',monospace">'+r.qty.toFixed(3)+' '+r.unit+'</td>';
+    h+='<td style="padding:4px 7px;text-align:right;border-bottom:1px solid var(--border2);color:var(--text3)">'+r.mat+'</td>';
+    h+='<td style="padding:4px 7px;text-align:right;border-bottom:1px solid var(--border2);font-family:\'Source Code Pro\',monospace">'+r.cf+'</td>';
+    h+='<td style="padding:4px 7px;text-align:right;border-bottom:1px solid var(--border2);font-weight:700;font-family:\'Source Code Pro\',monospace">'+r.netQty.toFixed(3)+'</td>';
+    h+='<td style="padding:4px 7px;text-align:right;border-bottom:1px solid var(--border2);font-weight:700;color:'+color+'">₹ '+fmt(r.royAmt)+'</td>';
+    h+='</tr>';
+  });
+  h+='</tbody></table></div>';
+  return h;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CONSUMPTION TAB
+   ═══════════════════════════════════════════════════════════ */
+function renderConsumptionTab(){
+  var el=document.getElementById('consumptionTabContent');
+  if(!el)return;
+  var billable=getGroupedBillableItems();
+  if(!billable.length){el.innerHTML='<div class="empty-state"><div class="icon">📦</div><p>Items load करा</p></div>';return;}
+
+  // Build grouped totals per material
+  var matTotals={}; // key → {label,unit,total}
+  var rows=[];
+  var hasCF=0;
+
+  billable.forEach(function(it){
+    // CF Priority: Firebase मधून directly (it.cf) → CF_MAP fallback
+    var cf=getItemCF(it);
+    if(!cf)return;
+    hasCF++;
+    var qty=getEffectiveQty(it); // MB qty first
+    var itemRow={no:it.no,desc:(it.dispDesc||it.desc).substring(0,60),unit:it.unit,qty:qty,mats:[]};
+    Object.keys(cf).forEach(function(k){
+      var net=qty*cf[k];
+      itemRow.mats.push({k:k,label:MAT_LABEL[k]||k,unit:MAT_UNIT[k]||'',cf:cf[k],net:net});
+      if(!matTotals[k])matTotals[k]={label:MAT_LABEL[k]||k,unit:MAT_UNIT[k]||'',total:0,isSand:SAND_KEYS.indexOf(k)>=0,isMurum:MURUM_KEYS.indexOf(k)>=0};
+      matTotals[k].total+=net;
+    });
+    rows.push(itemRow);
+  });
+
+  if(!hasCF){
+    el.innerHTML='<div style="text-align:center;padding:24px;color:var(--text3)"><div style="font-size:28px;margin-bottom:8px">📦</div><strong>CF data नाही</strong><br><small>Load झालेले SSR nos: '+billable.map(function(x){return x.no;}).join(', ')+'</small></div>';
+    return;
+  }
+
+  var h='';
+
+  // Material Summary Cards
+  h+='<div style="font-size:12px;font-weight:700;margin-bottom:10px;color:var(--navy)">📊 एकूण Material Requirement</div>';
+  h+='<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px">';
+  ['cement_bags','scr_sand','sand','m20mm','m12_10','m40mm','rubble','quarry','bricks','ms_bars','bitumen'].forEach(function(k){
+    var mt=matTotals[k];
+    if(!mt||!mt.total)return;
+    var bgc=mt.isSand?'rgba(26,74,117,.08)':mt.isMurum?'rgba(139,101,26,.08)':'rgba(0,0,0,.04)';
+    var bdc=mt.isSand?'rgba(26,74,117,.3)':mt.isMurum?'rgba(139,101,26,.3)':'var(--border2)';
+    var txc=mt.isSand?'var(--blue)':mt.isMurum?'#b87000':'var(--navy)';
+    var tag=mt.isSand?'🪨':mt.isMurum?'🏔️':'🏗️';
+    h+='<div style="min-width:120px;background:'+bgc+';border:1px solid '+bdc+';border-radius:8px;padding:8px 12px;text-align:center">';
+    h+='<div style="font-size:10px;color:var(--text3)">'+tag+' '+mt.label+'</div>';
+    h+='<div style="font-size:15px;font-weight:900;color:'+txc+'">'+mt.total.toFixed(3)+'</div>';
+    h+='<div style="font-size:10px;color:var(--text3)">'+mt.unit+'</div></div>';
+  });
+  h+='</div>';
+
+  // Per-Item Detail Table
+  h+='<div style="font-size:12px;font-weight:700;margin-bottom:8px;color:var(--navy)">📋 Item-wise Consumption</div>';
+  h+='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:11px">';
+  h+='<thead><tr style="background:var(--navy);color:#fff"><th style="padding:6px 8px;text-align:left">Item No.</th><th style="padding:6px 8px;text-align:left">Description</th><th style="padding:6px 8px;text-align:right">Bill Qty</th><th style="padding:6px 8px;text-align:left">Material</th><th style="padding:6px 8px;text-align:right">CF</th><th style="padding:6px 8px;text-align:right">Net Qty</th></tr></thead><tbody>';
+
+  rows.forEach(function(it,ii){
+    var rc=it.mats.length;
+    it.mats.forEach(function(m,mi){
+      var isSand=SAND_KEYS.indexOf(m.k)>=0,isMurum=MURUM_KEYS.indexOf(m.k)>=0;
+      var mc=isSand?'var(--blue)':isMurum?'#b87000':'var(--text2)';
+      var rowBg=ii%2===0?'':'background:rgba(0,0,0,.015)';
+      h+='<tr style="'+rowBg+'">';
+      if(mi===0){
+        h+='<td rowspan="'+rc+'" style="padding:4px 8px;font-weight:700;color:var(--navy);border-bottom:2px solid var(--border2);vertical-align:top">'+it.no+'</td>';
+        h+='<td rowspan="'+rc+'" style="padding:4px 8px;color:var(--text2);border-bottom:2px solid var(--border2);max-width:220px;vertical-align:top">'+it.desc+'</td>';
+        h+='<td rowspan="'+rc+'" style="padding:4px 8px;text-align:right;border-bottom:2px solid var(--border2);vertical-align:top;font-family:\'Source Code Pro\',monospace">'+it.qty.toFixed(3)+' '+it.unit+'</td>';
+      }
+      h+='<td style="padding:4px 8px;color:'+mc+';border-bottom:1px solid var(--border2)">'+m.label+'</td>';
+      h+='<td style="padding:4px 8px;text-align:right;border-bottom:1px solid var(--border2);font-family:\'Source Code Pro\',monospace;color:var(--text3)">'+m.cf+'</td>';
+      h+='<td style="padding:4px 8px;text-align:right;border-bottom:1px solid var(--border2);font-weight:700;font-family:\'Source Code Pro\',monospace;color:'+mc+'">'+m.net.toFixed(3)+' '+m.unit+'</td>';
+      h+='</tr>';
+    });
+  });
+
+  // Totals footer
+  h+='<tr style="background:var(--navy);color:#fff;font-weight:700"><td colspan="3" style="padding:6px 8px;text-align:right">TOTAL</td>';
+  var matKeys=Object.keys(matTotals).filter(function(k){return matTotals[k].total>0;});
+  if(matKeys.length>0){
+    h+='<td style="padding:6px 8px">'+matTotals[matKeys[0]].label+'</td><td></td><td style="padding:6px 8px;text-align:right">'+matTotals[matKeys[0]].total.toFixed(3)+' '+matTotals[matKeys[0]].unit+'</td></tr>';
+    for(var ki=1;ki<matKeys.length;ki++){
+      var k=matKeys[ki];
+      h+='<tr style="background:rgba(26,35,86,.06);font-weight:700"><td colspan="3"></td><td style="padding:4px 8px">'+matTotals[k].label+'</td><td></td><td style="padding:4px 8px;text-align:right;font-family:\'Source Code Pro\',monospace">'+matTotals[k].total.toFixed(3)+' '+matTotals[k].unit+'</td></tr>';
+    }
+  } else {
+    h+='<td colspan="3"></td></tr>';
+  }
+
+  h+='</tbody></table></div>';
+
+  // Missing items
+  var missed=billable.filter(function(x){return !itemHasCF(x);});
+  if(missed.length){
+    h+='<div style="margin-top:12px;padding:10px;background:rgba(255,200,0,.06);border:1px solid rgba(255,200,0,.3);border-radius:6px;font-size:10px">';
+    h+='⚠️ <strong>CF नाही:</strong> '+missed.map(function(x){return x.no;}).join(', ')+'</div>';
+  }
+
+  el.innerHTML=h;
+}
+function getItemById(id){return APP.items.find(function(x){return x.id===id;});}
+
+/* ═══════════════════════════════════════════════════════════
+   CEMENT CONSUMPTION STATEMENT
+   ═══════════════════════════════════════════════════════════ */
+function renderCementConsumption(){
+  var el=document.getElementById('cementConsumptionContent');
+  if(!el)return;
+
+  // sync header spans for print
+  document.getElementById('ccs-workname').textContent=(document.getElementById('ahWorkName').value||'')+' '+(document.getElementById('ahWorkName2').value||'');
+  document.getElementById('ccs-contractor').textContent=document.getElementById('ahContractor').value||'—';
+  document.getElementById('ccs-billno').textContent='B-1 No. '+(document.getElementById('billNo').value||'—')+' Date:- '+(document.getElementById('billDate').value||'—');
+
+  var billable=getGroupedBillableItems();
+  if(!billable.length){el.innerHTML='<div class="empty-state"><div class="icon">🏗️</div><p>Items load करा</p></div>';return;}
+
+  var cementRate=parseFloat(document.getElementById('cementRate').value)||380;
+  var rows=[];
+  var totalTheory=0, totalActual=0;
+
+  billable.forEach(function(it){
+    var cf=getItemCF(it);
+    if(!cf||!cf.cement_bags)return;
+    var qty=getEffectiveQty(it); // MB qty first
+    var cfVal=cf.cement_bags;
+    var theory=Math.round(qty*cfVal*100)/100;
+    totalTheory+=theory;
+    totalActual+=theory; // Actual = Theoretical (as per PWD practice)
+    rows.push({
+      desc:(it.dispDesc||it.desc).substring(0,70),
+      no:it.no,unit:it.unit,qty:qty,
+      cfRate:cfVal,theory:theory,actual:theory
+    });
+  });
+
+  if(!rows.length){
+    el.innerHTML='<div style="text-align:center;padding:20px;color:var(--text3)"><div style="font-size:28px">🏗️</div><strong>Cement CF data नाही</strong><br><small>Load झालेल्या items मध्ये cement_bags CF नाही.</small></div>';
+    return;
+  }
+
+  var totalBags=Math.ceil(totalActual);
+  var recovery=Math.round(totalBags*cementRate*100)/100;
+
+  var h='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">';
+  h+='<thead><tr style="background:var(--navy);color:#fff">';
+  h+='<th style="padding:7px 8px;text-align:left;white-space:nowrap">Items of work</th>';
+  h+='<th style="padding:7px 8px;text-align:right;white-space:nowrap">Qty Executed</th>';
+  h+='<th style="padding:7px 8px;text-align:right;white-space:nowrap">Unit</th>';
+  h+='<th style="padding:7px 8px;text-align:right;white-space:nowrap">Rate of<br>Theoretical<br>(Bags/Unit)</th>';
+  h+='<th style="padding:7px 8px;text-align:right;white-space:nowrap">Theoretically<br>Consumption<br>(Bags)</th>';
+  h+='<th style="padding:7px 8px;text-align:right;white-space:nowrap">Actual<br>Consumption<br>(Bags)</th>';
+  h+='<th style="padding:7px 8px;text-align:right;white-space:nowrap">Total<br>Consumption</th>';
+  h+='<th style="padding:7px 8px;text-align:left">Remark</th>';
+  h+='</tr></thead><tbody>';
+
+  rows.forEach(function(r,i){
+    var bg=i%2===0?'':'background:rgba(0,0,0,.018)';
+    h+='<tr style="'+bg+'">';
+    h+='<td style="padding:5px 8px;border-bottom:1px solid var(--border2)">'+r.desc+'</td>';
+    h+='<td style="padding:5px 8px;border-bottom:1px solid var(--border2);text-align:right;font-family:\'Source Code Pro\',monospace">'+r.qty.toFixed(2)+'</td>';
+    h+='<td style="padding:5px 8px;border-bottom:1px solid var(--border2);text-align:right">'+r.unit+'</td>';
+    h+='<td style="padding:5px 8px;border-bottom:1px solid var(--border2);text-align:right;font-family:\'Source Code Pro\',monospace">'+r.cfRate+'</td>';
+    h+='<td style="padding:5px 8px;border-bottom:1px solid var(--border2);text-align:right;font-family:\'Source Code Pro\',monospace">'+r.theory.toFixed(2)+'</td>';
+    h+='<td style="padding:5px 8px;border-bottom:1px solid var(--border2);text-align:right;font-family:\'Source Code Pro\',monospace">'+r.actual.toFixed(2)+'</td>';
+    h+='<td style="padding:5px 8px;border-bottom:1px solid var(--border2);text-align:right"></td>';
+    h+='<td style="padding:5px 8px;border-bottom:1px solid var(--border2);font-size:10px;color:var(--green)">Cement brought<br>Recovery in Bill</td>';
+    h+='</tr>';
+  });
+
+  // Total row
+  h+='<tr style="background:var(--navy);color:#fff;font-weight:700">';
+  h+='<td colspan="3" style="padding:6px 8px;text-align:right">Total</td>';
+  h+='<td style="padding:6px 8px;text-align:right">—</td>';
+  h+='<td style="padding:6px 8px;text-align:right;font-family:\'Source Code Pro\',monospace">'+totalTheory.toFixed(2)+' Bags</td>';
+  h+='<td style="padding:6px 8px;text-align:right;font-family:\'Source Code Pro\',monospace">'+totalActual.toFixed(2)+' Bags</td>';
+  h+='<td style="padding:6px 8px;text-align:right;font-family:\'Source Code Pro\',monospace">'+totalBags+' Bags</td>';
+  h+='<td></td></tr>';
+  h+='</tbody></table></div>';
+
+  // Recovery summary
+  h+='<div style="margin-top:14px;background:linear-gradient(135deg,rgba(30,107,62,.08),rgba(200,146,42,.05));border:1px solid var(--border2);border-radius:8px;padding:12px 16px">';
+  h+='<div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:8px">💰 Cement Recovery Calculation</div>';
+  h+='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px">';
+  h+='<div style="background:var(--paper);border-radius:6px;padding:10px;text-align:center"><div style="font-size:10px;color:var(--text3)">Total Bags</div><div style="font-size:18px;font-weight:900;color:var(--navy)">'+totalBags+'</div><div style="font-size:10px;color:var(--text3)">Bags</div></div>';
+  h+='<div style="background:var(--paper);border-radius:6px;padding:10px;text-align:center"><div style="font-size:10px;color:var(--text3)">Rate per Bag</div><div style="font-size:18px;font-weight:900;color:var(--blue)">₹'+cementRate+'</div></div>';
+  h+='<div style="background:var(--paper);border:2px solid var(--gold);border-radius:6px;padding:10px;text-align:center"><div style="font-size:10px;color:var(--text3)">Recovery Amount</div><div style="font-size:18px;font-weight:900;color:var(--green)">₹ '+fmt(recovery)+'</div></div>';
+  h+='</div></div>';
+
+  el.innerHTML=h;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   COMPARATIVE STATEMENT — Fully Automatic
+   Tender = estQty + rate (from estimate)
+   Actual = billQty + rate (from MB entries)
+   ═══════════════════════════════════════════════════════════ */
+var COMP_REMARKS={}; // itemId → remark string only
+
+function renderComparativeInput(){
+  // Directly build the full comparative table — no manual input needed
+  buildComparativeTable();
+}
+
+function buildComparativeTable(){
+  var el=document.getElementById('comparativeInputArea');
+  var outEl=document.getElementById('comparativeOutput');
+  var tblEl=document.getElementById('comparativeTable');
+  var sumEl=document.getElementById('comparativeSummary');
+  if(!tblEl)return;
+
+  if(el)el.innerHTML='';
+
+  var workName=(document.getElementById('ahWorkName').value||'')+' '+(document.getElementById('ahWorkName2').value||'');
+  var contractor=document.getElementById('ahContractor').value||'—';
+  var billNo=document.getElementById('billNo').value||'—';
+  var billDate=document.getElementById('billDate').value||'—';
+  var agr=document.getElementById('ahAgreementNo').value||'—';
+
+  var totalTAmt=0,totalAAmt=0,totalExcess=0,totalLess=0;
+
+  // getGroupedBillableItems() — split parent = splits billQty sum → एकच row
+  var grouped=getGroupedBillableItems();
+
+  if(!grouped.length){
+    if(el)el.innerHTML='<div class="empty-state"><div class="icon">📑</div><p>आधी Items load करा</p></div>';
+    if(outEl)outEl.style.display='none';
+    return;
+  }
+
+  var rows=grouped.map(function(it){
+    var tq=it.estQty||0;
+    var tr=it.rate||0;
+    var aq=it.billQty>0?it.billQty:(it.estQty||0);
+    var tAmt=Math.round(tq*tr);
+    var aAmt=Math.round(aq*tr);
+    var diff=aAmt-tAmt;
+    totalTAmt+=tAmt; totalAAmt+=aAmt;
+    if(diff>0) totalExcess+=diff;
+    if(diff<0) totalLess+=Math.abs(diff);
+    return {it:it,tq:tq,tr:tr,tAmt:tAmt,aq:aq,ar:tr,aAmt:aAmt,diff:diff};
+  });
+
+  var h='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:11px;border:1px solid #ccc">';
+  // Header row 1
+  h+='<thead>';
+  h+='<tr style="background:var(--navy);color:#fff">';
+  h+='<th rowspan="2" style="padding:6px 7px;text-align:left;border:1px solid rgba(255,255,255,.2)">Item of Work</th>';
+  h+='<th colspan="3" style="padding:6px 7px;text-align:center;border:1px solid rgba(255,255,255,.2)">As per Tender</th>';
+  h+='<th colspan="3" style="padding:6px 7px;text-align:center;border:1px solid rgba(255,255,255,.2)">As per Actual</th>';
+  h+='<th colspan="2" style="padding:6px 7px;text-align:center;border:1px solid rgba(255,255,255,.2)">Difference</th>';
+  h+='<th rowspan="2" style="padding:6px 7px;text-align:center;border:1px solid rgba(255,255,255,.2)">Remarks</th>';
+  h+='</tr>';
+  // Header row 2
+  h+='<tr style="background:var(--navy2);color:#fff">';
+  ['Quantity','Rate','Amount','Quantity','Rate','Amount','Excess','Less'].forEach(function(c){
+    h+='<th style="padding:5px 6px;text-align:right;border:1px solid rgba(255,255,255,.2);white-space:nowrap">'+c+'</th>';
+  });
+  h+='</tr></thead><tbody>';
+
+  rows.forEach(function(row,i){
+    var it=row.it;
+    var excess=row.diff>0?row.diff:0;
+    var less=row.diff<0?Math.abs(row.diff):0;
+    var bg=i%2===0?'#fff':'#f8f7f4';
+    var exSt=excess>0?'color:var(--green);font-weight:700':'color:#999';
+    var leSt=less>0?'color:var(--red);font-weight:700':'color:#999';
+    var rem=COMP_REMARKS[it.id]||'';
+
+    h+='<tr style="background:'+bg+'">';
+    // Item of Work
+    h+='<td style="padding:4px 8px;border:1px solid #ddd;font-size:11px"><b style="color:var(--blue)">'+it.no+'</b> — '+(it.dispDesc||it.desc).substring(0,55)+'</td>';
+    // As per Tender
+    h+='<td style="padding:4px 7px;border:1px solid #ddd;text-align:right;font-family:\'Source Code Pro\',monospace">'+row.tq.toFixed(3)+'</td>';
+    h+='<td style="padding:4px 7px;border:1px solid #ddd;text-align:right;font-family:\'Source Code Pro\',monospace">'+row.tr.toFixed(2)+'</td>';
+    h+='<td style="padding:4px 7px;border:1px solid #ddd;text-align:right;font-weight:700">'+row.tAmt.toLocaleString('en-IN')+'</td>';
+    // As per Actual
+    h+='<td style="padding:4px 7px;border:1px solid #ddd;text-align:right;font-family:\'Source Code Pro\',monospace">'+row.aq.toFixed(3)+'</td>';
+    h+='<td style="padding:4px 7px;border:1px solid #ddd;text-align:right;font-family:\'Source Code Pro\',monospace">'+row.ar.toFixed(2)+'</td>';
+    h+='<td style="padding:4px 7px;border:1px solid #ddd;text-align:right;font-weight:700">'+row.aAmt.toLocaleString('en-IN')+'</td>';
+    // Difference
+    h+='<td style="padding:4px 7px;border:1px solid #ddd;text-align:right;'+exSt+'">'+( excess>0?excess.toLocaleString('en-IN'):'0' )+'</td>';
+    h+='<td style="padding:4px 7px;border:1px solid #ddd;text-align:right;'+leSt+'">'+( less>0?less.toLocaleString('en-IN'):'0' )+'</td>';
+    // Remark — editable
+    h+='<td style="padding:2px 5px;border:1px solid #ddd"><input type="text" value="'+escHtml(rem)+'" placeholder="Remark" style="width:100%;min-width:90px;font-size:10px;border:none;background:transparent;outline:none;font-family:inherit" oninput="COMP_REMARKS[\''+it.id+'\']=this.value" /></td>';
+    h+='</tr>';
+  });
+
+  // Total row
+  h+='<tr style="background:var(--navy);color:#fff;font-weight:700">';
+  h+='<td style="padding:6px 8px;border:1px solid rgba(255,255,255,.2);text-align:right">Rs</td>';
+  h+='<td colspan="2" style="border:1px solid rgba(255,255,255,.2)"></td>';
+  h+='<td style="padding:6px 8px;border:1px solid rgba(255,255,255,.2);text-align:right">'+totalTAmt.toLocaleString('en-IN')+'</td>';
+  h+='<td colspan="2" style="border:1px solid rgba(255,255,255,.2)"></td>';
+  h+='<td style="padding:6px 8px;border:1px solid rgba(255,255,255,.2);text-align:right">'+totalAAmt.toLocaleString('en-IN')+'</td>';
+  h+='<td style="padding:6px 8px;border:1px solid rgba(255,255,255,.2);text-align:right;color:#90EE90">'+totalExcess.toLocaleString('en-IN')+'</td>';
+  h+='<td style="padding:6px 8px;border:1px solid rgba(255,255,255,.2);text-align:right;color:#FFB6C1">'+totalLess.toLocaleString('en-IN')+'</td>';
+  h+='<td style="border:1px solid rgba(255,255,255,.2)"></td></tr>';
+  h+='</tbody></table></div>';
+
+  tblEl.innerHTML=h;
+
+  // Summary
+  var netDiff=totalExcess-totalLess;
+  var netLabel=netDiff>=0?'Total Excess':'Total Less';
+  var sH='<div style="margin-top:14px;display:flex;gap:16px;flex-wrap:wrap;align-items:center">';
+  sH+='<div style="background:var(--paper);border:2px solid '+(netDiff>=0?'var(--green)':'var(--red)')+';border-radius:8px;padding:10px 20px;font-size:14px;font-weight:900">';
+  sH+=netLabel+' = Rs &nbsp;<span style="color:'+(netDiff>=0?'var(--green)':'var(--red)')+'">'+Math.abs(netDiff).toLocaleString('en-IN')+'</span></div>';
+  sH+='<div style="font-size:12px;color:var(--text3);font-family:\'Source Code Pro\',monospace">';
+  sH+='Excess: '+totalExcess.toLocaleString('en-IN')+' | Less: '+totalLess.toLocaleString('en-IN')+'<br>';
+  sH+=(netDiff>=0?'+':'')+netDiff.toLocaleString('en-IN')+' Net</div></div>';
+  sumEl.innerHTML=sH;
+
+  // print spans
+  document.querySelectorAll('.cs-workname').forEach(function(e){e.textContent=workName;});
+  document.querySelectorAll('.cs-contractor').forEach(function(e){e.textContent=contractor;});
+  document.querySelectorAll('.cs-billno').forEach(function(e){e.textContent='B-1 No. '+billNo+' Date:- '+billDate+(agr&&agr!=='—'?' Agr:'+agr:'');});
+
+  if(outEl)outEl.style.display='';
+}
+function fmt(n){
+  if(!n&&n!==0)return'0.00';
+  return new Intl.NumberFormat('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}).format(Math.round(n*100)/100);
+}
+function escHtml(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function updateBillBadge(){
+  var v=document.getElementById('billNo').value||document.getElementById('ahBillNo').value||'___';
+  document.getElementById('billBadge').textContent='B/No. '+v;
+}
+function showToast(msg,type){
+  var t=document.getElementById('toast');t.textContent=msg;
+  t.style.borderLeftColor=type==='error'?'#c0392b':type==='warn'?'#e0a83a':'#2e8b57';
+  t.classList.add('show');setTimeout(function(){t.classList.remove('show');},3500);
+}
+/* ── shared helper: build RE entries as clean print HTML ── */
+function buildREPrintHtml(){
+  var billable=APP.items.filter(function(x){return x.estQty>0||x.isSplit;});
+  if(!billable.length) return '';
+  var h='';
+  billable.forEach(function(it,idx){
+    var isSteelItem=(it.no==='26.33'||it.no==='26.34');
+    h+='<div style="margin-bottom:18px;page-break-inside:avoid">';
+    h+='<div style="background:#1a2744;color:#fff;padding:6px 10px;font-size:12px;font-weight:700;border-radius:3px 3px 0 0">';
+    h+=(idx+1)+'. '+it.no+' — '+(it.dispDesc||it.desc).substring(0,70);
+    h+='&nbsp;&nbsp;<span style="font-size:10px;opacity:.7">Est: '+( it.estQty||0).toFixed(3)+' '+it.unit+'</span>';
+    h+='</div>';
+    h+='<table style="width:100%;border-collapse:collapse;font-size:10px">';
+    h+='<thead><tr style="background:#243058;color:#fff">';
+    h+='<th style="padding:4px 5px;text-align:center;border:1px solid rgba(255,255,255,.2);width:26px">#</th>';
+    h+='<th style="padding:4px 5px;text-align:left;border:1px solid rgba(255,255,255,.2)">Description</th>';
+    h+='<th style="padding:4px 5px;text-align:right;border:1px solid rgba(255,255,255,.2);width:36px">No.</th>';
+    if(isSteelItem){
+      h+='<th style="padding:4px 5px;text-align:right;border:1px solid rgba(255,255,255,.2);width:46px">Bars</th>';
+      h+='<th style="padding:4px 5px;text-align:right;border:1px solid rgba(255,255,255,.2);width:40px">Sets</th>';
+      h+='<th style="padding:4px 5px;text-align:right;border:1px solid rgba(255,255,255,.2);width:52px">L(m)</th>';
+      h+='<th style="padding:4px 5px;text-align:right;border:1px solid rgba(255,255,255,.2);width:50px">Wt</th>';
+      h+='<th style="padding:4px 5px;text-align:right;border:1px solid rgba(255,255,255,.2);width:60px">Qty(MT)</th>';
+    } else {
+      h+='<th style="padding:4px 5px;text-align:right;border:1px solid rgba(255,255,255,.2);width:52px">L</th>';
+      h+='<th style="padding:4px 5px;text-align:right;border:1px solid rgba(255,255,255,.2);width:52px">B</th>';
+      h+='<th style="padding:4px 5px;text-align:right;border:1px solid rgba(255,255,255,.2);width:52px">H</th>';
+      h+='<th style="padding:4px 5px;text-align:right;border:1px solid rgba(255,255,255,.2);width:60px">परिमाण</th>';
+    }
+    h+='<th style="padding:4px 5px;text-align:right;border:1px solid rgba(255,255,255,.2);width:60px">बेरीज</th>';
+    h+='</tr></thead><tbody>';
+    (it.reEntries||[]).forEach(function(row,ri){
+      var bg=ri%2===0?'#fff':'#f8f7f4';
+      var ded=row.isDeduct?'(-) ':'';
+      h+='<tr style="background:'+bg+'">';
+      h+='<td style="padding:3px 5px;border:1px solid #ddd;text-align:center;color:#666">'+(ri+1)+'</td>';
+      h+='<td style="padding:3px 5px;border:1px solid #ddd">'+(row.desc||'')+'</td>';
+      h+='<td style="padding:3px 5px;border:1px solid #ddd;text-align:right;font-family:monospace">'+(row.no||1)+'</td>';
+      if(isSteelItem){
+        h+='<td style="padding:3px 5px;border:1px solid #ddd;text-align:right;font-family:monospace">'+(row.bars||'')+'</td>';
+        h+='<td style="padding:3px 5px;border:1px solid #ddd;text-align:right;font-family:monospace">'+(row.sets||'')+'</td>';
+        h+='<td style="padding:3px 5px;border:1px solid #ddd;text-align:right;font-family:monospace">'+(row.L||'')+'</td>';
+        h+='<td style="padding:3px 5px;border:1px solid #ddd;text-align:right;font-family:monospace">'+(row.wt||'')+'</td>';
+      } else {
+        h+='<td style="padding:3px 5px;border:1px solid #ddd;text-align:right;font-family:monospace">'+(row.L||'')+'</td>';
+        h+='<td style="padding:3px 5px;border:1px solid #ddd;text-align:right;font-family:monospace">'+(row.B||'')+'</td>';
+        h+='<td style="padding:3px 5px;border:1px solid #ddd;text-align:right;font-family:monospace">'+(row.H||'')+'</td>';
+      }
+      h+='<td style="padding:3px 5px;border:1px solid #ddd;text-align:right;font-family:monospace;font-weight:600">'+ded+(row.rowQty||0).toFixed(3)+'</td>';
+      h+='<td style="padding:3px 5px;border:1px solid #ddd;text-align:right;font-family:monospace;font-weight:700;color:#2e4a8f">'+(row.runTotal||0).toFixed(3)+'</td>';
+      h+='</tr>';
+    });
+    h+='<tr style="background:#e8edf8;font-weight:700">';
+    var colspan=isSteelItem?8:6;
+    h+='<td colspan="'+colspan+'" style="padding:4px 8px;border:1px solid #ccc;text-align:right">Bill Qty = </td>';
+    h+='<td colspan="2" style="padding:4px 8px;border:1px solid #ccc;text-align:right;font-family:monospace;color:#1a2744">'+(it.billQty||0).toFixed(3)+' '+it.unit+'</td>';
+    h+='</tr>';
+    h+='</tbody></table></div>';
+  });
+  return h;
+}
+
+/* ── shared: build signature block (no stamp circles) ── */
+function buildSigBlock(s1n,s1d,s2n,s2d){
+  return '<div style="margin-top:50px;display:flex;justify-content:space-between;font-size:12px">'
+    +'<div style="text-align:center;width:40%">'
+    +'<div style="height:70px"></div>'
+    +'<div style="border-top:1.5px solid #000;padding-top:5px;font-weight:700;font-size:13px">'+s1n+'</div>'
+    +'<div style="font-size:12px">'+s1d+'</div>'
+    +'</div>'
+    +'<div style="text-align:center;width:40%">'
+    +'<div style="height:70px"></div>'
+    +'<div style="border-top:1.5px solid #000;padding-top:5px;font-weight:700;font-size:13px">'+s2n+'</div>'
+    +'<div style="font-size:12px">'+s2d+'</div>'
+    +'</div>'
+    +'</div>';
+}
+
+/* ── shared: common print styles ── */
+function getPrintStyles(){
+  return '*{box-sizing:border-box;margin:0;padding:0}'
+    +'body{font-family:"Noto Serif",serif;background:#fff;color:#1c1810;font-size:12px;padding:20px}'
+    +'.section{margin-bottom:28px;page-break-after:always}'
+    +'.section:last-child{page-break-after:avoid}'
+    +'.sec-title{font-size:13px;font-weight:700;color:#fff;background:#1a2744;padding:6px 11px;margin-bottom:9px;border-radius:3px}'
+    +'.info-line{font-size:12px;margin-bottom:4px}'
+    +'.print-title{text-align:center;font-size:15px;font-weight:700;margin-bottom:3px}'
+    +'.print-sub{text-align:center;font-size:10px;color:#555;margin-bottom:9px;border-bottom:2px solid #333;padding-bottom:7px}'
+    +'table{width:100%;border-collapse:collapse;font-size:11px;margin-top:7px}'
+    +'thead th{background:#1a2744;color:#fff;padding:5px 5px;font-size:10px;text-transform:uppercase;text-align:left}'
+    +'thead th.r{text-align:right}'
+    +'tbody td{padding:4px 5px;border:1px solid #ccc;vertical-align:top}'
+    +'tr.total-row td{background:#e8edf8;font-weight:700}'
+    +'.amount-col,.num-cell{text-align:right;font-family:monospace;font-weight:600}'
+    +'.summary-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-top:10px}'
+    +'.summary-box{border:1px solid #ccc;border-radius:4px;padding:9px;text-align:center}'
+    +'.summary-box.grand{grid-column:1/-1;border-top:3px solid #1a2744}'
+    +'.summary-label{font-size:9px;color:#666;text-transform:uppercase;margin-bottom:2px}'
+    +'.summary-amount{font-size:15px;font-weight:700;color:#1a2744}'
+    +'.summary-box.grand .summary-amount{font-size:19px;color:#2e4a8f}'
+    +'@media print{body{padding:6px}.no-print{display:none!important}}';
+}
+
+function printAbstract(){
+  renderAbstract();
+  if(typeof buildComparativeTable==='function') buildComparativeTable();
+  if(typeof renderRoyaltyTab==='function') renderRoyaltyTab();
+  if(typeof renderCementConsumption==='function') renderCementConsumption();
+
+  var workName=(document.getElementById('ahWorkName').value||'')+' '+(document.getElementById('ahWorkName2').value||'');
+  var contractor=document.getElementById('ahContractor').value||'—';
+  var billNo=document.getElementById('billNo').value||'—';
+  var billDate=(document.getElementById('billDate')||{}).value||'—';
+  var agr=document.getElementById('ahAgreementNo').value||'—';
+
+  var tbl=document.getElementById('abstractTable');
+  var sg=document.getElementById('summaryGrid');
+  var abstractHtml=(tbl?tbl.outerHTML:'')+(sg&&sg.style.display!=='none'?sg.outerHTML:'');
+
+  var compOut=document.getElementById('comparativeOutput');
+  var compHtml=compOut&&compOut.style.display!=='none'?compOut.innerHTML:'';
+
+  var royHtml=(document.getElementById('royaltyTabContent')||{}).innerHTML||'';
+  var cemHtml=(document.getElementById('cementConsumptionContent')||{}).innerHTML||'';
+  var conHtml=(document.getElementById('consumptionTabContent')||{}).innerHTML||'';
+
+  var s1n=(document.getElementById('sig1Name')||{}).value||'Sectional Engineer';
+  var s1d=(document.getElementById('sig1Desig')||{}).value||'P.W. Sub Division Kaij';
+  var s2n=(document.getElementById('sig2Name')||{}).value||'Sub Divisional Engineer';
+  var s2d=(document.getElementById('sig2Desig')||{}).value||'P.W. Division Kaij';
+
+  var reHtml=buildREPrintHtml();
+  var sigBlock=buildSigBlock(s1n,s1d,s2n,s2d);
+
+  var pw=window.open('','_blank','width=1100,height=850');
+  pw.document.write('<!DOCTYPE html><html lang="mr"><head><meta charset="UTF-8">');
+  pw.document.write('<title>PWD RA Bill — '+workName+'</title>');
+  pw.document.write('<style>'+getPrintStyles()+'</style></head><body>');
+
+  var hdr='<div class="print-title">PWD RA Bill — महाराष्ट्र सार्वजनिक बांधकाम विभाग</div>'
+    +'<div class="print-sub">SSR 2022-23 &nbsp;|&nbsp; P.W.D. 9 m. &nbsp;|&nbsp; सा. बां. वि. ९ म.</div>'
+    +'<div class="info-line"><strong>Name of Work :</strong> '+workName+'</div>'
+    +'<div class="info-line"><strong>Contractor :</strong> '+contractor+'&nbsp;&nbsp;&nbsp;<strong>Bill No :</strong> '+billNo+'&nbsp;&nbsp;&nbsp;<strong>Date :</strong> '+billDate+'&nbsp;&nbsp;&nbsp;<strong>Agreement No :</strong> '+agr+'</div>';
+
+  // SECTION 1: Abstract
+  pw.document.write('<div class="section">'+hdr+'<div class="sec-title">📊 Abstract of Bill</div>'+abstractHtml+'</div>');
+
+  // SECTION 2: RE Entries (MB)
+  if(reHtml){
+    pw.document.write('<div class="section">'+hdr+'<div class="sec-title">📐 RE Entries — Measurement Book</div>'+reHtml+'</div>');
+  }
+
+  // SECTION 3: Comparative Statement
+  if(compHtml){
+    pw.document.write('<div class="section">'+hdr+'<div class="sec-title">📑 Comparative Statement</div>'+compHtml+sigBlock+'</div>');
+  }
+
+  // SECTION 4: Royalty
+  if(royHtml&&royHtml.indexOf('empty-state')===-1){
+    pw.document.write('<div class="section">'+hdr+'<div class="sec-title">💰 Royalty Statement</div>'+royHtml+sigBlock+'</div>');
+  }
+
+  // SECTION 5: Consumption
+  if(conHtml&&conHtml.indexOf('empty-state')===-1){
+    pw.document.write('<div class="section">'+hdr+'<div class="sec-title">📦 Consumption Chart</div>'+conHtml+sigBlock+'</div>');
+  }
+
+  // SECTION 6: Cement Consumption
+  if(cemHtml&&cemHtml.indexOf('empty-state')===-1){
+    pw.document.write('<div class="section">'+hdr+'<div class="sec-title">🏗️ Cement Consumption Statement</div>'+cemHtml+sigBlock+'</div>');
+  }
+
+  pw.document.write('<div class="no-print" style="display:block;margin-top:20px;text-align:center">');
+  pw.document.write('<button onclick="window.print()" style="padding:10px 28px;background:#1a2744;color:#fff;border:none;border-radius:6px;font-size:14px;cursor:pointer;margin-right:10px">🖨️ Print करा</button>');
+  pw.document.write('<button onclick="window.close()" style="padding:10px 18px;background:#ccc;color:#333;border:none;border-radius:6px;font-size:14px;cursor:pointer">बंद करा</button>');
+  pw.document.write('</div></body></html>');
+  pw.document.close();
+}
+
+function printComparative(){
+  if(typeof buildComparativeTable==='function') buildComparativeTable();
+
+  var workName=(document.getElementById('ahWorkName').value||'')+' '+(document.getElementById('ahWorkName2').value||'');
+  var contractor=document.getElementById('ahContractor').value||'—';
+  var billNo=document.getElementById('billNo').value||'—';
+  var billDate=(document.getElementById('billDate')||{}).value||'—';
+  var agr=document.getElementById('ahAgreementNo').value||'—';
+
+  var compOut=document.getElementById('comparativeOutput');
+  var compHtml=compOut?compOut.innerHTML:'';
+
+  var s1n=(document.getElementById('sig1Name')||{}).value||'Sectional Engineer';
+  var s1d=(document.getElementById('sig1Desig')||{}).value||'P.W. Sub Division Kaij';
+  var s2n=(document.getElementById('sig2Name')||{}).value||'Sub Divisional Engineer';
+  var s2d=(document.getElementById('sig2Desig')||{}).value||'P.W. Division Kaij';
+
+  var sigBlock=buildSigBlock(s1n,s1d,s2n,s2d);
+
+  var pw=window.open('','_blank','width=1100,height=850');
+  pw.document.write('<!DOCTYPE html><html lang="mr"><head><meta charset="UTF-8">');
+  pw.document.write('<title>Comparative Statement — '+workName+'</title>');
+  pw.document.write('<style>'+getPrintStyles()+'</style></head><body>');
+  pw.document.write('<div style="text-align:center;font-size:16px;font-weight:700;margin-bottom:4px">Comparative statement</div>');
+  pw.document.write('<div style="margin-bottom:10px;border-bottom:2px solid #333;padding-bottom:8px;font-size:11px;color:#555;text-align:center">सा. बां. वि. ९ म. | P.W.D. 9 m. | SSR 2022-23</div>');
+  pw.document.write('<div class="info-line">Name of works :- '+workName+'</div>');
+  pw.document.write('<div class="info-line">Name of Agency :- '+contractor+'</div>');
+  pw.document.write('<div class="info-line" style="margin-bottom:10px">Agency :- B-1 No. '+billNo+' &nbsp; Date :- '+billDate+(agr&&agr!=='—'?' &nbsp; Agr: '+agr:'')+'</div>');
+  pw.document.write(compHtml);
+  pw.document.write(sigBlock);
+  pw.document.write('<div class="no-print" style="display:block;margin-top:24px;text-align:center">');
+  pw.document.write('<button onclick="window.print()" style="padding:10px 28px;background:#1a2744;color:#fff;border:none;border-radius:6px;font-size:14px;cursor:pointer;margin-right:10px">🖨️ Print करा</button>');
+  pw.document.write('<button onclick="window.close()" style="padding:10px 18px;background:#ccc;color:#333;border:none;border-radius:6px;font-size:14px;cursor:pointer">बंद करा</button>');
+  pw.document.write('</div></body></html>');
+  pw.document.close();
+}
+</script>
+</body>
+</html>
