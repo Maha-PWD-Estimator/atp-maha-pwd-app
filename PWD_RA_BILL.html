@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PWD RA Bill Generator V4 | महाराष्ट्र सार्वजनिक बांधकाम विभाग</title>
+
+<!-- Firebase SDKs (same as ATP app) -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+<link rel="stylesheet" href="ra_bill_styles.css">
+</head>
+<body>
+
+<!-- ═══ LOAD SCREEN ═══════════════════════════════════════ -->
+<div class="load-screen" id="loadScreen">
+  <div class="spinner"></div>
+  <h2>⚖️ PWD RA Bill</h2>
+  <p>Initializing…</p>
+</div>
+
+<!-- ═══ TOAST ═════════════════════════════════════════════ -->
+<div class="toast" id="toast"></div>
+
+<!-- ═══ LOGIN WALL ════════════════════════════════════════ -->
+<div id="loginWall" style="display:none">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="icon">🏛️</div>
+      <h2>PWD RA Bill Generator V4</h2>
+      <p>महाराष्ट्र सार्वजनिक बांधकाम विभाग | SSR 2022-23</p>
+    </div>
+    <div class="login-tabs">
+      <div class="ltab on" onclick="switchLTab('google')">🔵 Google</div>
+      <div class="ltab" onclick="switchLTab('email')">📧 Email</div>
+    </div>
+
+    <!-- Google -->
+    <div class="lsec on" id="lsec-google">
+      <button class="lbtn lbtn-google" onclick="loginGoogle()">
+        <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Google ने Login करा
+      </button>
+      <div class="lerr" id="googleErr"></div>
+    </div>
+
+    <!-- Email -->
+    <div class="lsec" id="lsec-email">
+      <div class="lfield">
+        <label>Email</label>
+        <input type="email" id="lEmail" placeholder="you@example.com">
+      </div>
+      <div class="lfield">
+        <label>Password</label>
+        <input type="password" id="lPass" placeholder="Password" onkeydown="if(event.key==='Enter')loginEmail()">
+      </div>
+      <button class="lbtn lbtn-primary" onclick="loginEmail()">Login</button>
+      <div class="lerr" id="emailErr"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ USER MENU ══════════════════════════════════════════ -->
+<div class="user-menu" id="userMenu">
+  <div class="um-info">
+    <div class="um-name" id="umName">—</div>
+    <div class="um-email" id="umEmail">—</div>
+  </div>
+  <div class="umitem" onclick="openRaBills()">📂 Saved RA Bills</div>
+  <div class="umitem danger" onclick="doLogout()">🚪 Logout</div>
+</div>
+
+<!-- ═══ ESTIMATES PICKER MODAL ══════════════════════════════ -->
+<div class="modal-overlay" id="estModal">
+  <div class="modal">
+    <h3>📋 तुमचे Estimates — Firebase</h3>
+    <div id="estList"><div class="empty-state"><div class="icon">⏳</div><p>Loading…</p></div></div>
+    <div class="flex gap8 mt12" style="justify-content:flex-end">
+      <button class="btn btn-ghost btn-sm" onclick="closeEstModal()">रद्द</button>
+      <button class="btn btn-primary btn-sm" id="btnLoadEst" onclick="loadSelectedEst()" disabled>✓ Load करा</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SPLIT MODAL ════════════════════════════════════════ -->
+<div class="modal-overlay" id="splitModal">
+  <div class="modal" style="max-width:640px">
+    <h3 id="splitModalTitle">Item Split करा</h3>
+
+    <!-- Total qty tracker -->
+    <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:8px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+      <div style="font-size:12px">
+        <span style="color:var(--text3)">Original Qty:</span>
+        <strong id="spOrigQty" style="font-family:'Source Code Pro',monospace;color:var(--navy)">0</strong>
+        <span id="spOrigUnit" style="color:var(--text3);font-size:11px"></span>
+      </div>
+      <div style="font-size:12px">
+        <span style="color:var(--text3)">Split बेरीज:</span>
+        <strong id="spUsedQty" style="font-family:'Source Code Pro',monospace;color:var(--blue)">0</strong>
+      </div>
+      <div style="font-size:12px">
+        <span style="color:var(--text3)">शिल्लक:</span>
+        <strong id="spRemQty" style="font-family:'Source Code Pro',monospace">0</strong>
+      </div>
+      <div style="font-size:11px;color:var(--text3);margin-left:auto">
+        💡 सर्व parts ची बेरीज = Original Qty असणे आवश्यक
+      </div>
+    </div>
+
+    <!-- Column headers -->
+    <div id="splitColHeader" style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px;padding:0 2px"></div>
+
+    <!-- Split rows -->
+    <div id="splitRows" style="max-height:340px;overflow-y:auto;padding-right:2px"></div>
+
+    <div class="flex gap8 mt12" style="justify-content:space-between;align-items:center;flex-wrap:wrap">
+      <button class="btn btn-warning btn-sm" onclick="addSplitRow()">+ Part Add करा</button>
+      <div class="flex gap8">
+        <button class="btn btn-ghost btn-sm" onclick="closeSplitModal()">रद्द</button>
+        <button class="btn btn-primary btn-sm" onclick="applySplit()">✓ Split लागू करा</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ TESTS MODAL ════════════════════════════════════════ -->
+<div class="modal-overlay" id="testsModal">
+  <div class="modal">
+    <h3>Tests (Total C)</h3>
+    <div id="testsRows"></div>
+    <div class="flex gap8 mt12" style="justify-content:flex-end">
+      <button class="btn btn-ghost btn-sm" onclick="closeTestsModal()">बंद</button>
+      <button class="btn btn-warning btn-sm" onclick="addTestRow()">+ Test</button>
+      <button class="btn btn-primary btn-sm" onclick="saveTests()">✓ Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ RA BILLS MODAL ════════════════════════════════════= -->
+<div class="modal-overlay" id="raBillsModal">
+  <div class="modal" style="max-width:640px">
+    <h3>📂 Saved RA Bills</h3>
+    <div id="raBillsList"><div class="empty-state"><div class="icon">📂</div><p>Loading…</p></div></div>
+    <div class="flex gap8 mt12" style="justify-content:flex-end">
+      <button class="btn btn-ghost btn-sm" onclick="closeRaBills()">बंद</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ HEADER ═════════════════════════════════════════════ -->
+<div class="header">
+  <div class="header-inner">
+    <div class="header-emblem">🏛️</div>
+    <div class="header-title">
+      <h1>RA Bill Generator — महाराष्ट्र PWD</h1>
+      <p>RUNNING ACCOUNT BILL &nbsp;|&nbsp; SSR 2022-23 &nbsp;|&nbsp; सा.बां.वि. ९ म.</p>
+    </div>
+    <div class="header-right">
+      <div class="header-badge" id="billBadge">B/No. ___</div>
+      <div class="user-chip" id="userChip" onclick="toggleUserMenu()" style="display:none">
+        <div class="avatar" id="userAvatar">?</div>
+        <span class="uname" id="userChipName">—</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ STATUS BAR ════════════════════════════════════════= -->
+<div class="status-bar">
+  <div class="status-inner" id="projBar">
+    <span class="text-sm" style="color:rgba(255,255,255,.5)">Estimate load करा →</span>
+  </div>
+</div>
+
+<!-- ═══ MAIN ═══════════════════════════════════════════════ -->
+<div class="main">
+
+  <!-- ACTION BAR -->
+  <div class="flex gap8 mb8 flex-wrap items-center action-bar">
+    <button class="btn btn-primary" onclick="openEstModal()">📥 Estimate Load करा</button>
+    <button class="btn btn-ghost" onclick="switchTab('tab-items')">📋 Items</button>
+    <button class="btn btn-ghost" onclick="switchTab('tab-re')">📐 RE Entries</button>
+    <button class="btn btn-ghost" onclick="switchTab('tab-abstract')">📊 Abstract</button>
+    <div style="flex:1"></div>
+    <div class="flex gap8 items-center">
+      <label style="display:inline;margin:0;font-size:11px;color:var(--text3)">Bill No:</label>
+      <input type="text" id="billNo" placeholder="904" style="width:75px" oninput="syncBillNo('billNo')">
+      <label style="display:inline;margin:0;font-size:11px;color:var(--text3)">Date:</label>
+      <input type="date" id="billDate" style="width:135px" onchange="syncBillDate('billDate')">
+    </div>
+    <button class="btn btn-success" onclick="saveRaBill()">☁️ Save Bill</button>
+    <button class="btn btn-success" onclick="printAbstract()">🖨️ Print</button>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <div class="tab active" id="tab-items" onclick="switchTab('tab-items')">
+      📋 Items & Sequence<span class="tab-badge" id="itemsBadge">0</span>
+    </div>
+    <div class="tab" id="tab-re" onclick="switchTab('tab-re')">
+      📐 RE Entries (MB)<span class="tab-badge" id="reBadge">0</span>
+    </div>
+    <div class="tab" id="tab-abstract" onclick="switchTab('tab-abstract')">
+      📊 Abstract of Bill
+    </div>
+    <div class="tab" id="tab-royalty" onclick="switchTab('tab-royalty')">
+      💰 Royalty
+    </div>
+    <div class="tab" id="tab-consumption" onclick="switchTab('tab-consumption')">
+      📦 Consumption
+    </div>
+    <div class="tab" id="tab-cement" onclick="switchTab('tab-cement')">
+      🏗️ Cement Consumption
+    </div>
+    <div class="tab" id="tab-comparative" onclick="switchTab('tab-comparative')">
+      📑 Comparative Statement
+    </div>
+    <div class="tab" id="tab-form47" onclick="switchTab('tab-form47')">
+      📄 Form 47 RA Bill
+    </div>
+    <div class="tab" id="tab-completion" onclick="switchTab('tab-completion')">
+      🏆 Completion Certificate
+    </div>
+  </div>
+
+  <!-- TAB 1: ITEMS -->
+  <div class="tab-content active" id="content-tab-items">
+    <div class="curing-info">
+      ⏱️ IS 456 नुसार Curing Days: PCC=3d | RCC Footing/Column=7d | RCC Slab/Beam=14d | Brick Masonry=3d | Plaster=7d
+    </div>
+    <div class="panel">
+      <div class="panel-title">
+        Bill Items — Construction Sequence नुसार
+        <div style="margin-left:auto" class="flex gap8">
+          <button class="btn btn-ghost btn-sm" onclick="collapseAllSubs()">Collapse</button>
+          <button class="btn btn-ghost btn-sm" onclick="expandAllSubs()">Expand</button>
+          <button class="btn btn-warning btn-sm" onclick="autoSortItems();renderItems();renderREEntries()" title="Category नुसार sort करा — Board items शेवटी जातात">🔄 Category Sort</button>
+          <button class="btn btn-ghost btn-sm" onclick="showRateDebug()" title="Rate fields debug">🔍 Rate Debug</button>
+        </div>
+      </div>
+      <div id="emptyState" class="empty-state">
+        <div class="icon">📂</div>
+        <p>Firebase मधून Estimate load करा</p>
+        <button class="btn btn-primary mt12" onclick="openEstModal()">📥 Load करा</button>
+      </div>
+      <div class="table-wrap">
+        <table class="items-table" id="itemsTable" style="display:none">
+          <thead>
+            <tr>
+              <th style="width:28px">#</th><th style="width:46px">Seq</th>
+              <th style="width:60px">Item No.</th><th>कामाचा तपशील</th>
+              <th style="width:60px">Unit</th><th style="width:65px" class="r">Qty</th>
+              <th style="width:75px" class="r">Rate</th><th style="width:85px" class="r">Amount</th>
+              <th style="width:115px">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="itemsTbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: RE ENTRIES -->
+  <div class="tab-content" id="content-tab-re">
+    <div class="start-date-panel" id="startDatePanel" style="display:none">
+      <h4>Construction Start Date — Smart Curing Calculator</h4>
+      <p class="text-sm text-muted mb8">एकदा Start Date टाका — curing days नुसार सर्व items च्या dates automatically calculate होतात.</p>
+      <div class="grid3" style="align-items:end">
+        <div><label>Construction Start Date</label><input type="date" id="globalStartDate" onchange="applySmartDates()"></div>
+        <button class="btn btn-success btn-sm" style="margin-top:18px" onclick="applySmartDates()">✅ Apply Dates</button>
+        <button class="btn btn-ghost btn-sm" style="margin-top:18px" onclick="resetAllDates()">🔄 Reset</button>
+      </div>
+      <div class="curing-chain" id="curingChain"></div>
+    </div>
+    <div class="flex gap8 mb8 items-center flex-wrap">
+      <div class="text-sm text-muted flex1">प्रत्येक item साठी RE entries टाका — No × L × B × H = Qty</div>
+      <button class="btn btn-primary btn-sm" onclick="expandAllRE()">सर्व उघडा</button>
+      <button class="btn btn-ghost btn-sm" onclick="collapseAllRE()">सर्व बंद करा</button>
+    </div>
+    <div id="reEntriesContainer">
+      <div class="empty-state"><div class="icon">📐</div><p>आधी Items load करा</p></div>
+    </div>
+  </div>
+
+  <!-- TAB 3: ABSTRACT -->
+  <div class="tab-content" id="content-tab-abstract">
+
+    <!-- EDITABLE ABSTRACT HEADER -->
+    <div class="abstract-header-edit">
+      <div class="ah-edit-title">Abstract of Bill — Header Edit करा</div>
+      <div class="ah-row">
+        <div class="ah-field" style="grid-column:span 2">
+          <label>कामाचे नाव (Work Name)</label>
+          <input type="text" id="ahWorkName" placeholder="कामाचे नाव टाका" oninput="updateAbstractPreview()">
+        </div>
+        <div class="ah-field" style="grid-column:span 2">
+          <label>&nbsp;</label>
+          <input type="text" id="ahWorkName2" placeholder="(पुढे)" oninput="updateAbstractPreview()">
+        </div>
+      </div>
+      <div class="ah-row">
+        <div class="ah-field">
+          <label>B/No.</label>
+          <input type="text" id="ahBillNo" placeholder="904" oninput="syncBillNo('ahBillNo')">
+        </div>
+        <div class="ah-field">
+          <label>दिनांक</label>
+          <input type="date" id="ahBillDate" onchange="syncBillDate('ahBillDate')">
+        </div>
+        <div class="ah-field">
+          <label>ठेकेदार</label>
+          <input type="text" id="ahContractor" placeholder="Contractor नाव" oninput="updateAbstractPreview()">
+        </div>
+        <div class="ah-field">
+          <label>Agreement No.</label>
+          <input type="text" id="ahAgreementNo" value="B-1 / 1685" placeholder="Agr. No." oninput="updateAbstractPreview()">
+        </div>
+      </div>
+      <div class="ah-preview">
+        <div class="pre-l1">सा. बां. वि. ९ म. &nbsp;|&nbsp; P.W.D. 9 m.</div>
+        <div class="pre-l2" id="prevWorkName">कामाचे नाव: ___</div>
+        <div class="pre-l3" id="prevContractor">ठेकेदार: ___</div>
+        <div class="pre-l4" id="prevBillInfo">ABSTRACT | RA Bill | B/No. ___ | Date: ___</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="table-wrap">
+        <table class="abstract-table" id="abstractTable">
+          <thead>
+            <tr>
+              <th style="width:36px">#</th><th style="width:72px">Item No.</th>
+              <th>कामाचा तपशील</th><th style="width:75px" class="r">Qty</th>
+              <th style="width:55px">Unit</th><th style="width:85px" class="r">Rate ₹</th>
+              <th style="width:95px" class="r">Amount ₹</th>
+            </tr>
+          </thead>
+          <tbody id="abstractTbody">
+            <tr><td colspan="7" class="empty-state">Items load करा आणि RE entries टाका</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="summary-grid mt12" id="summaryGrid" style="display:none">
+        <div class="summary-box total-a">
+          <div class="summary-label">Total (A) — Work Items</div>
+          <div class="summary-amount" id="sumA">₹ 0</div>
+        </div>
+        <div class="summary-box total-b">
+          <div class="summary-label">Total (B) — Royalty</div>
+          <div class="summary-amount" id="sumB">₹ 0</div>
+          <div class="mt8" style="font-size:10px;color:var(--text3);text-align:center">
+            <div id="royaltyAutoLine" style="color:var(--blue);font-weight:700;margin-bottom:4px"></div>
+            <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:5px">
+              <span>🪨 Sand: <span id="roySandTotal" style="font-weight:700;color:var(--navy)">0.000</span> M³</span>
+              <span>🏔️ Murum: <span id="royMurumTotal" style="font-weight:700;color:var(--navy)">0.000</span> M³</span>
+            </div>
+            <div style="color:var(--text3);font-size:9px">CF Factor वरून auto-calculated | Sand ₹237.37 | Murum/Coarse ₹216.18</div>
+            <button class="btn btn-ghost btn-xs mt6" onclick="showRoyaltyChart()" style="font-size:9px">📊 Royalty Chart</button>
+          </div>
+        </div>
+        <div class="summary-box total-c">
+          <div class="summary-label">Total (C) — Tests</div>
+          <div class="summary-amount" id="sumC">₹ 0</div>
+          <button class="btn btn-ghost btn-xs mt8" onclick="openTestsEditor()">Tests Edit</button>
+        </div>
+        <div class="summary-box grand">
+          <div class="summary-label">GRAND TOTAL = A + B + C</div>
+          <div class="summary-amount" id="sumGrand">₹ 0</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- TAB 4: ROYALTY -->
+  <div class="tab-content" id="content-tab-royalty">
+    <div style="padding:12px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+        <h3 style="margin:0;font-size:14px;font-weight:700">💰 Royalty Statement</h3>
+        <div style="font-size:11px;color:var(--text3);background:var(--bg2);padding:3px 9px;border-radius:12px">CF Factor वरून Auto-Calculated</div>
+        <div style="margin-left:auto;display:flex;gap:8px">
+          <div style="font-size:11px;color:var(--text3)">Sand ₹<input type="number" id="rRateSand" value="237.37" style="width:60px;font-size:11px" oninput="renderRoyaltyTab()"> /M³</div>
+          <div style="font-size:11px;color:var(--text3)">Murum ₹<input type="number" id="rRateMurum" value="216.18" style="width:60px;font-size:11px" oninput="renderRoyaltyTab()"> /M³</div>
+        </div>
+      </div>
+      <div id="royaltyTabContent">
+        <div class="empty-state"><div class="icon">💰</div><p>Abstract tab मध्ये items load करा</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 5: CONSUMPTION -->
+  <div class="tab-content" id="content-tab-consumption">
+    <div style="padding:12px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+        <h3 style="margin:0;font-size:14px;font-weight:700">📦 Consumption Chart</h3>
+        <div style="font-size:11px;color:var(--text3);background:var(--bg2);padding:3px 9px;border-radius:12px">Material-wise Consumption per Item</div>
+      </div>
+      <div id="consumptionTabContent">
+        <div class="empty-state"><div class="icon">📦</div><p>Items load करा</p></div>
+      </div>
+    </div>
+  </div>
+  <!-- TAB 6: CEMENT CONSUMPTION STATEMENT -->
+  <div class="tab-content" id="content-tab-cement">
+    <div style="padding:12px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+        <h3 style="margin:0;font-size:14px;font-weight:700">🏗️ Cement Consumption Statement</h3>
+        <button class="btn btn-ghost btn-sm" onclick="window.print()">🖨️ Print</button>
+      </div>
+
+      <!-- Print Header -->
+      <div class="print-header" style="display:none">
+        <div style="text-align:center;font-size:14px;font-weight:700;margin-bottom:4px">CEMENT CONSUMPTION STATEMENT</div>
+        <div style="font-size:12px;margin-bottom:2px">Name of works :- <span id="ccs-workname"></span></div>
+        <div style="font-size:12px;margin-bottom:2px">Name of Agency :- <span id="ccs-contractor"></span></div>
+        <div style="font-size:12px;margin-bottom:8px">Authority :- <span id="ccs-billno"></span></div>
+      </div>
+
+      <!-- Cement Rate Input -->
+      <div class="panel" style="margin-bottom:12px">
+        <div class="panel-title">⚙️ Settings</div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end">
+          <div>
+            <label>Cement Rate (₹ per Bag)</label>
+            <input type="number" id="cementRate" value="380" min="0" step="1" style="width:110px" oninput="renderCementConsumption()">
+          </div>
+          <div style="font-size:11px;color:var(--text3);max-width:400px;padding-bottom:4px">
+            💡 CF Factor नुसार Theoretical Consumption calculate होतो. Actual = Theoretical (same). Cement brought by contractor असेल तर Remark मध्ये दिसेल.
+          </div>
+        </div>
+      </div>
+
+      <div id="cementConsumptionContent">
+        <div class="empty-state"><div class="icon">🏗️</div><p>Items load करा</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 7: COMPARATIVE STATEMENT -->
+  <div class="tab-content" id="content-tab-comparative">
+    <div style="padding:12px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+        <h3 style="margin:0;font-size:14px;font-weight:700">📑 Comparative Statement</h3>
+        <span style="font-size:10px;color:var(--text3);background:var(--bg2);padding:3px 9px;border-radius:12px">Estimate → Tender | MB → Actual | Auto calculated</span>
+        <button class="btn btn-primary btn-sm" onclick="printComparative()">🖨️ Print (नवीन Window)</button>
+      </div>
+
+      <!-- Signature Settings Panel -->
+      <div class="panel" style="margin-bottom:12px">
+        <div class="panel-title">✍️ Signature Block Settings — Print साठी</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <div>
+            <label style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.3px">Left Signature — Name</label>
+            <input type="text" id="sig1Name" value="Sectional Engineer" style="margin-bottom:5px">
+            <label style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.3px">Designation Line</label>
+            <input type="text" id="sig1Desig" value="P.W. Sub Division Sinnar" style="margin-bottom:5px">
+          </div>
+          <div>
+            <label style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.3px">Right Signature — Name</label>
+            <input type="text" id="sig2Name" value="Sub Divisional Engineer" style="margin-bottom:5px">
+            <label style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.3px">Designation Line</label>
+            <input type="text" id="sig2Desig" value="P.W. Division Nashik" style="margin-bottom:5px">
+          </div>
+        </div>
+        <div style="font-size:10px;color:var(--text3);margin-top:4px">💡 वरील fields बदला → Print केल्यावर त्या प्रमाणे signature block येईल</div>
+      </div>
+
+      <!-- Print Header (only visible on print) -->
+      <div class="print-header" style="display:none">
+        <div style="text-align:center;font-size:14px;font-weight:700;margin-bottom:6px">Comparative statement</div>
+        <div style="font-size:12px;margin-bottom:2px">Name of works :- <span class="cs-workname"></span></div>
+        <div style="font-size:12px;margin-bottom:2px">Name of Agency :- <span class="cs-contractor"></span></div>
+        <div style="font-size:12px;margin-bottom:8px">Agancy :- <span class="cs-billno"></span></div>
+      </div>
+
+      <!-- Auto-generated table -->
+      <div id="comparativeInputArea"></div>
+      <div id="comparativeOutput" style="display:none">
+        <div id="comparativeTable"></div>
+        <div id="comparativeSummary" style="margin-top:12px;font-weight:700;font-size:13px"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 8: FORM 47 RA BILL — exact image format, inline editable -->
+  <div class="tab-content" id="content-tab-form47">
+    <div style="padding:12px">
+
+      <!-- Action Bar -->
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap">
+        <h3 style="margin:0;font-size:14px;font-weight:700">📄 Form 47 — Running Account Bill</h3>
+        <button class="btn btn-warning btn-sm" onclick="calcForm47()">🔄 Auto-Fill करा (Abstract मधून)</button>
+        <button class="btn btn-success btn-sm" onclick="printForm47()">🖨️ Print Form 47</button>
+        <div style="font-size:10px;color:var(--text3);background:var(--bg2);padding:3px 9px;border-radius:12px">सर्व fields screen वर edit होतात | MPWA Code 10-2-10</div>
+      </div>
+
+      <!-- ══════════════════════════════════════════
+           COVER PAGE — exact Form 47 format
+      ══════════════════════════════════════════ -->
+      <div class="panel" style="font-family:'Noto Serif',serif">
+        <div class="panel-title">📋 Cover Page</div>
+
+        <!-- Top: Outer PW / Division lines -->
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+          <div style="font-size:12px">
+            <div><span style="color:var(--text3);font-size:10px">Division:</span>
+              <input type="text" id="f47Division" value="Nashik" style="border:none;border-bottom:1px solid var(--border);width:160px;font-weight:700;font-size:12px;padding:1px 4px;background:transparent">
+            </div>
+            <div style="margin-top:3px"><span style="color:var(--text3);font-size:10px">Sub Division:</span>
+              <input type="text" id="f47SubDiv" value="Sinnar" style="border:none;border-bottom:1px solid var(--border);width:160px;font-weight:700;font-size:12px;padding:1px 4px;background:transparent">
+            </div>
+          </div>
+          <div style="text-align:right;font-size:12px">Outer P.W.&nbsp;
+            <input type="text" id="f47PwNo" placeholder="41 413" style="border:none;border-bottom:1px solid var(--border);width:80px;font-weight:700;font-size:12px;padding:1px 4px;background:transparent">
+          </div>
+        </div>
+
+        <!-- Form title -->
+        <div style="border:2px solid var(--text);padding:3px;text-align:center;margin-bottom:2px;font-size:11px">FORM 47</div>
+        <div style="text-align:center;font-size:20px;font-weight:700;margin-bottom:2px">Running Account Bill</div>
+        <div style="text-align:center;font-size:11px;margin-bottom:2px">(Refer to in Paragraph 10-2-10 of M.P.W.A.Code)</div>
+        <div style="text-align:center;font-size:12px;font-weight:700;margin-bottom:6px">CASH BOOK VOUCHER NO.
+          <input type="text" id="f47CashVoucher" placeholder="____" style="border:none;border-bottom:1px solid #000;width:100px;font-size:12px;font-weight:700;padding:1px 4px;background:transparent">
+        </div>
+        <div style="border-top:3px double var(--text);border-bottom:1px solid var(--text);padding:2px 0;margin-bottom:10px"></div>
+
+        <!-- Contractor & Work -->
+        <table style="width:100%;font-size:12px;border-collapse:collapse;margin-bottom:8px">
+          <tr>
+            <td style="padding:3px 0;width:220px;vertical-align:top">Name of Contractor or Supplier :</td>
+            <td style="padding:3px 0"><input type="text" id="f47Contractor" placeholder="Contractor नाव" style="border:none;border-bottom:1px solid var(--border);width:100%;font-weight:700;font-size:12px;padding:1px 4px;background:transparent" oninput="updateAbstractPreview()"></td>
+          </tr>
+          <tr>
+            <td style="padding:4px 0;vertical-align:top">Name Of Work :-</td>
+            <td style="padding:4px 0">
+              <input type="text" id="f47WorkName1" placeholder="कामाचे नाव" style="border:none;border-bottom:1px solid var(--border);width:100%;font-weight:700;font-size:12px;padding:1px 4px;background:transparent;margin-bottom:3px">
+              <input type="text" id="f47WorkName2" placeholder="(पुढे...)" style="border:none;border-bottom:1px solid var(--border);width:100%;font-size:11px;padding:1px 4px;background:transparent">
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:4px 0">Serial No. of this bill :-</td>
+            <td style="padding:4px 0"><input type="text" id="f47BillSerial" placeholder="II nd &amp; withed" style="border:none;border-bottom:1px solid var(--border);width:200px;font-weight:700;font-size:12px;padding:1px 4px;background:transparent"></td>
+          </tr>
+          <tr>
+            <td style="padding:4px 0">No. &amp; date of previous bills for this work :-</td>
+            <td style="padding:4px 0"><input type="text" id="f47PrevBillRef" placeholder="____" style="border:none;border-bottom:1px solid var(--border);width:200px;font-size:12px;padding:1px 4px;background:transparent"></td>
+          </tr>
+          <tr>
+            <td style="padding:4px 0">Reference to Agreement :-</td>
+            <td style="padding:4px 0">
+              <input type="text" id="f47AgrNo" value="B-1 / 1685" placeholder="B-1 / 1685" style="border:none;border-bottom:1px solid var(--border);width:140px;font-weight:700;font-size:12px;padding:1px 4px;background:transparent">
+              &nbsp;/ Date &nbsp;
+              <input type="date" id="f47AgrDate" value="2024-02-14" style="border:none;border-bottom:1px solid var(--border);font-size:12px;padding:1px 4px;background:transparent;width:140px">
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:4px 0">Accepted by :-</td>
+            <td style="padding:4px 0"><input type="text" id="f47AcceptedBy" placeholder="E.E. P.W. Division Nashik" style="border:none;border-bottom:1px solid var(--border);width:100%;font-weight:700;font-size:12px;padding:1px 4px;background:transparent"></td>
+          </tr>
+          <tr>
+            <td style="padding:4px 0">Date of Written order to commence work :-</td>
+            <td style="padding:4px 0"><input type="date" id="f47WorkStartDate" style="border:none;border-bottom:1px solid var(--border);font-weight:700;font-size:12px;padding:1px 4px;background:transparent;width:150px"></td>
+          </tr>
+          <tr>
+            <td style="padding:4px 0;vertical-align:top">Date of completion stipulated in the contract :-</td>
+            <td style="padding:4px 0">
+              <input type="text" id="f47Stipulated" placeholder="6 Months" style="border:none;border-bottom:1px solid var(--border);width:120px;font-weight:700;font-size:12px;padding:1px 4px;background:transparent">
+              <div style="font-size:11px;color:var(--text3);margin-top:3px">Extension granted up to :-
+                <input type="text" id="f47Extension" placeholder="____" style="border:none;border-bottom:1px solid var(--border);width:100px;font-size:11px;padding:1px 4px;background:transparent">
+              </div>
+              <div style="font-size:11px;color:var(--text3);margin-top:3px">Date of actual completion of work:
+                <input type="date" id="f47ActualCompletion" style="border:none;border-bottom:1px solid var(--border);font-size:11px;padding:1px 4px;background:transparent">
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:4px 0">Contract Ledger Folio No.</td>
+            <td style="padding:4px 0"><input type="text" id="f47LedgerFolio" placeholder="____" style="border:none;border-bottom:1px solid var(--border);width:120px;font-size:12px;padding:1px 4px;background:transparent"></td>
+          </tr>
+        </table>
+
+        <div style="font-size:10px;color:var(--text3);border-top:1px solid var(--border2);padding-top:6px;margin-bottom:6px">(For use in Accountant General's Office)</div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:10px">
+          <span>Clerk</span><span>Accountant</span>
+        </div>
+        <div style="text-align:center;font-size:10px;color:var(--text3);margin-bottom:6px">(For Use in Divisional Office)</div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px">
+          <span>Checked</span><span>Audited</span><span>Reviewed</span>
+        </div>
+        <div style="text-align:right;font-size:12px;margin-bottom:8px">Superintendents</div>
+        <div style="display:flex;justify-content:space-between;font-size:12px">
+          <span>Account Clerk</span><span>Account Auditor</span><span>Divisional Accountant</span>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════════
+           PART I — Account of Work Executed
+           Exact image 2 format
+      ══════════════════════════════════════════ -->
+      <div class="panel">
+        <div class="panel-title">📊 PART 1 — ACCOUNT OF WORK EXECUTED</div>
+        <div style="overflow-x:auto">
+          <table id="f47P1Table" style="width:100%;border-collapse:collapse;font-size:10px;min-width:900px">
+            <thead>
+              <tr style="background:var(--navy);color:#fff">
+                <!-- Advance payment columns -->
+                <th rowspan="3" style="padding:4px;border:1px solid rgba(255,255,255,.3);width:55px;vertical-align:middle;text-align:center">Advance payment for work Done note yet measured<br><span style="font-size:9px;opacity:.7">Total as per previous bill</span></th>
+                <th rowspan="3" style="padding:4px;border:1px solid rgba(255,255,255,.3);width:45px;vertical-align:middle;text-align:center">since previous bill</th>
+                <!-- Quantity columns -->
+                <th colspan="3" style="padding:4px;border:1px solid rgba(255,255,255,.3);text-align:center">Quantity executed</th>
+                <!-- Items -->
+                <th rowspan="3" style="padding:4px;border:1px solid rgba(255,255,255,.3);min-width:180px;vertical-align:middle;text-align:center">Items of work<br><span style="font-size:9px;opacity:.7">(Grouped under sub work of estimate)</span></th>
+                <!-- Rate / Unit -->
+                <th rowspan="3" style="padding:4px;border:1px solid rgba(255,255,255,.3);width:60px;vertical-align:middle;text-align:center">Rate</th>
+                <th rowspan="3" style="padding:4px;border:1px solid rgba(255,255,255,.3);width:40px;vertical-align:middle;text-align:center">Unit</th>
+                <!-- Payment columns -->
+                <th colspan="2" style="padding:4px;border:1px solid rgba(255,255,255,.3);text-align:center">payment on basis of actual measurement</th>
+                <!-- Remark -->
+                <th rowspan="3" style="padding:4px;border:1px solid rgba(255,255,255,.3);width:90px;vertical-align:middle;text-align:center;font-size:9px">remark with reason for delay in adjusting payments showing column -1</th>
+              </tr>
+              <tr style="background:var(--navy2);color:#fff">
+                <th style="padding:3px;border:1px solid rgba(255,255,255,.3);width:50px;text-align:center">Total upto date</th>
+                <th style="padding:3px;border:1px solid rgba(255,255,255,.3);width:50px;text-align:center">upto date</th>
+                <th style="padding:3px;border:1px solid rgba(255,255,255,.3);width:50px;text-align:center">as per measurement book</th>
+                <th style="padding:3px;border:1px solid rgba(255,255,255,.3);width:70px;text-align:center">Upto date</th>
+                <th style="padding:3px;border:1px solid rgba(255,255,255,.3);width:70px;text-align:center">since previous bill</th>
+              </tr>
+            </thead>
+            <tbody id="f47P1Tbody">
+              <tr><td colspan="11" style="text-align:center;padding:20px;color:var(--text3)">"🔄 Auto-Fill करा" button दाबा किंवा खाली manually rows edit करा</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div style="margin-top:8px;font-size:11px;color:var(--text3)">💡 कोणत्याही cell वर click करा → edit होईल</div>
+      </div>
+
+      <!-- ══════════════════════════════════════════
+           PART II — Secured Advances
+           Exact image 3 format — all columns
+      ══════════════════════════════════════════ -->
+      <div class="panel">
+        <div class="panel-title">🏗️ PART II — ACCOUNT OF SECURED ADVANCES ALLOWED ON THE SECURITY MATERIALS BROUGHT TO THE SITE</div>
+
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+          <label style="display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;cursor:pointer;text-transform:none;letter-spacing:0">
+            <input type="checkbox" id="f47Part2Nil" checked onchange="toggleF47Part2()" style="width:auto">
+            NIL — Secured Advances नाहीत
+          </label>
+        </div>
+
+        <div id="f47Part2Wrapper" style="overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:10px;min-width:1100px">
+            <thead>
+              <tr style="background:var(--navy);color:#fff">
+                <th style="padding:4px;border:1px solid rgba(255,255,255,.3);width:65px;text-align:center">Quantity Outstanding from previous bill</th>
+                <th style="padding:4px;border:1px solid rgba(255,255,255,.3);width:65px;text-align:center">Deduct Quantity Utilized in work measured Since Previous Bill</th>
+                <th style="padding:4px;border:1px solid rgba(255,255,255,.3);width:75px;text-align:center">Quantity Outstanding including Quantity brought to site since Previous Bill</th>
+                <th style="padding:4px;border:1px solid rgba(255,255,255,.3);width:65px;text-align:center">Full rate assessed by the divisional officer</th>
+                <th style="padding:4px;border:1px solid rgba(255,255,255,.3);min-width:150px;text-align:center">Description Of Materials</th>
+                <th style="padding:4px;border:1px solid rgba(255,255,255,.3);width:40px;text-align:center">Unit</th>
+                <th style="padding:4px;border:1px solid rgba(255,255,255,.3);width:60px;text-align:center">Reduced rate at which advance is made</th>
+                <th style="padding:4px;border:1px solid rgba(255,255,255,.3);width:65px;text-align:center">Upto date Amount of Advance</th>
+                <th colspan="2" style="padding:4px;border:1px solid rgba(255,255,255,.3);text-align:center">Reference to divisional officer written orders authorizing the advance</th>
+                <th style="padding:4px;border:1px solid rgba(255,255,255,.3);width:80px;text-align:center;font-size:9px">Reason for no clearance of advance when outstanding for more than three months</th>
+              </tr>
+              <tr style="background:var(--navy2);color:#fff">
+                <th colspan="4" style="padding:3px;border:1px solid rgba(255,255,255,.3)"></th>
+                <th style="padding:3px;border:1px solid rgba(255,255,255,.3)"></th>
+                <th style="padding:3px;border:1px solid rgba(255,255,255,.3)"></th>
+                <th style="padding:3px;border:1px solid rgba(255,255,255,.3)"></th>
+                <th style="padding:3px;border:1px solid rgba(255,255,255,.3)"></th>
+                <th style="padding:3px;border:1px solid rgba(255,255,255,.3);width:50px;text-align:center">No.</th>
+                <th style="padding:3px;border:1px solid rgba(255,255,255,.3);width:65px;text-align:center">Date</th>
+                <th style="padding:3px;border:1px solid rgba(255,255,255,.3)"></th>
+              </tr>
+            </thead>
+            <tbody id="f47P2Tbody">
+              <!-- NIL row — shown by default -->
+              <tr id="f47P2NilRow">
+                <td colspan="11" style="text-align:center;padding:30px;font-size:16px;font-weight:700;color:var(--text3);border:1px solid var(--border2)">NIL</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- Bottom summary rows -->
+          <table style="width:100%;border-collapse:collapse;font-size:11px;margin-top:0">
+            <tr style="border:1px solid var(--border2)">
+              <td style="padding:5px 8px;width:50%">Total Amount Outstanding as per the bill (G)</td>
+              <td style="padding:5px 8px;width:25%"></td>
+              <td style="padding:5px 8px;width:25%">Figure (E) in words: <input type="text" id="f47P2EWords" placeholder="____" style="border:none;border-bottom:1px solid var(--border);font-size:11px;width:120px;background:transparent"></td>
+            </tr>
+            <tr style="border:1px solid var(--border2)">
+              <td style="padding:5px 8px">Deduct amount outstanding as per entry (G) of Previous Bill</td>
+              <td colspan="2" style="padding:5px 8px"></td>
+            </tr>
+            <tr style="border:1px solid var(--border2);font-weight:700">
+              <td style="padding:5px 8px">Net Amount Since Previous Bill (E)</td>
+              <td colspan="2" style="padding:5px 8px"></td>
+            </tr>
+          </table>
+        </div>
+
+        <!-- Certification text — image 3 प्रमाणे -->
+        <div style="margin-top:10px;font-size:10px;line-height:1.7;color:var(--text2);border:1px solid var(--border2);border-radius:6px;padding:10px;background:var(--bg2)">
+          <p>1). Entries in Column (4) to (9) of part are based on measurements recorded by Shri
+            <input type="text" id="f47JEName" placeholder="S. B. Kamble, Jr. Engineer" style="border:none;border-bottom:1px solid var(--border);width:200px;font-size:10px;background:transparent">
+            on in Measurement Book No. Barcode
+            <input type="text" id="f47MBBarcode" placeholder="486" value="486" style="border:none;border-bottom:1px solid var(--border);width:40px;font-size:10px;background:transparent">
+            Page No.
+            <input type="text" id="f47MBPage" placeholder="642A to 644B" style="border:none;border-bottom:1px solid var(--border);width:120px;font-size:10px;background:transparent">
+            And Checked 100 % by the Sub Divisional Officer on ______
+          </p>
+          <p style="margin-top:6px">2). Certified (i) that in and quite from the quantities of work actually executed as shown in column(4) of part I some work has been actually done in consecution with several items and the value of such work after these deduction from the proportionate amount of secured advance if any ultimately recoverable on agocurt quantities of materials used (in) is no case less than the advance payments as column (3) of part made or proposed to be made for the convenience of the contractor in anticipation of an subject to the results of detailed measurements which will be made as soon as possible. 3). Certified(i) that those quantities of materials shown in column(3) of part II above have been actually brought by the contractor to the site of the and work and contractor has not previously received any advances on security(ii) that these materials are of an impershable natnret and are allrequired by the contractor for use in the connection with items for which rates for finished work have been agreed upon and(iii) that a formal agreement in form 50 signed by the contractor in accordance with paragraph 20,219 M.P.W.A. code is recorded the divisional office</p>
+        </div>
+
+        <!-- Signatures — Part II bottom -->
+        <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:16px;font-size:11px">
+          <div>Dated &nbsp;
+            <input type="date" id="f47P2Date" style="border:none;border-bottom:1px solid var(--border);font-size:11px;background:transparent">
+            &nbsp;&nbsp; Signature of the Contractor: _______________
+          </div>
+          <div style="text-align:center">
+            <div style="height:40px"></div>
+            <div style="border-top:1px solid #000;padding-top:3px;font-weight:700;font-size:11px">
+              <input type="text" id="f47SDE" value="Sub-Divisional Engineer" style="border:none;font-weight:700;font-size:11px;text-align:center;background:transparent;width:180px">
+            </div>
+            <div style="font-size:10px">
+              <input type="text" id="f47SDEDesig" value="P W Sub-Division Sinnar" style="border:none;font-size:10px;text-align:center;background:transparent;width:180px">
+            </div>
+          </div>
+          <div style="text-align:right">Signature of Officer Authorizing Payment: _______________</div>
+        </div>
+        <div style="font-size:9px;color:var(--text3);margin-top:6px;font-style:italic">This signature is necessary only when the officer preparing the bill not the officer authorizing payment</div>
+      </div>
+
+      <!-- ══════════════════════════════════════════
+           PART IV — Memorandum of Payments
+           Exact image 4 format — inline editable
+      ══════════════════════════════════════════ -->
+      <div class="panel">
+        <div class="panel-title">💰 PART-IV — MEMORANDUM OF PAYMENTS</div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+
+          <!-- Left column — line items -->
+          <div>
+            <table style="width:100%;border-collapse:collapse;font-size:11px">
+              <tr style="background:var(--bg2)">
+                <td style="padding:5px 8px;border:1px solid var(--border2);font-size:11px">1) Total value work actully measurement as per part I column (8) Entry (A)</td>
+                <td style="padding:5px 8px;border:1px solid var(--border2);text-align:right;width:110px;font-family:monospace;font-weight:700" id="f47Mem1">—</td>
+              </tr>
+              <tr>
+                <td style="padding:5px 8px;border:1px solid var(--border2);font-size:11px">2) Total upto date advance payment for work not yet measurement as par part I</td>
+                <td style="padding:5px 8px;border:1px solid var(--border2);text-align:right;font-family:monospace">0.00</td>
+              </tr>
+              <tr>
+                <td style="padding:5px 8px;border:1px solid var(--border2);font-size:11px">3) Total upto date secured advance on security of materials as per part II column(8) Entry (E)</td>
+                <td style="padding:5px 8px;border:1px solid var(--border2);text-align:right;font-family:monospace" id="f47Mem3">0.00</td>
+              </tr>
+              <tr style="background:var(--bg2);font-weight:700">
+                <td style="padding:5px 8px;border:1px solid var(--border2)">4) Total (Items 1+2+3)</td>
+                <td style="padding:5px 8px;border:1px solid var(--border2);text-align:right;font-family:monospace" id="f47Mem4">—</td>
+              </tr>
+              <tr>
+                <td style="padding:5px 8px;border:1px solid var(--border2)">5) Dated amount withhold</td>
+                <td style="padding:5px 8px;border:1px solid var(--border2);text-align:right">
+                  <input type="number" id="f47Withheld" value="0" step="0.01" style="width:90px;text-align:right;font-family:monospace" oninput="calcForm47Mem()">
+                </td>
+              </tr>
+            </table>
+
+            <!-- 6) Balance -->
+            <div style="border:1px solid var(--border2);padding:6px 8px;margin-top:0;font-size:11px">
+              <div style="font-weight:700;margin-bottom:4px">6) Balance upto date payments — Item 1,2(K)</div>
+              <div style="display:flex;justify-content:space-between;margin-bottom:3px">
+                <span>A) From Previous bill as per last running Bill</span>
+                <span style="font-family:monospace" id="f47MemKA">—</span>
+              </div>
+              <div style="display:flex;justify-content:space-between">
+                <span>B) from this bill</span>
+                <span style="font-family:monospace" id="f47MemKB">—</span>
+              </div>
+            </div>
+
+            <table style="width:100%;border-collapse:collapse;font-size:11px;margin-top:0">
+              <tr style="background:var(--bg2);font-weight:700">
+                <td style="padding:5px 8px;border:1px solid var(--border2)">7) Total amount of payment already made as per entry (K) of last Running Account Bill No.
+                  <input type="text" id="f47PrevBillNo" placeholder="I" style="border:none;border-bottom:1px solid var(--border);width:40px;font-size:11px;background:transparent" oninput="calcForm47Mem()">
+                  forwardes with account for Payments now to made,as Detailed below</td>
+                <td style="padding:5px 8px;border:1px solid var(--border2);text-align:right;font-family:monospace;width:110px" id="f47Mem7">—</td>
+              </tr>
+            </table>
+
+            <!-- Recovery section -->
+            <div style="border:1px solid var(--border2);padding:6px 8px;font-size:11px">
+              <div style="font-weight:600;margin-bottom:4px">a) By recovery for amounts creditable to (a) this bill</div>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;padding-left:10px">
+                <span>Add GST</span>
+                <input type="number" id="f47GstAmt" value="0" step="0.01" style="width:90px;text-align:right;font-family:monospace" oninput="calcForm47Mem()">
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding-left:10px">
+                <span>Add Part (B)</span>
+                <input type="number" id="f47PartBAmt" value="0" step="0.01" style="width:90px;text-align:right;font-family:monospace" oninput="calcForm47Mem()">
+              </div>
+            </div>
+
+            <table style="width:100%;border-collapse:collapse;font-size:11px;margin-top:0">
+              <tr>
+                <td style="padding:5px 8px;border:1px solid var(--border2)">b) By recovery of amounts creditable (a) to the other work or head of account Deposit</td>
+                <td style="padding:5px 8px;border:1px solid var(--border2);text-align:right;width:110px">
+                  <input type="number" id="f47RecoveryOther" value="0" step="0.01" style="width:90px;text-align:right;font-family:monospace" oninput="calcForm47Mem()">
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:5px 8px;border:1px solid var(--border2)">c) By Cheque</td>
+                <td style="padding:5px 8px;border:1px solid var(--border2);text-align:right;font-family:monospace;font-weight:700" id="f47MemByChq">—</td>
+              </tr>
+              <tr style="background:var(--navy);color:#fff;font-weight:700">
+                <td style="padding:6px 8px;border:1px solid rgba(255,255,255,.2)">Total +(b)+(b) (H)</td>
+                <td style="padding:6px 8px;border:1px solid rgba(255,255,255,.2);text-align:right;font-family:monospace" id="f47MemH">—</td>
+              </tr>
+            </table>
+          </div>
+
+          <!-- Right column — Work Abstract figures -->
+          <div>
+            <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:6px;padding:10px;margin-bottom:10px">
+              <div style="font-size:11px;font-weight:700;color:var(--navy);margin-bottom:8px">Figure for Work Abstract</div>
+              <table style="width:100%;border-collapse:collapse;font-size:11px">
+                <thead>
+                  <tr style="background:var(--navy);color:#fff">
+                    <th style="padding:4px;border:1px solid rgba(255,255,255,.3)">Item</th>
+                    <th style="padding:4px;border:1px solid rgba(255,255,255,.3);text-align:right">Rs.</th>
+                    <th style="padding:4px;border:1px solid rgba(255,255,255,.3);text-align:right">Ps.</th>
+                  </tr>
+                </thead>
+                <tbody id="f47WorkAbsTbody">
+                  <tr><td colspan="3" style="text-align:center;padding:10px;color:var(--text3)">Auto-Fill नंतर येईल</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Previous bill paid -->
+            <div style="border:1px solid var(--border2);border-radius:6px;padding:10px">
+              <div style="font-size:11px;font-weight:700;color:var(--navy);margin-bottom:8px">Previous Bill Amount</div>
+              <div style="margin-bottom:6px">
+                <label style="font-size:10px">Total Paid in Previous Bill (Rs)</label>
+                <input type="number" id="f47PrevPaid" value="0" step="0.01" style="text-align:right;font-family:monospace" oninput="calcForm47Mem()">
+              </div>
+              <div>
+                <label style="font-size:10px">Previous Bill Date</label>
+                <input type="date" id="f47PrevBillDate" oninput="calcForm47Mem()">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pay slip — bottom of Part IV — image 4 प्रमाणे -->
+        <div style="margin-top:14px;background:rgba(30,107,62,.08);border:2px solid var(--green);border-radius:8px;padding:12px">
+          <div style="font-size:13px;font-weight:700">
+            Pay Rs. <span id="f47PayAmt" style="font-size:18px;color:var(--green);font-family:monospace">—</span>
+            &nbsp;&nbsp;&nbsp; By cheque
+          </div>
+          <div style="font-size:11px;margin-top:6px;color:var(--text2)">Here speerty the het amount payable, vide item 5 (c)</div>
+          <div style="display:flex;justify-content:space-between;margin-top:10px;font-size:11px">
+            <span>Received Rs. _____________ Dated initials of Disbursing Officer as per above Rs. <span id="f47PayAmt2" style="font-weight:700">—</span></span>
+          </div>
+          <div style="margin-top:14px;text-align:right">
+            <div style="display:inline-block;text-align:center">
+              <div style="height:50px"></div>
+              <div style="border-top:1.5px solid #000;padding-top:4px;font-weight:700;font-size:12px">Executive Engineer</div>
+              <div style="font-size:11px">Public Works Division</div>
+              <input type="text" id="f47EEDiv" value="NASHIK" style="border:none;font-weight:700;font-size:11px;text-align:center;background:transparent;width:120px">
+            </div>
+          </div>
+        </div>
+
+        <!-- Witness / Pay by Cheque row -->
+        <div style="display:flex;justify-content:space-between;margin-top:10px;font-size:11px">
+          <span>Witness: _______________</span>
+          <span>Full Signature of Contractor: _______________</span>
+        </div>
+        <div style="font-size:11px;margin-top:6px">
+          Pay by me, Vide Cheque No. _____________ Dated _____________
+        </div>
+        <div style="font-size:11px;margin-top:10px;font-style:italic;color:var(--text3)">Initials Of Person actually making the Payment</div>
+
+        <!-- PART - REMARKS -->
+        <div style="border-top:2px solid var(--border);margin-top:10px;padding-top:8px">
+          <div style="font-size:11px;font-weight:700;margin-bottom:4px">PART - REMARKS</div>
+          <div style="font-size:10px;color:var(--text3)">The space reserved for any remarks the Disbursing Officer or the Executive Engineer may record in respect of the executed of to work. Check measurements or the state accounts.</div>
+          <textarea id="f47Remarks" placeholder="Remarks येथे टाका..." style="width:100%;height:50px;font-size:11px;margin-top:6px;border:1px solid var(--border);border-radius:4px;padding:5px;resize:vertical"></textarea>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TAB 9: COMPLETION CERTIFICATE — FORM NO (65) -->
+  <div class="tab-content" id="content-tab-completion">
+    <div style="padding:12px">
+
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+        <h3 style="margin:0;font-size:14px;font-weight:700">🏆 Completion Certificate — Form No. (65)</h3>
+        <button class="btn btn-success btn-sm" onclick="printCompletionCert()">🖨️ Print Certificate</button>
+        <div style="font-size:10px;color:var(--text3);background:var(--bg2);padding:3px 9px;border-radius:12px">सर्व fields editable आहेत</div>
+      </div>
+
+      <!-- Certificate form — image प्रमाणे exact layout -->
+      <div class="panel" style="font-family:'Noto Serif',serif;max-width:800px;margin:0 auto">
+
+        <!-- Header -->
+        <div style="text-align:center;margin-bottom:18px;padding-bottom:14px;border-bottom:2px solid var(--border2)">
+          <div style="font-size:18px;font-weight:700;letter-spacing:1px;color:var(--navy)">COMPLETION CERTIFICATE</div>
+          <div style="font-size:13px;font-weight:600;margin-top:4px;color:var(--text2)">FORM NO (65)</div>
+        </div>
+
+        <!-- Fields grid -->
+        <table style="width:100%;font-size:13px;border-collapse:collapse;margin-bottom:10px">
+          <tr>
+            <td style="padding:6px 0;width:220px;vertical-align:top;color:var(--text3);font-size:12px">Name of works :-</td>
+            <td style="padding:6px 0">
+              <input type="text" id="cc65WorkName1" style="border:none;border-bottom:1px solid var(--border);width:100%;font-weight:700;font-size:13px;padding:2px 4px;background:transparent;color:var(--navy)">
+              <input type="text" id="cc65WorkName2" style="border:none;border-bottom:1px solid var(--border);width:100%;font-size:12px;padding:2px 4px;background:transparent;margin-top:3px">
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:6px 0;color:var(--text3);font-size:12px">Name of Scheme :</td>
+            <td style="padding:6px 0">
+              <input type="text" id="cc65Scheme" value="2225" style="border:none;border-bottom:1px solid var(--border);width:180px;font-weight:700;font-size:13px;padding:2px 4px;background:transparent;color:var(--navy)">
+            </td>
+          </tr>
+        </table>
+
+        <div style="border-top:1px dashed var(--border2);margin:6px 0 10px"></div>
+
+        <table style="width:100%;font-size:13px;border-collapse:collapse;margin-bottom:6px">
+          <tr>
+            <td style="padding:6px 0;width:220px;color:var(--text3);font-size:12px">Name of Agency :-</td>
+            <td style="padding:6px 0">
+              <input type="text" id="cc65Agency" placeholder="Agency चे नाव" style="border:none;border-bottom:1px solid var(--border);width:100%;font-weight:700;font-size:13px;padding:2px 4px;background:transparent;color:var(--navy)">
+            </td>
+          </tr>
+        </table>
+
+        <div style="border-top:1px dashed var(--border2);margin:6px 0 10px"></div>
+
+        <!-- Authority & Amounts grid -->
+        <table style="width:100%;font-size:12px;border-collapse:collapse;margin-bottom:4px">
+          <tr>
+            <td style="padding:5px 0;width:220px;color:var(--text3)">Authority :-</td>
+            <td colspan="3" style="padding:5px 0">
+              <input type="text" id="cc65Authority" placeholder="Executive Engineer P.W. Division ____" style="border:none;border-bottom:1px solid var(--border);width:100%;font-weight:700;font-size:12px;padding:2px 4px;background:transparent;color:var(--navy)">
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:5px 0;color:var(--text3)">A. A. Amount :-</td>
+            <td style="padding:5px 0;width:160px">
+              <input type="text" id="cc65AAAmount" value="500000.00" style="border:none;border-bottom:1px solid var(--border);width:130px;font-weight:700;font-size:12px;padding:2px 4px;background:transparent;color:var(--navy)">
+            </td>
+            <td style="padding:5px 0;width:130px;color:var(--text3)">T.S. Reg. No :-</td>
+            <td style="padding:5px 0">
+              <input type="text" id="cc65TSReg" value="021" style="border:none;border-bottom:1px solid var(--border);width:100px;font-weight:700;font-size:12px;padding:2px 4px;background:transparent;color:var(--navy)">
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:5px 0;color:var(--text3)">B-1 No.</td>
+            <td style="padding:5px 0;display:flex;align-items:center;gap:6px">
+              <input type="text" id="cc65B1No" value="1685" style="border:none;border-bottom:1px solid var(--border);width:70px;font-weight:700;font-size:12px;padding:2px 4px;background:transparent;color:var(--navy)">
+              <span style="color:var(--text3);font-size:11px">Date.</span>
+              <input type="date" id="cc65B1Date" value="2024-02-14" style="border:none;border-bottom:1px solid var(--border);font-size:12px;padding:2px 4px;background:transparent;width:140px">
+            </td>
+            <td style="padding:5px 0;color:var(--text3)">T.S. Amount :-</td>
+            <td style="padding:5px 0">
+              <input type="text" id="cc65TSAmount" value="500000.00" style="border:none;border-bottom:1px solid var(--border);width:100px;font-weight:700;font-size:12px;padding:2px 4px;background:transparent;color:var(--navy)">
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:5px 0;color:var(--text3)">M.B No.</td>
+            <td style="padding:5px 0;display:flex;align-items:center;gap:6px">
+              <input type="text" id="cc65MBNo" value="486" style="border:none;border-bottom:1px solid var(--border);width:70px;font-weight:700;font-size:12px;padding:2px 4px;background:transparent;color:var(--navy)">
+              <span style="color:var(--text3);font-size:11px">Page No.</span>
+              <input type="text" id="cc65PageNo" placeholder="____" style="border:none;border-bottom:1px solid var(--border);width:100px;font-size:12px;padding:2px 4px;background:transparent">
+            </td>
+            <td style="padding:5px 0;color:var(--text3)">T.S. Date :-</td>
+            <td style="padding:5px 0">
+              <input type="date" id="cc65TSDate" value="2023-03-24" style="border:none;border-bottom:1px solid var(--border);font-size:12px;padding:2px 4px;background:transparent;width:140px">
+            </td>
+          </tr>
+        </table>
+
+        <div style="margin:8px 0;font-size:12px;font-weight:600;display:flex;align-items:center;gap:8px">
+          <span style="color:var(--text3)">Total Cost of work Recording M.B. Amount :-</span>
+          <input type="text" id="cc65TotalCost" value="495480.00" style="border:none;border-bottom:2px solid var(--navy);font-weight:700;font-size:13px;padding:2px 6px;background:transparent;color:var(--navy);width:130px">
+        </div>
+
+        <div style="border-top:2px solid var(--border2);margin:14px 0"></div>
+
+        <!-- Certification text -->
+        <div style="font-size:12px;line-height:1.9;color:var(--text2);background:var(--bg2);border-radius:6px;padding:12px;margin-bottom:20px">
+          &nbsp;&nbsp;&nbsp;&nbsp;Certified that work mentioned above is completed of dated. And handed over to &nbsp;
+          <input type="text" id="cc65HandedDate" placeholder="__" style="border:none;border-bottom:1px solid var(--border);width:30px;font-size:11px;padding:1px 3px;background:transparent;text-align:center">
+          /
+          <input type="text" id="cc65HandedMonth" placeholder="__" style="border:none;border-bottom:1px solid var(--border);width:30px;font-size:11px;padding:1px 3px;background:transparent;text-align:center">
+          /202
+          <input type="text" id="cc65HandedYear" placeholder="__" style="border:none;border-bottom:1px solid var(--border);width:30px;font-size:11px;padding:1px 3px;background:transparent;text-align:center">
+          that there have no material deviation from the sanctioned and specifications other then those sanctioned by compentent authority.
+        </div>
+
+        <!-- Signature block -->
+        <div style="display:flex;justify-content:flex-end;margin-top:30px">
+          <div style="text-align:center;min-width:200px">
+            <div style="height:55px"></div>
+            <div style="border-top:1.5px solid var(--text);padding-top:5px">
+              <input type="text" id="cc65SignName" value="Sub Divisional Engineer" style="border:none;font-weight:700;font-size:12px;text-align:center;background:transparent;width:220px;color:var(--navy)">
+            </div>
+            <div>
+              <input type="text" id="cc65SignDesig" value="P.W. Sub Division ____" style="border:none;font-size:11px;text-align:center;background:transparent;width:220px;color:var(--text2)">
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /panel -->
+    </div>
+  </div><!-- /content-tab-completion -->
+
+<!-- ═══ ROYALTY CHART MODAL ════════════════════════════════ -->
+<div class="modal-overlay" id="royaltyChartModal">
+  <div class="modal" style="max-width:820px;max-height:85vh;overflow-y:auto">
+    <h3>📊 Royalty Statement — CF Factor वरून Auto-Calculated</h3>
+    <div id="royaltyChartContent" style="overflow-y:auto;max-height:65vh"></div>
+    <div class="flex gap8 mt12" style="justify-content:flex-end">
+      <button class="btn btn-ghost btn-sm" onclick="window.print()">🖨️ Print</button>
+      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('royaltyChartModal').classList.remove('open')">बंद</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ RATE DEBUG MODAL ════════════════════════════════════ -->
+<div class="modal-overlay" id="rateDebugModal">
+  <div class="modal" style="max-width:700px">
+    <h3>🔍 Rate Debug — Firebase मधून काय आलं?</h3>
+    <div id="rateDebugContent" style="font-family:'Source Code Pro',monospace;font-size:11px;overflow-y:auto;max-height:60vh"></div>
+    <div class="flex gap8 mt12" style="justify-content:flex-end">
+      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('rateDebugModal').classList.remove('open')">बंद</button>
+    </div>
+  </div>
+</div>
+
+<script src="ra_bill_main.js"></script>
+</body>
+</html>
