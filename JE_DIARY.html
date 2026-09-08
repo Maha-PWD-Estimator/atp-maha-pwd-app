@@ -1,0 +1,1433 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>गाव निवडक — रस्ते व काम-नोंद (module)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Noto+Serif+Devanagari:wght@600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#f6f4ee; --paper-line:#c9c2ac; --ink:#22281f; --ink-soft:#5b6355;
+    --rm-green:#2f6b3e; --rm-green-soft:#e4efe2;
+    --mdr-orange:#b5561f; --mdr-orange-soft:#f5e6d8;
+    --odr-blue:#2b5a8c; --odr-blue-soft:#e0e9f2;
+    --gra-ink:#4a4234; --gra-ink-soft:#ece7da;
+    --accent-red:#9c2b2b; --card:#fffdf8;
+    --shadow: 2px 2px 0 rgba(34,40,31,0.08);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;}
+  body{
+    font-family:'Noto Sans Devanagari','Noto Serif Devanagari',sans-serif;
+    background:
+      repeating-linear-gradient(0deg, transparent, transparent 27px, var(--paper-line) 27px, var(--paper-line) 28px),
+      repeating-linear-gradient(90deg, transparent, transparent 27px, var(--paper-line) 27px, var(--paper-line) 28px),
+      var(--paper);
+    background-attachment:local; color:var(--ink); min-height:100vh;
+    display:flex; flex-direction:column;
+  }
+  .app-shell{max-width:1180px;margin:0 auto;width:100%;flex:1;display:flex;flex-direction:column;padding:14px 14px 40px;}
+  header.top{display:flex; align-items:flex-end; justify-content:space-between; gap:12px; padding:10px 4px 16px; border-bottom:3px solid var(--ink); margin-bottom:16px;}
+  header.top h1{font-family:'Noto Serif Devanagari',serif; font-size:22px; margin:0 0 2px; font-weight:700;}
+  header.top p{margin:0;color:var(--ink-soft);font-size:12.5px;}
+
+  .search-row{display:flex;gap:8px;margin-bottom:14px;}
+  .search-row input{flex:1; font-family:inherit; font-size:15px; padding:10px 14px; border:2px solid var(--ink); background:var(--card); color:var(--ink); border-radius:2px;}
+  .search-row input:focus{outline:2px solid var(--rm-green); outline-offset:1px;}
+
+  nav.tabs{display:flex; gap:4px; margin-bottom:16px; flex-wrap:wrap;}
+  nav.tabs button{font-family:inherit; font-size:14px; font-weight:600; padding:9px 16px; border:2px solid var(--ink); background:var(--card); color:var(--ink); cursor:pointer; border-radius:2px 2px 0 0; border-bottom:none; position:relative; top:1px;}
+  nav.tabs button[aria-selected="true"]{background:var(--ink); color:var(--paper);}
+  nav.tabs button .count{font-family:'IBM Plex Mono',monospace; font-size:11px; opacity:.75; margin-left:6px;}
+
+  main{border-top:2px solid var(--ink); padding-top:16px; flex:1; display:flex; flex-direction:column;}
+  .legend{display:flex; gap:14px; flex-wrap:wrap; margin-bottom:16px; font-size:12px; color:var(--ink-soft);}
+  .legend span{display:inline-flex; align-items:center; gap:6px;}
+  .legend i{width:16px; height:5px; display:inline-block; border-radius:2px;}
+
+  .grid-layout{display:grid; grid-template-columns:minmax(0,1.15fr) minmax(0,1fr); gap:18px; align-items:start;}
+  @media (max-width:820px){ .grid-layout{grid-template-columns:1fr;} }
+
+  .list-panel{display:flex; flex-direction:column; gap:8px;}
+  .cat-group{margin-bottom:6px;}
+  .cat-group h3{font-size:12px; letter-spacing:.3px; margin:14px 0 6px; color:var(--ink); display:flex; align-items:center; gap:8px;}
+  .cat-group h3 i{width:18px;height:6px;display:inline-block;border-radius:2px;}
+  .cat-group h3 .full{color:var(--ink-soft); font-weight:400;}
+
+  .row-card{background:var(--card); border:1.5px solid var(--ink); border-radius:2px; padding:10px 12px; cursor:pointer; box-shadow:var(--shadow); display:flex; flex-direction:column; gap:4px; margin-bottom:8px;}
+  .row-card:hover{transform:translate(-1px,-1px); box-shadow:3px 3px 0 rgba(34,40,31,0.14);}
+  .row-card.active{border-color:var(--accent-red); background:#fff8f0;}
+  .row-card .rline1{display:flex; align-items:baseline; gap:8px;}
+  .row-card .num-badge{font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:13px; padding:1px 7px; border-radius:2px; white-space:nowrap;}
+  .row-card .route-text{font-size:14px; line-height:1.45;}
+  .row-card .meta{font-size:11px; color:var(--ink-soft); font-family:'IBM Plex Mono',monospace;}
+
+  .badge-RM{background:var(--rm-green-soft); color:var(--rm-green);}
+  .badge-MDR{background:var(--mdr-orange-soft); color:var(--mdr-orange);}
+  .badge-ODR{background:var(--odr-blue-soft); color:var(--odr-blue);}
+  .badge-GRA{background:var(--gra-ink-soft); color:var(--gra-ink);}
+  .badge-PRM{background:#efe3f2; color:#6b2f7a;}
+
+  .village-chip-list{display:flex; flex-wrap:wrap; gap:6px;}
+  .village-chip{background:var(--card); border:1.3px solid var(--ink-soft); border-radius:20px; padding:6px 12px; font-size:13px; cursor:pointer; display:flex; align-items:center; gap:6px;}
+  .village-chip:hover{border-color:var(--ink); background:#fff;}
+  .village-chip.active{border-color:var(--accent-red); background:#fff8f0;}
+  .village-chip .deg{font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--ink-soft); margin-left:2px;}
+  .village-chip .rm{cursor:pointer;color:var(--accent-red);font-weight:700;border:none;background:none;font-size:14px;line-height:1;padding:0 2px;}
+
+  .detail-panel{position:sticky; top:14px; background:var(--card); border:2px solid var(--ink); border-radius:2px; padding:16px; box-shadow:4px 4px 0 rgba(34,40,31,0.12); max-height:calc(100vh - 28px); overflow:auto;}
+  .detail-panel h2{font-family:'Noto Serif Devanagari',serif; font-size:20px; margin:0 0 4px;}
+  .detail-panel .sub{color:var(--ink-soft); font-size:13px; margin-bottom:14px;}
+  .detail-empty{color:var(--ink-soft); font-size:14px; text-align:center; padding:40px 10px;}
+  .chain{display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin-bottom:14px;}
+  .chain .node{background:#fff; border:1.5px solid var(--ink); border-radius:16px; padding:5px 12px; font-size:13.5px; cursor:pointer;}
+  .chain .node:hover{background:var(--rm-green-soft);}
+  .chain .arrow{color:var(--ink-soft);}
+  .chain .rm-chain{cursor:pointer;color:var(--accent-red);font-weight:700;border:none;background:none;font-size:13px;margin-left:2px;}
+
+  .section-title{font-size:13px; font-weight:600; margin:16px 0 8px; display:flex; align-items:center; justify-content:space-between;}
+  .related-list{display:flex; flex-direction:column; gap:6px; margin-bottom:6px;}
+  .related-item{display:flex; gap:8px; align-items:baseline; font-size:13px; padding:6px 8px; background:#fbfaf5; border:1px solid #ddd6c3; border-radius:2px; cursor:pointer;}
+  .related-item:hover{background:#f0ede0;}
+
+  .work-form{display:flex; flex-direction:column; gap:8px; margin-top:8px;}
+  .work-form textarea{font-family:inherit; font-size:13.5px; padding:8px; border:1.5px solid var(--ink-soft); border-radius:2px; resize:vertical; min-height:52px;}
+  .work-form .row2{display:flex; gap:8px;}
+  .work-form select, .work-form input[type=date]{font-family:inherit; font-size:13px; padding:7px; border:1.5px solid var(--ink-soft); border-radius:2px; flex:1;}
+  .work-form input[type=text], .work-form input[type=tel]{font-family:inherit; font-size:13px; padding:7px; border:1.5px solid var(--ink-soft); border-radius:2px; flex:1;}
+  .work-form .field-label{font-size:11.5px; color:var(--ink-soft); margin-bottom:-4px;}
+  .work-form button{font-family:inherit; font-weight:600; font-size:13.5px; background:var(--ink); color:var(--paper); border:none; padding:9px; border-radius:2px; cursor:pointer;}
+  .work-form button:hover{background:var(--rm-green);}
+
+  .work-item{border-left:4px solid var(--ink-soft); background:#fbfaf5; padding:8px 10px; margin-bottom:8px; border-radius:0 2px 2px 0; font-size:13px;}
+  .work-item.status-pending{border-left-color:var(--mdr-orange);}
+  .work-item.status-progress{border-left-color:var(--odr-blue);}
+  .work-item.status-done{border-left-color:var(--rm-green);}
+  .work-item .wtop{display:flex; justify-content:space-between; gap:8px; font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:var(--ink-soft); margin-bottom:4px;}
+  .work-item .wdel{cursor:pointer; color:var(--accent-red); text-decoration:underline;}
+  .status-tag{padding:1px 7px; border-radius:10px; font-weight:600;}
+  .status-tag.status-pending{background:var(--mdr-orange-soft); color:var(--mdr-orange);}
+  .status-tag.status-progress{background:var(--odr-blue-soft); color:var(--odr-blue);}
+  .status-tag.status-done{background:var(--rm-green-soft); color:var(--rm-green);}
+  .work-item .wmeta{display:flex; flex-wrap:wrap; gap:4px 14px; font-size:12px; margin:6px 0; color:var(--ink-soft);}
+  .work-item .wmeta b{color:var(--ink); font-weight:600;}
+  .work-item .wdocs{display:flex; flex-wrap:wrap; gap:8px; margin-top:8px;}
+
+  .file-drop{border:1.5px dashed var(--ink-soft); border-radius:2px; padding:8px 10px; font-size:12.5px; color:var(--ink-soft); display:flex; align-items:center; justify-content:space-between; gap:8px; cursor:pointer; background:#fbfaf5;}
+  .file-drop:hover{border-color:var(--ink); color:var(--ink);}
+  .file-drop input[type=file]{display:none;}
+  .file-drop .fname{overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:60%;}
+  .doc-chip{display:inline-flex; align-items:center; gap:5px; font-size:11.5px; padding:4px 9px; border-radius:12px; border:1.3px solid var(--ink-soft); background:#fff; text-decoration:none; color:var(--ink); cursor:pointer;}
+  .doc-chip:hover{border-color:var(--ink); background:var(--rm-green-soft);}
+  .doc-chip.add{border-style:dashed;}
+  .size-warn{color:var(--accent-red); font-size:11px;}
+
+  .village-add-box, .road-add-box{background:var(--rm-green-soft); border:1.5px solid var(--rm-green); border-radius:2px; padding:12px; margin-bottom:14px;}
+  .vab-row{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:6px;}
+  .vab-row select, .vab-row input[type=text]{font-family:inherit; font-size:13px; padding:7px; border:1.5px solid var(--ink-soft); border-radius:2px; flex:1; min-width:120px;}
+  .vab-row button{font-family:inherit; font-weight:600; font-size:13px; white-space:nowrap; background:var(--rm-green); color:#fff; border:none; padding:8px 14px; border-radius:2px; cursor:pointer;}
+  .vab-row button:disabled{background:#9db79e; cursor:not-allowed;}
+  .vab-row button:hover:not(:disabled){background:var(--ink);}
+  .chain-draft{display:flex; flex-wrap:wrap; gap:6px; margin:6px 0;}
+  .chain-draft .cd-chip{background:#fff; border:1.3px solid var(--ink); border-radius:16px; padding:4px 6px 4px 10px; font-size:12.5px; display:flex; align-items:center; gap:5px;}
+  .chain-draft .cd-chip .rm{cursor:pointer;color:var(--accent-red);font-weight:700;border:none;background:none;font-size:13px;line-height:1;}
+
+  .net-wrap{width:100%; height:70vh; min-height:420px; overflow:hidden; border:2px solid var(--ink); background:var(--card); border-radius:2px; position:relative; touch-action:none;}
+  svg#netsvg text{font-family:'Noto Sans Devanagari',sans-serif;}
+  .net-node circle{cursor:grab; stroke:var(--ink); stroke-width:1.3px;}
+  .net-node.dragging circle{cursor:grabbing; stroke:var(--accent-red); stroke-width:2px;}
+  .net-node text{font-size:10px; fill:var(--ink); pointer-events:none;}
+  .net-node.dim circle{opacity:.25;}
+  .net-node.dim text{opacity:.25;}
+  .net-edge{stroke-width:2px; cursor:pointer;}
+  .net-edge.dim{opacity:.12;}
+  .net-toolbar{position:absolute; top:10px; right:10px; z-index:5; display:flex; flex-direction:column; gap:6px;}
+  .net-toolbar button{width:34px; height:34px; border:1.5px solid var(--ink); background:#fffdf8; cursor:pointer; font-size:16px; border-radius:3px; box-shadow:var(--shadow); font-family:'IBM Plex Mono',monospace;}
+  .net-toolbar button:hover{background:var(--rm-green-soft);}
+  .net-hint{position:absolute; bottom:8px; left:10px; z-index:5; font-size:11px; color:var(--ink-soft); background:rgba(246,244,238,.9); padding:3px 8px; border-radius:10px;}
+
+  .work-flag{display:inline-flex; align-items:center; gap:4px; font-size:10.5px; font-family:'IBM Plex Mono',monospace; background:var(--accent-red); color:#fff; padding:1px 7px; border-radius:10px; margin-left:8px;}
+  .empty-state{text-align:center; padding:60px 20px; color:var(--ink-soft);}
+  .small-note{font-size:11.5px; color:var(--ink-soft); margin-top:10px; line-height:1.5;}
+  .small-note.size-warn{color:var(--accent-red); font-weight:600;}
+  ::-webkit-scrollbar{width:10px;height:10px;}
+  ::-webkit-scrollbar-thumb{background:var(--paper-line); border-radius:6px;}
+  footer.app{text-align:center; color:var(--ink-soft); font-size:11px; padding:18px 0 4px;}
+
+  /* ---------- login wall / load screen / user chip ---------- */
+  #loadScreen{position:fixed; inset:0; background:var(--paper); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; z-index:100;}
+  #loadScreen .spinner{width:34px; height:34px; border:3px solid var(--paper-line); border-top-color:var(--rm-green); border-radius:50%; animation:spin 0.8s linear infinite;}
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+  #loadScreen p{color:var(--ink-soft); font-size:13px; margin:0;}
+
+  #loginWall{position:fixed; inset:0; background:var(--paper); display:none; align-items:center; justify-content:center; z-index:90; padding:16px;}
+  .login-box{background:var(--card); border:2px solid var(--ink); border-radius:2px; box-shadow:4px 4px 0 rgba(34,40,31,0.12); padding:28px 26px; max-width:360px; width:100%;}
+  .login-box h2{font-family:'Noto Serif Devanagari',serif; font-size:19px; margin:0 0 4px; text-align:center;}
+  .login-box .sub{color:var(--ink-soft); font-size:12.5px; text-align:center; margin:0 0 20px;}
+  .lbtn{width:100%; font-family:inherit; font-weight:600; font-size:14px; padding:11px; border-radius:2px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:10px; border:1.5px solid var(--ink);}
+  .lbtn-google{background:#fff; color:var(--ink);}
+  .lbtn-google:hover{background:var(--rm-green-soft);}
+  .lbtn-primary{background:var(--ink); color:var(--paper); border-color:var(--ink);}
+  .lbtn-primary:hover{background:var(--rm-green); border-color:var(--rm-green);}
+  .login-divider{display:flex; align-items:center; gap:8px; color:var(--ink-soft); font-size:11.5px; margin:14px 0;}
+  .login-divider::before, .login-divider::after{content:''; flex:1; height:1px; background:var(--paper-line);}
+  .login-tabs{display:flex; gap:4px; margin-bottom:16px;}
+  .ltab{flex:1; text-align:center; font-size:13px; font-weight:600; padding:8px 4px; border:1.5px solid var(--ink); background:var(--card); cursor:pointer; border-radius:2px;}
+  .ltab.on{background:var(--ink); color:var(--paper);}
+  .lsec{display:none;}
+  .lsec.on{display:block;}
+  .lfield{margin-bottom:10px;}
+  .lfield label{display:block; font-size:11.5px; color:var(--ink-soft); margin-bottom:3px;}
+  .lfield input{width:100%; font-family:inherit; font-size:13.5px; padding:9px; border:1.5px solid var(--ink-soft); border-radius:2px; background:var(--card); color:var(--ink);}
+  .lerr{color:var(--accent-red); font-size:12px; min-height:16px; margin-top:4px;}
+  .login-note{font-size:11px; color:var(--ink-soft); text-align:center; margin-top:14px; line-height:1.5;}
+
+  .user-chip{display:flex; align-items:center; gap:8px; cursor:pointer; border:1.5px solid var(--ink); border-radius:20px; padding:4px 12px 4px 4px; background:var(--card); position:relative;}
+  .user-chip .avatar{width:26px; height:26px; border-radius:50%; background:var(--rm-green); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px;}
+  .user-chip .uname{font-size:12.5px; font-weight:600; max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .user-menu{position:absolute; top:100%; right:0; margin-top:8px; background:var(--card); border:1.5px solid var(--ink); border-radius:2px; box-shadow:4px 4px 0 rgba(34,40,31,0.12); min-width:180px; z-index:20; display:none; overflow:hidden;}
+  .user-menu.open{display:block;}
+  .um-info{padding:10px 14px; border-bottom:1px solid var(--paper-line);}
+  .um-name{font-weight:600; font-size:13px;}
+  .um-email{font-size:11px; color:var(--ink-soft); overflow:hidden; text-overflow:ellipsis;}
+  .umitem{padding:10px 14px; font-size:13px; cursor:pointer;}
+  .umitem:hover{background:var(--rm-green-soft);}
+  .umitem.danger{color:var(--accent-red);}
+</style>
+<!-- Firebase SDK (compat build — works with plain <script> tags, no bundler needed) -->
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-storage-compat.js"></script>
+</head>
+<body>
+
+<!-- ═══ LOAD SCREEN ═══════════════════════════════════════ -->
+<div id="loadScreen">
+  <div class="spinner"></div>
+  <p>लोड होत आहे…</p>
+</div>
+
+<!-- ═══ LOGIN WALL ════════════════════════════════════════ -->
+<div id="loginWall">
+  <div class="login-box">
+    <h2>📓 गाव निवडक डायरी</h2>
+    <p class="sub">तुझी नोंद फक्त तुलाच दिसावी म्हणून आधी Login कर</p>
+
+    <div class="login-tabs">
+      <div class="ltab on" id="ltab-google" onclick="switchLTab('google')">Google</div>
+      <div class="ltab" id="ltab-email" onclick="switchLTab('email')">Email</div>
+    </div>
+
+    <div class="lsec on" id="lsec-google">
+      <button class="lbtn lbtn-google" onclick="loginGoogle()">
+        <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Google ने Login करा
+      </button>
+      <div class="lerr" id="googleErr"></div>
+    </div>
+
+    <div class="lsec" id="lsec-email">
+      <div class="lfield">
+        <label>Email</label>
+        <input type="email" id="lEmail" placeholder="you@example.com">
+      </div>
+      <div class="lfield">
+        <label>Password</label>
+        <input type="password" id="lPass" placeholder="Password" onkeydown="if(event.key==='Enter')loginEmail()">
+      </div>
+      <button class="lbtn lbtn-primary" onclick="loginEmail()">Login</button>
+      <div class="lerr" id="emailErr"></div>
+    </div>
+
+    <p class="login-note">Login केल्यावर तू जोडलेली गावं, रस्ते व काम-नोंद फक्त तुलाच दिसतील — दुसऱ्या कोणालाही दिसणार नाहीत.</p>
+  </div>
+</div>
+
+<div class="app-shell" id="appShell" style="display:none">
+  <header class="top">
+    <div class="title-block">
+      <h1>गाव निवडक — रस्ते व काम-नोंद</h1>
+      <p>राज्यातील सर्व 36 जिल्हे — जिल्हा→तालुका→गाव निवडून यादीत जोडा, रस्ते जोडा, काम-नोंद ठेवा</p>
+      <p style="margin-top:6px;font-size:11.5px;color:var(--ink-soft);font-style:italic;">This data is for you — it will not be shared with anyone.</p>
+    </div>
+    <div class="user-chip" id="userChip" onclick="toggleUserMenu()">
+      <div class="avatar" id="userAvatar">?</div>
+      <span class="uname" id="userChipName">—</span>
+      <div class="user-menu" id="userMenu">
+        <div class="um-info">
+          <div class="um-name" id="umName">—</div>
+          <div class="um-email" id="umEmail">—</div>
+        </div>
+        <div class="umitem danger" onclick="doLogout()">🚪 Logout</div>
+      </div>
+    </div>
+  </header>
+
+  <div class="search-row">
+    <input id="searchBox" type="text" placeholder="गाव किंवा रस्ता क्रमांक शोधा…" autocomplete="off">
+  </div>
+
+  <nav class="tabs" id="tabs">
+    <button data-tab="villages" aria-selected="true">गावे <span class="count" id="cnt-villages"></span></button>
+    <button data-tab="roads" aria-selected="false">रस्ते <span class="count" id="cnt-roads"></span></button>
+    <button data-tab="network" aria-selected="false">जोडणी नकाशा</button>
+    <button data-tab="work" aria-selected="false">सर्व कामे <span class="count" id="cnt-work"></span></button>
+  </nav>
+
+  <main>
+    <div class="legend">
+      <span><i style="background:var(--rm-green)"></i> राज्य महामार्ग (रा.मा.)</span>
+      <span><i style="background:#6b2f7a"></i> प्रमुख जिल्हा मार्ग (प्र.जि.मा.)</span>
+      <span><i style="background:var(--mdr-orange)"></i> प्रमुख जिल्हा मार्ग-2 (म.जि.मा.)</span>
+      <span><i style="background:var(--odr-blue)"></i> इतर जिल्हा मार्ग (इ.जि.मा.)</span>
+      <span><i style="background:var(--gra-ink)"></i> ग्रामीण मार्ग (ग्रा.मा.)</span>
+    </div>
+
+    <div id="view-villages" class="tab-view">
+      <div class="village-add-box" id="villageAddBox">
+        <div class="vab-row">
+          <select id="pickDistrict"></select>
+          <select id="pickTaluka"></select>
+          <select id="pickVillage"></select>
+          <button id="pickAddBtn" type="button">+ यादीत जोडा</button>
+        </div>
+        <div class="small-note" id="pickNote">जिल्हा → तालुका → गाव निवडून थेट यादीत जोडता येईल — टाईप करायची गरज नाही (राज्यातील सर्व 36 जिल्हे, 358 तालुके, 44,911 गावं — LGD शासकीय यादीवर आधारित).</div>
+      </div>
+      <div class="grid-layout">
+        <div class="list-panel"><div class="village-chip-list" id="villagesList"></div></div>
+        <div class="detail-panel" id="detailPanelV"><div class="detail-empty">एखादं गाव निवडा —<br>ते कुठल्या रस्त्यांवर आहे व काम-नोंद इथे दिसेल.</div></div>
+      </div>
+    </div>
+
+    <div id="view-roads" class="tab-view" style="display:none;">
+      <div class="road-add-box" id="roadAddBox">
+        <div class="vab-row">
+          <select id="roadCat">
+            <option value="RM">रा.मा. (राज्य महामार्ग)</option>
+            <option value="PRM">प्र.जि.मा. (प्रमुख जिल्हा मार्ग)</option>
+            <option value="MDR">म.जि.मा.</option>
+            <option value="ODR">इ.जि.मा. (इतर जिल्हा मार्ग)</option>
+            <option value="GRA" selected>ग्रा.मा. (ग्रामीण मार्ग)</option>
+          </select>
+          <input type="text" id="roadNum" placeholder="रस्ता क्रमांक (उदा. 12)">
+        </div>
+        <div class="vab-row">
+          <select id="chainVillagePick"><option value="">— यादीतलं गाव निवडा —</option></select>
+          <button id="chainAddBtn" type="button">+ साखळीत जोडा</button>
+        </div>
+        <div class="chain-draft" id="chainDraft"></div>
+        <div class="vab-row">
+          <button id="roadSaveBtn" type="button" disabled>+ रस्ता जोडा</button>
+        </div>
+        <div class="small-note" id="roadNote">आधी "गावे" टॅबमधून गावं यादीत जोड, मग इथे किमान 2 गावं क्रमाने साखळीत टाकून रस्ता तयार कर.</div>
+      </div>
+      <div class="grid-layout">
+        <div class="list-panel" id="roadsList"></div>
+        <div class="detail-panel" id="detailPanel"><div class="detail-empty">डावीकडून एखादा रस्ता निवडा —<br>त्याची गावं-साखळी व काम-नोंद इथे दिसेल.</div></div>
+      </div>
+    </div>
+
+    <div id="view-network" class="tab-view" style="display:none;">
+      <p class="small-note" style="margin-bottom:10px;">टीप: सुरुवातीची मांडणी भौगोलिक नाही — पण कुठलंही गाव धरून प्रत्यक्ष नकाशाप्रमाणे जागेवर ओढून (drag) ठेवता येईल. ती जागा आपोआप सेव्ह होते. उजवीकडच्या + / − ने zoom आणि रिकाम्या जागेवर drag करून pan करता येतं.</p>
+      <div class="net-wrap">
+        <svg id="netsvg"><g id="viewport"></g></svg>
+        <div class="net-toolbar">
+          <button id="zoomIn" title="मोठं करा">+</button>
+          <button id="zoomOut" title="लहान करा">−</button>
+          <button id="zoomReset" title="मूळ आकार">⤢</button>
+          <button id="layoutReset" title="मांडणी रीसेट करा">↺</button>
+        </div>
+        <div class="net-hint">गाव ओढून हलवता येईल · रिकाम्या जागेत ओढून pan करता येईल</div>
+      </div>
+    </div>
+
+    <div id="view-work" class="tab-view" style="display:none;">
+      <div class="road-add-box" id="workAddBox">
+        <div class="vab-row">
+          <select id="workAddType">
+            <option value="village">गावासाठी काम नोंदवा</option>
+            <option value="road">रस्त्यासाठी काम नोंदवा</option>
+          </select>
+          <select id="workAddTarget"><option value="">— निवडा —</option></select>
+        </div>
+        <div id="workAddFormWrap"></div>
+        <div class="small-note" id="workAddNote">आधी वरून गाव किंवा रस्ता निवड, मग खाली फॉर्म भरून काम नोंदव.</div>
+      </div>
+      <div id="allWorkList"></div>
+    </div>
+  </main>
+
+  <footer class="app">तुझ्या manually-दिलेल्या नोंदींवर आधारित</footer>
+</div>
+
+<script>
+// ============================================================
+// DATA — जिल्हा/तालुका मराठी लेबल + पूर्ण गावांची यादी
+// (हा भाग embed केलेला डेटा आहे — बदलायचा नाही)
+// ============================================================
+
+const DISTRICT_MR = {"Ahilyanagar":"अहिल्यानगर","Akola":"अकोला","Amravati":"अमरावती","Beed":"बीड","Bhandara":"भंडारा","Buldhana":"बुलढाणा","Chandrapur":"चंद्रपूर","Chhatrapati Sambhajinagar":"छत्रपती संभाजीनगर","Dharashiv":"धाराशिव","Dhule":"धुळे","Gadchiroli":"गडचिरोली","Gondia":"गोंदीया","Hingoli":"हिंगोली","Jalgaon":"जळगाव","Jalna":"जालना","Kolhapur":"कोल्हापूर","Latur":"लातूर","Mumbai":"मुंबई","Mumbai Suburban":"मुंबई उपनगर","Nagpur":"नागपूर","Nanded":"नांदेड","Nandurbar":"नंदूरबार","Nashik":"नाशिक","Palghar":"पालघर","Parbhani":"परभणी","Pune":"पुणे","Raigad":"रायगड","Ratnagiri":"रत्नागिरी","Sangli":"सांगली","Satara":"सातारा","Sindhudurg":"सिंधुदुर्ग","Solapur":"सोलापूर","Thane":"ठाणे","Wardha":"वर्धा","Washim":"वाशिम","Yavatmal":"यवतमाळ"};
+const TALUKA_MR = {"Akole":"अकोले","Jamkhed":"जामखेड","Karjat":"कर्जत","Kopargaon":"कोपरगाव","Nagar":"नगर","Nevasa":"नेवासा","Parner":"पारनेर","Pathardi":"पाथर्डी","Rahta":"रहाता","Rahuri":"राहुरी","Sangamner":"संगमनेर","Shevgaon":"शेगाव","Shrigonda":"श्रीगोंदा","Shrirampur":"श्रीरामपूर","Akola":"अकोला","Akot":"अकोट","Balapur":"बाळापूर","Barshitakli":"बार्शीटाकळी","Murtijapur":"मुर्तिजापूर","Patur":"पातूर","Telhara":"तेल्हारा","Achalpur":"अचलपूर","Amravati":"अमरावती","Anjangaon Surji":"अंजनगाव सुर्जी","Bhatkuli":"भातकुली","Chandur Railway":"चांदूर रेल्वे","Chandurbazar":"चांदूर बाजार","Chikhaldara":"चिखलदरा","Daryapur":"दर्यापूर","Dhamangaon Railway":"धामनगाव रेल्वे","Dharni":"धारणी","Morshi":"मोर्शी","Nandgaon-Khandeshwar":"नांदगाव खंडेश्वर","Tiosa":"तिवसा","Warud":"वरूड","Ambejogai":"आंबेजोगाई","Ashti":"आष्टी","Beed":"बीड","Dharur":"धारूर","Georai":"गेवराई","Kaij":"केज","Majalgaon":"माजलगाव","Parli Vaijnath":"परळी","Patoda":"पाटोदा","Shirur (Kasar)":"शिरूर (कासार)","Wadwani":"वडवणी","Bhandara":"भंडारा","Lakhandur":"लाखंदूर","Lakhani":"लाखनी","Mohadi":"मोहाडी","Pauni":"पवनी","Sakoli":"साकोली","Tumsar":"तुमसर","Buldana":"बुलडाणा","Chikhli":"चिखली","Deolgaon Raja":"देउळगाव राजा","Jalgaon (Jamod)":"जळगाव (जामोद)","Khamgaon":"खामगाव","Lonar":"लोणार","Malkapur":"मलकापूर","Mehkar":"मेहकर","Motala":"मोताळा","Nandura":"नांदुरा","Sangrampur":"संग्रामपूर","Shegaon":"शेगाव","Sindkhed Raja":"सिंदखेड राजा","Ballarpur":"बल्लारपूर","Bhadravati":"भद्रावती","Brahmapuri":"ब्रम्हपुरी","Chandrapur":"चंद्रपूर","Chimur":"चिमूर","Gondpipri":"गोंडपिपरी","Jiwati":"जिवती","Korpana":"कोरपना","Mul":"मुल","Nagbhid":"नागभिड","Pombhurna":"पोम्भूर्णा","Rajura":"राजुरा","Sawali":"सावली","Sindewahi":"सिंदेवाही","Warora":"वरोरा","Chhatrapati Sambhajinagar":"छत्रपती संभाजीनगर","Gangapur":"गंगापूर","Kannad":"कन्नड","Khuldabad":"खुलताबाद","Paithan":"पैठण","Phulambri":"फुलंब्री","Sillod":"सिल्लोड","Soegaon":"सोयगाव","Vaijapur":"वैजापूर","Bhum":"भूम","Dharashiv":"धाराशिव","Kalamb":"कळंब","Lohara":"लोहारा","Omarga":"उमरगा","Paranda":"परंडा","Tuljapur":"तुळजापूर","Washi":"वाशी","Dhule":"धुळे","Sakri":"साक्री","Shirpur":"शिरपूर","Sindkhede":"सिंदखेडे","Aheri":"अहेरी","Armori":"आरमोरी","Bhamragad":"भामरागड","Chamorshi":"चामोर्शी","Desaiganj (Vadasa)":"देसाईगंज (वडसा)","Dhanora":"धानोरा","Etapalli":"एटापल्ली","Gadchiroli":"गडचिरोली","Korchi":"कोरची","Kurkheda":"कुरखेडा","Mulchera":"मुलचेरा","Sironcha":"सिरोंचा","Amgaon":"आमगाव","Arjuni Morgaon":"अर्जुनी मोरगाव","Deori":"देवरी","Gondiya":"गोंदिया","Goregaon":"गोरेगाव","Sadak-Arjuni":"सडक अर्जुनी","Salekasa":"सालेकसा","Tirora":"तिरोडा","Aundha (Nagnath)":"औंढा (नागनाथ)","Hingoli":"हिंगोली","Kalamnuri":"कळमनुरी","Sengaon":"सेनगाव","Vasmath":"वसमत","Amalner":"अमळनेर","Bhadgaon":"भडगाव","Bhusawal":"भुसावळ","Bodvad":"बोधवड","Chalisgaon":"चाळीसगाव","Chopda":"चोपडा","Dharangaon":"धरणगाव","Erandol":"एरंडोल","Jalgaon":"जळगाव","Jamner":"जामनेर","Muktainagar (Edlabad)":"मुक्ताईनगर(एदलाबाद)","Pachora":"पाचोरा","Parola":"पारोळा","Raver":"रावेर","Yawal":"यावल","Ambad":"अंबड","Badnapur":"बदनापूर","Bhokardan":"भोकरदन","Ghansawangi":"घनसावंगी","Jafrabad":"जाफ्राबाद","Jalna":"जालना","Mantha":"मंठा","Partur":"परतूर","Ajra":"आजरा","Bhudargad":"भूदरगड","Chandgad":"चंदगड","Gadhinglaj":"गडहिंग्लज","Gaganbawada":"गगनबावडा","Hatkanangle":"हातकणंगले","Kagal":"कागल","Karvir":"करवीर","Panhala":"पन्हाळा","Radhanagari":"राधानगरी","Shahuwadi":"शाहूवाडी","Shirol":"शिरोळ","Ahmadpur":"अहमदपूर","Ausa":"औसा","Chakur":"चाकूर","Deoni":"देवनी","Jalkot":"जलकोट","Latur":"लातूर","Nilanga":"निलंगा","Renapur":"रेनापूर","Shirur Anantpal":"शिरूर अनंतपाळ","Udgir":"उदगीर","Andheri":"अंधेरी","Borivali":"बोरीवली","Kurla":"कुर्ला","Bhiwapur":"भिवापूर","Hingna":"हिंगणा","Kalameshwar":"कळमेश्वर","Kamptee":"कामठी","Katol":"काटोल","Kuhi":"कुही","Mauda":"मौदा","Nagpur (Rural)":"नागपूर (ग्रामीण)","Nagpur (Urban)":"नागपूर (शहर)","Narkhed":"नरखेड","Parseoni":"पारशिवनी","Ramtek":"रामटेक","Savner":"सावनेर","Umred":"उमरेड","Ardhapur":"अर्धापूर","Bhokar":"भोकर","Biloli":"बिलोली","Deglur":"देगलुर","Dharmabad":"धर्माबाद","Hadgaon":"हदगाव","Himayatnagar":"हिमायतनगर","Kandhar":"कंधार","Kinwat":"किनवत","Loha":"लोहा","Mahur":"माहूर","Mudkhed":"मुदखेड","Mukhed":"मुखेड","Naigaon (Khairgaon)":"नायगाव (खैरगाव)","Nanded":"नांदेड","Umri":"उमरी","Akkalkuwa":"अक्कलकुवा","Akrani":"अकर्नी","Nandurbar":"नंदूरबार","Nawapur":"नवापूर","Shahade":"शहादा","Talode":"तलोदा","Baglan":"बागलण","Chandvad":"चांदवड","Deola":"देवळा","Dindori":"दिंडोरी","Igatpuri":"इगतपूरी","Kalwan":"कालवण","Malegaon":"मालेगाव","Nandgaon":"नांदगाव","Nashik":"नाशिक","Niphad":"निफाड","Peth":"पेठ","Sinnar":"सिन्नर","Surgana":"सुरगना","Trimbakeshwar":"त्र्यंबक","Yevla":"येवला","Dahanu":"डहाणू","Jawhar":"जव्हार","Mokhada":"मोखाडा","Palghar":"पालघर","Talasari":"तलासरी","Vasai":"वसई","Vikramgad":"विक्रमगड","Wada":"वाडा","Gangakhed":"गंगाखेड","Jintur":"जिंतुर","Manwath":"मानवत","Palam":"पालम","Parbhani":"परभणी","Pathri":"पाथ्री","Purna":"पुर्णा","Selu":"सेलू","Sonpeth":"सोनपेठ","Ambegaon":"आंबेगाव","Baramati":"बारामती","Bhor":"भोर","Daund":"दौंड","Haveli":"हवेली","Indapur":"इंदापूर","Junnar":"जुन्नर","Khed":"खेड","Mawal":"मावळ","Mulshi":"मुळशी","Pune City":"पुणे शहर","Purandhar":"पुरंदर","Shirur":"शिरूर","Velhe":"वेल्हे","Alibag":"अलिबाग","Khalapur":"खालापूर","Mahad":"महाड","Mangaon":"मानगाव","Mhasla":"म्हासळा","Murud":"मुरूड","Panvel":"पनवेल","Pen":"पेण","Poladpur":"पोलादपूर","Roha":"रोहा","Shrivardhan":"श्रीवर्धन","Sudhagad":"सुधागड","Tala":"तळा","Uran":"उरण","Chiplun":"चिपळूण","Dapoli":"दापोली","Guhagar":"गुहाघर","Lanja":"लांजा","Mandangad":"मंडणगड","Rajapur":"राजापूर","Ratnagiri":"रत्नागिरी","Sangameshwar":"संगमेश्वर","Atpadi":"आटपाडी","Jat":"जत","Kadegaon":"कडेगाव","Kavathemahankal":"कवठेमहांकाळ","Khanapur":"खानापूर","Miraj":"मिरज","Palus":"पलुस","Shirala":"शिराळा","Tasgaon":"तासगाव","Walwa":"वाळवा","Jaoli":"जावळी","Karad":"कराड","Khandala":"खंडाळा","Khatav":"खटाव","Koregaon":"कोरेगाव","Mahabaleshwar":"महाबळेश्वर","Man":"माण","Patan":"पाटण","Phaltan":"फलटण","Satara":"सातारा","Wai":"वाई","Devgad":"देवगड","Dodamarg":"दोडामार्ग","Kankavli":"कणकवली","Kudal":"कुडाळ","Malwan":"मालवण","Sawantwadi":"सावंतवाडी","Vaibhavvadi":"वैभववाडी","Vengurla":"वेंगुर्ला","Akkalkot":"अक्कलकोट","Barshi":"बार्शी","Karmala":"करमाळा","Madha":"माढा","Malshiras":"माळशिरस","Mangalvedhe":"मंगळवेढे","Mohol":"मोहोळ","Pandharpur":"पंढरपूर","Sangole":"सांगोले","Solapur North":"उत्तर सोलापूर","Solapur South":"दक्षिण सोलापूर","Ambarnath":"अंबरनाथ","Bhiwandi":"भिवंडी","Kalyan":"कल्याण","Murbad":"मुरबाड","Shahapur":"शहापूर","Thane":"ठाणे","Ulhasnagar":"उल्हासनगर","Arvi":"आर्वी","Deoli":"देवळी","Hinganghat":"हिंगणघाट","Karanja":"कारंजा","Samudrapur":"समुद्रपूर","Seloo":"सेलू","Wardha":"वर्धा","Mangrulpir":"मंगरूळपीर","Manora":"मानोरा","Risod":"रिसोड","Washim":"वाशिम","Arni":"अर्नी","Babulgaon":"बाबूलगाव","Darwha":"धारवा","Digras":"दिग्रस","Ghatanji":"घाटंजी","Kelapur":"केलापूर","Mahagaon":"महागाव","Maregaon":"मारेगाव","Ner":"नेर","Pusad":"पूसद","Ralegaon":"राळेगाव","Umarkhed":"उमरखेड","Wani":"वनी","Yavatmal":"यवतमाळ","Zari-Jamani":"जरी जामनी"};
+// ---------- village data (lazy-loaded per district from villages/<जिल्हा>.json) ----------
+// पूर्वी हा संपूर्ण 44,911-गावांचा डेटा इथेच (const OFFICIAL_VILLAGES = {...}) embed केलेला
+// होता — ~1.6MB चा एकच object literal, जो पेज उघडताच पूर्ण parse करावा लागत होता आणि
+// त्यामुळे जिल्हा/तालुका dropdown वापरता येईपर्यंत विलंब व्हायचा.
+// आता प्रत्येक जिल्ह्याचा डेटा villages/<जिल्हा-नाव-encoded>.json या वेगळ्या छोट्या
+// फाईलमध्ये आहे, आणि तो फक्त वापरकर्त्याने तो जिल्हा निवडल्यावरच fetch केला जातो.
+const villageDataCache = {};   // dist -> { taluka: [ {en,mr,gp}, ... ], ... }
+const villageDataLoading = {}; // dist -> in-flight Promise (एकाच जिल्ह्यासाठी दोनदा fetch टाळण्यासाठी)
+function loadDistrictVillages(dist){
+  if (villageDataCache[dist]) return Promise.resolve(villageDataCache[dist]);
+  if (villageDataLoading[dist]) return villageDataLoading[dist];
+  const url = 'villages/' + encodeURIComponent(dist) + '.json';
+  const p = fetch(url)
+    .then(res => { if(!res.ok) throw new Error('HTTP ' + res.status); return res.json(); })
+    .then(data => { villageDataCache[dist] = data; delete villageDataLoading[dist]; return data; })
+    .catch(err => {
+      console.error('जिल्ह्याचा गावांचा डेटा लोड होऊ शकला नाही:', dist, err);
+      delete villageDataLoading[dist];
+      villageDataCache[dist] = {};
+      return {};
+    });
+  villageDataLoading[dist] = p;
+  return p;
+}
+
+
+
+// ============================================================
+// STORAGE — Firebase (Firestore for data, Storage for uploaded files)
+// ============================================================
+// SETUP (one-time, ~5 minutes):
+//  1. Go to https://console.firebase.google.com → "Add project" (free plan is enough).
+//  2. In the project, open "Build → Firestore Database" → Create database (any region,
+//     start in production mode) and "Build → Storage" → Get started.
+//  3. Also open "Build → Authentication" → Get started → enable "Google" and/or
+//     "Email/Password" sign-in providers (this is what makes each user's data private).
+//  4. Project settings (gear icon) → General → "Your apps" → Add app → Web (</>) →
+//     copy the firebaseConfig object it gives you and paste it below, replacing the
+//     placeholder values.
+//  5. Firestore → Rules tab, and Storage → Rules tab: paste the rules below. Data is
+//     stored per-user under their own uid, so each login only ever sees its own data:
+//
+//     Firestore rules:
+//       rules_version = '2';
+//       service cloud.firestore {
+//         match /databases/{database}/documents {
+//           match /je_diary/{uid}/entries/{doc} {
+//             allow read, write: if request.auth != null && request.auth.uid == uid;
+//           }
+//         }
+//       }
+//
+//     Storage rules:
+//       rules_version = '2';
+//       service firebase.storage {
+//         match /b/{bucket}/o {
+//           match /je_diary_files/{uid}/{allPaths=**} {
+//             allow read, write: if request.auth != null && request.auth.uid == uid;
+//           }
+//         }
+//       }
+//
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+let db = null, fbStorage = null, AUTH = null, CU = null; // CU = current logged-in user
+try{
+  if (typeof firebase !== 'undefined') {
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+    fbStorage = firebase.storage();
+    AUTH = firebase.auth();
+  } else {
+    console.error('Firebase SDK लोड झाले नाही (इंटरनेट तपासा) — Login व सेव्ह-अ‍ॅक्रॉस-डिव्हाइस काम करणार नाही, पण जिल्हा/तालुका/गाव यादी व्यवस्थित चालेल.');
+  }
+}catch(e){ console.error('firebase init failed', e); }
+const FS_COLLECTION = 'je_diary';
+
+// Firestore document IDs can't contain "/"; our keys use ":" which is safe.
+function fsDocId(key){ return String(key).replace(/\//g, '_'); }
+// प्रत्येक वापरकर्त्याचा डेटा त्याच्याच uid खालच्या subcollection मध्ये ठेवला जातो,
+// त्यामुळे save केलेला डेटा त्या login केलेल्या वापरकर्त्यालाच दिसतो — इतर कोणालाही नाही.
+function userEntryDoc(key){
+  if(!CU) throw new Error('login आधी आवश्यक आहे');
+  return db.collection(FS_COLLECTION).doc(CU.uid).collection('entries').doc(fsDocId(key));
+}
+
+async function fbGet(key){
+  try{
+    const snap = await userEntryDoc(key).get();
+    if(!snap.exists) return null;
+    const data = snap.data();
+    return data && typeof data.value === 'string' ? { value: data.value } : null;
+  }catch(e){ console.error('firestore get failed', key, e); return null; }
+}
+async function fbSet(key, value){
+  try{
+    await userEntryDoc(key).set({
+      value,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  }catch(e){ console.error('firestore set failed', key, e); }
+}
+async function fbDelete(key){
+  try{ await userEntryDoc(key).delete(); }
+  catch(e){ console.error('firestore delete failed', key, e); }
+}
+
+// ---------- Login / Logout / user chip ----------
+function switchLTab(t){
+  document.getElementById('ltab-google').classList.toggle('on', t==='google');
+  document.getElementById('ltab-email').classList.toggle('on', t==='email');
+  document.getElementById('lsec-google').classList.toggle('on', t==='google');
+  document.getElementById('lsec-email').classList.toggle('on', t==='email');
+}
+function showLE(id,msg){ document.getElementById(id).textContent = msg; }
+function loginGoogle(){
+  AUTH.signInWithPopup(new firebase.auth.GoogleAuthProvider())
+    .catch(e=> showLE('googleErr', e.message));
+}
+function loginEmail(){
+  const em = (document.getElementById('lEmail').value||'').trim();
+  const pw = document.getElementById('lPass').value;
+  if(!em || !pw){ showLE('emailErr','Email आणि Password टाका'); return; }
+  AUTH.signInWithEmailAndPassword(em, pw)
+    .catch(e=>{
+      // पहिल्यांदाच येणाऱ्या वापरकर्त्यासाठी account नसेल तर आपोआप तयार करा
+      if(e.code === 'auth/user-not-found' || e.code === 'auth/invalid-credential'){
+        AUTH.createUserWithEmailAndPassword(em, pw).catch(e2=> showLE('emailErr', e2.message));
+      } else {
+        showLE('emailErr', e.message);
+      }
+    });
+}
+function doLogout(){
+  if(!confirm('Logout करायचे आहे का?')) return;
+  AUTH.signOut().then(()=> location.reload());
+}
+function toggleUserMenu(){ document.getElementById('userMenu').classList.toggle('open'); }
+document.addEventListener('click', function(e){
+  if(!e.target.closest('#userChip')) document.getElementById('userMenu').classList.remove('open');
+});
+
+let appInited = false;
+if(!AUTH){
+  document.getElementById('loadScreen').style.display = 'none';
+  document.getElementById('loginWall').style.display = 'flex';
+  showLE('googleErr', 'Firebase लोड झाले नाही — इंटरनेट कनेक्शन तपासा आणि पेज रीलोड कर.');
+}
+AUTH && AUTH.onAuthStateChanged(async function(user){
+  CU = user;
+  document.getElementById('loadScreen').style.display = 'none';
+  if(!user){
+    appInited = false;
+    document.getElementById('loginWall').style.display = 'flex';
+    document.getElementById('appShell').style.display = 'none';
+    return;
+  }
+  document.getElementById('loginWall').style.display = 'none';
+  document.getElementById('appShell').style.display = '';
+  const n = user.displayName || user.email || 'User';
+  document.getElementById('userChipName').textContent = n;
+  document.getElementById('userAvatar').textContent = n.charAt(0).toUpperCase();
+  document.getElementById('umName').textContent = n;
+  document.getElementById('umEmail').textContent = user.email || '';
+  if(!appInited){
+    appInited = true;
+    await initApp();
+  }
+});
+
+const CAT_ORDER = ['RM','PRM','MDR','ODR','GRA'];
+const CAT_LABEL = {RM:'रा.मा.', PRM:'प्र.जि.मा.', MDR:'म.जि.मा.', ODR:'इ.जि.मा.', GRA:'ग्रा.मा.'};
+const CAT_FULL = {RM:'राज्य महामार्ग', PRM:'प्रमुख जिल्हा मार्ग', MDR:'प्रमुख जिल्हा मार्ग', ODR:'इतर जिल्हा मार्ग', GRA:'ग्रामीण मार्ग'};
+const CAT_COLOR = {RM:'var(--rm-green)', PRM:'#6b2f7a', MDR:'var(--mdr-orange)', ODR:'var(--odr-blue)', GRA:'var(--gra-ink)'};
+
+let state = { tab:'villages', query:'', selectedRoad:null, selectedVillage:null };
+let customVillages = []; // प्रत्येक नोंद: { mr, en, gp, district, taluka }
+let customRoads = [];    // { id, cat, num, route, villages:[mr,...] }
+let chainDraft = [];     // तात्पुरती यादी, नवीन रस्ता जोडताना
+
+async function loadCustomVillages(){
+  try{
+    const res = await fbGet('customVillages');
+    customVillages = res ? JSON.parse(res.value) : [];
+  }catch(e){ customVillages = []; }
+}
+async function saveCustomVillages(){
+  try{ await fbSet('customVillages', JSON.stringify(customVillages)); }
+  catch(e){ console.error('customVillages save failed', e); }
+}
+function getAllVillages(){
+  return customVillages.map(v=>v.mr).sort((a,b)=> a.localeCompare(b,'mr'));
+}
+function villageMeta(mr){ return customVillages.find(v=>v.mr===mr) || {mr}; }
+
+async function loadCustomRoads(){
+  try{
+    const res = await fbGet('customRoads');
+    customRoads = res ? JSON.parse(res.value) : [];
+  }catch(e){ customRoads = []; }
+}
+async function saveCustomRoads(){
+  try{ await fbSet('customRoads', JSON.stringify(customRoads)); }
+  catch(e){ console.error('customRoads save failed', e); }
+}
+function buildVillageIndex(){
+  const idx = {};
+  customRoads.forEach(r=>{
+    r.villages.forEach(v=>{
+      if(!idx[v]) idx[v] = [];
+      idx[v].push(r.id);
+    });
+  });
+  return idx;
+}
+function roadsForVillage(v){
+  const ids = buildVillageIndex()[v] || [];
+  return ids.map(id=> customRoads.find(r=>r.id===id)).filter(Boolean);
+}
+
+let workCache = {}; // key -> array
+function workKey(type, id){ return `work:${type}:${id}`; }
+async function loadWork(type, id){
+  const key = workKey(type, id);
+  if(workCache[key]) return workCache[key];
+  try{
+    const res = await fbGet(key);
+    const val = res ? JSON.parse(res.value) : [];
+    workCache[key] = val;
+    return val;
+  }catch(e){ workCache[key] = []; return []; }
+}
+async function saveWork(type, id, arr){
+  const key = workKey(type, id);
+  workCache[key] = arr;
+  try{ await fbSet(key, JSON.stringify(arr)); }
+  catch(e){ console.error('storage set failed', e); }
+}
+async function addWorkEntry(type, id, entry){
+  const arr = await loadWork(type, id);
+  arr.unshift(entry);
+  await saveWork(type, id, arr);
+  return arr;
+}
+async function deleteWorkEntry(type, id, idx){
+  const arr = await loadWork(type, id);
+  const removed = arr[idx];
+  arr.splice(idx,1);
+  await saveWork(type, id, arr);
+  if(removed){
+    if(removed.orderFileKey) await deleteFile(removed.orderFileKey);
+    if(removed.mbFileKey) await deleteFile(removed.mbFileKey);
+  }
+  return arr;
+}
+
+const MAX_FILE_BYTES = 4.3 * 1024 * 1024;
+function humanSize(bytes){
+  if(bytes < 1024) return bytes+' B';
+  if(bytes < 1024*1024) return (bytes/1024).toFixed(0)+' KB';
+  return (bytes/1024/1024).toFixed(2)+' MB';
+}
+function fileToDataUrl(file){
+  return new Promise((resolve,reject)=>{
+    const r = new FileReader();
+    r.onload = ()=> resolve(r.result);
+    r.onerror = ()=> reject(r.error);
+    r.readAsDataURL(file);
+  });
+}
+// Actual file bytes go to Firebase Storage; Firestore just keeps the small
+// {name, type, size, dataUrl} pointer so the rest of the app (which expects
+// dataUrl to be a usable href) doesn't need to change.
+function storagePath(key){ return `je_diary_files/${CU.uid}/${fsDocId(key)}`; }
+async function storeFile(key, file){
+  const ref = fbStorage.ref().child(storagePath(key));
+  await ref.put(file);
+  const url = await ref.getDownloadURL();
+  const payload = JSON.stringify({name:file.name, type:file.type, size:file.size, dataUrl:url});
+  await fbSet(key, payload);
+  return key;
+}
+async function getFile(key){
+  try{
+    const res = await fbGet(key);
+    return res ? JSON.parse(res.value) : null;
+  }catch(e){ return null; }
+}
+async function deleteFile(key){
+  try{ await fbStorage.ref().child(storagePath(key)).delete(); }
+  catch(e){ /* already gone */ }
+  try{ await fbDelete(key); }catch(e){ /* already gone */ }
+}
+function newId(){
+  return (crypto && crypto.randomUUID) ? crypto.randomUUID() : ('id-'+Date.now()+'-'+Math.random().toString(36).slice(2));
+}
+
+async function getAllWorkEntries(){
+  let out = [];
+  for(const r of customRoads){
+    const arr = await loadWork('road', r.id);
+    arr.forEach((w,idx)=> out.push({...w, refType:'road', refId:r.id, refLabel:`${CAT_LABEL[r.cat]} ${r.num}`, idx}));
+  }
+  for(const v of getAllVillages()){
+    const arr = await loadWork('village', v);
+    arr.forEach((w,idx)=> out.push({...w, refType:'village', refId:v, refLabel:v, idx}));
+  }
+  out.sort((a,b)=> (b.date||b.logged||'').localeCompare(a.date||a.logged||''));
+  return out;
+}
+
+function norm(s){ return (s||'').toLowerCase(); }
+function matchesQuery(text, q){ if(!q) return true; return norm(text).includes(norm(q)); }
+function cssSafe(s){ return s.replace(/[^a-zA-Z0-9]/g,'_') + '_' + Array.from(s).reduce((a,c)=>a+c.charCodeAt(0),0); }
+
+// ---------- render: villages list ----------
+function renderVillagesList(){
+  const el = document.getElementById('villagesList');
+  const q = state.query;
+  el.innerHTML='';
+  const idx = buildVillageIndex();
+  const items = getAllVillages().filter(v=>matchesQuery(v,q));
+  if(items.length===0){
+    el.innerHTML = `<div class="empty-state">${q ? `"${q}" शी जुळणारं कुठलंच गाव सापडलं नाही.` : 'अजून कुठलंच गाव यादीत नाही — वरून जिल्हा/तालुका/गाव निवडून जोड.'}</div>`;
+  }
+  for(const v of items){
+    const deg = (idx[v]||[]).length;
+    const chip = document.createElement('div');
+    chip.className = 'village-chip' + (state.selectedVillage===v ? ' active':'');
+    chip.innerHTML = `<span>${v}</span>${deg? `<span class="deg">×${deg}</span>`:''}<span class="rm" title="यादीतून काढा">✕</span>`;
+    chip.querySelector('span:first-child').onclick = ()=> selectVillage(v);
+    chip.querySelector('.deg') && (chip.querySelector('.deg').onclick = ()=> selectVillage(v));
+    chip.querySelector('.rm').onclick = async (e)=>{
+      e.stopPropagation();
+      if(!confirm(`"${v}" यादीतून काढायचं? (त्या गावाशी जोडलेली रस्ते-नोंद तशीच राहील, फक्त यादीतून गाव निघेल)`)) return;
+      customVillages = customVillages.filter(x=>x.mr!==v);
+      await saveCustomVillages();
+      if(state.selectedVillage===v){
+        state.selectedVillage=null;
+        document.getElementById('detailPanelV').innerHTML = '<div class="detail-empty">एखादं गाव निवडा —<br>ते कुठल्या रस्त्यांवर आहे व काम-नोंद इथे दिसेल.</div>';
+      }
+      renderVillagesList();
+      refreshChainVillagePick();
+    };
+    el.appendChild(chip);
+  }
+  document.getElementById('cnt-villages').textContent = getAllVillages().length;
+}
+
+// ---------- render: roads list ----------
+function renderRoadsList(){
+  const el = document.getElementById('roadsList');
+  const q = state.query;
+  el.innerHTML='';
+  let anyShown = false;
+  for(const cat of CAT_ORDER){
+    const items = customRoads.filter(r=>r.cat===cat && (matchesQuery(r.route,q) || matchesQuery(r.num,q) || matchesQuery(CAT_LABEL[cat],q)));
+    if(items.length===0) continue;
+    anyShown = true;
+    const group = document.createElement('div');
+    group.className='cat-group';
+    group.innerHTML = `<h3><i style="background:${CAT_COLOR[cat]}"></i>${CAT_LABEL[cat]} <span class="full">— ${CAT_FULL[cat]} (${items.length})</span></h3>`;
+    for(const r of items){
+      const card = document.createElement('div');
+      card.className = 'row-card' + (state.selectedRoad===r.id ? ' active':'');
+      card.innerHTML = `
+        <div class="rline1"><span class="num-badge badge-${r.cat}">${CAT_LABEL[r.cat]} ${r.num}</span></div>
+        <div class="route-text">${r.route}</div>
+      `;
+      card.onclick = ()=> selectRoad(r.id);
+      group.appendChild(card);
+    }
+    el.appendChild(group);
+  }
+  if(!anyShown){
+    el.innerHTML = `<div class="empty-state">${q ? `"${q}" शी जुळणारा कुठलाच रस्ता सापडला नाही.` : 'अजून कुठलाच रस्ता नोंदवलेला नाही — वरच्या बॉक्समधून गावांची साखळी जोडून रस्ता तयार कर.'}</div>`;
+  }
+  document.getElementById('cnt-roads').textContent = customRoads.length;
+}
+
+// ---------- shared work-form markup + binding ----------
+function workFormHTML(formId){
+  return `
+    <form class="work-form" id="${formId}">
+      <textarea placeholder="काय काम आहे? (उदा. खड्डे बुजवणे, डांबरीकरण, पूल दुरुस्ती...)" required></textarea>
+      <div class="row2">
+        <select name="status"><option value="pending">प्रलंबित</option><option value="progress">चालू आहे</option><option value="done">पूर्ण</option></select>
+        <div style="flex:1">
+          <div class="field-label">कार्यादेश दिनांक (Work Order Date)</div>
+          <input type="date" name="workOrderDate">
+        </div>
+      </div>
+      <div class="row2">
+        <input type="text" name="contractorName" placeholder="ठेकेदाराचे नाव">
+        <input type="tel" name="contractorPhone" placeholder="फोन नंबर">
+      </div>
+      <div>
+        <div class="field-label">DLP — दोष दायित्व कालावधी (उदा. १२ महिने / तारीख)</div>
+        <input type="text" name="dlp" placeholder="उदा. १२ महिने किंवा दि.३१/१२/२०२७ पर्यंत">
+      </div>
+      <label class="file-drop">
+        <span class="fname" data-default="कार्यादेश / कागदपत्र / फोटो जोडा">कार्यादेश / कागदपत्र / फोटो जोडा</span>
+        <span>📎</span>
+        <input type="file" name="orderFile" accept="application/pdf,image/*">
+      </label>
+      <div class="size-warn" style="display:none;"></div>
+      <button type="submit">काम नोंदवा</button>
+    </form>
+  `;
+}
+function bindFileDrop(form){
+  const drop = form.querySelector('.file-drop');
+  const input = drop.querySelector('input[type=file]');
+  const label = drop.querySelector('.fname');
+  input.addEventListener('change', ()=>{
+    const f = input.files[0];
+    const warn = form.querySelector('.size-warn');
+    if(f){
+      label.textContent = `${f.name} (${humanSize(f.size)})`;
+      if(f.size > MAX_FILE_BYTES){
+        warn.style.display='block';
+        warn.textContent = `ही फाइल खूप मोठी आहे (कमाल ~4 MB). कृपया लहान/compressed फाइल निवड.`;
+      } else { warn.style.display='none'; }
+    } else {
+      label.textContent = label.dataset.default;
+      warn.style.display='none';
+    }
+  });
+}
+function bindWorkForm(formId, type, id, onDone){
+  const form = document.getElementById(formId);
+  bindFileDrop(form);
+  form.onsubmit = async (e)=>{
+    e.preventDefault();
+    const fd = new FormData(form);
+    const text = form.querySelector('textarea').value.trim();
+    if(!text) return;
+    const file = form.querySelector('input[type=file]').files[0];
+    if(file && file.size > MAX_FILE_BYTES){ return; }
+    const entryId = newId();
+    let orderFileKey = null;
+    if(file){
+      orderFileKey = `file:${entryId}:order`;
+      await storeFile(orderFileKey, file);
+    }
+    const entry = {
+      id: entryId, text,
+      status: fd.get('status'),
+      workOrderDate: fd.get('workOrderDate') || '',
+      contractorName: (fd.get('contractorName')||'').trim(),
+      contractorPhone: (fd.get('contractorPhone')||'').trim(),
+      dlp: (fd.get('dlp')||'').trim(),
+      orderFileKey, mbFileKey: null,
+      logged: new Date().toISOString().slice(0,10)
+    };
+    await addWorkEntry(type, id, entry);
+    if(onDone){ onDone(); }
+    else if(type==='road'){ selectRoad(id); }
+    else { selectVillage(id); }
+  };
+}
+
+// ---------- add-work picker (from सर्व कामे tab) ----------
+function refreshWorkAddTargets(){
+  const typeSel = document.getElementById('workAddType');
+  const targetSel = document.getElementById('workAddTarget');
+  const current = targetSel.value;
+  targetSel.innerHTML = '<option value="">— निवडा —</option>';
+  if(typeSel.value==='road'){
+    customRoads.forEach(r=>{
+      const opt = document.createElement('option');
+      opt.value = r.id; opt.textContent = `${CAT_LABEL[r.cat]} ${r.num} — ${r.route}`;
+      targetSel.appendChild(opt);
+    });
+  } else {
+    getAllVillages().forEach(v=>{
+      const opt = document.createElement('option'); opt.value=v; opt.textContent=v;
+      targetSel.appendChild(opt);
+    });
+  }
+  if(Array.from(targetSel.options).some(o=>o.value===current)) targetSel.value = current;
+  else document.getElementById('workAddFormWrap').innerHTML = '';
+}
+function renderWorkAddForm(){
+  const typeSel = document.getElementById('workAddType');
+  const targetSel = document.getElementById('workAddTarget');
+  const wrap = document.getElementById('workAddFormWrap');
+  const note = document.getElementById('workAddNote');
+  const defaultNote = 'आधी वरून गाव किंवा रस्ता निवड, मग खाली फॉर्म भरून काम नोंदव.';
+  const id = targetSel.value;
+  const type = typeSel.value;
+  if(!id){ wrap.innerHTML=''; return; }
+  const formId = `workAddForm-${type}-${cssSafe(String(id))}`;
+  wrap.innerHTML = workFormHTML(formId);
+  bindWorkForm(formId, type, id, async ()=>{
+    wrap.innerHTML = '';
+    targetSel.value = '';
+    await renderAllWork();
+    note.textContent = 'काम नोंदवलं — खालच्या यादीत बघ.';
+    setTimeout(()=>{ note.textContent = defaultNote; }, 2400);
+  });
+}
+function initWorkAddPicker(){
+  const typeSel = document.getElementById('workAddType');
+  const targetSel = document.getElementById('workAddTarget');
+  typeSel.addEventListener('change', ()=>{ document.getElementById('workAddFormWrap').innerHTML=''; refreshWorkAddTargets(); });
+  targetSel.addEventListener('change', renderWorkAddForm);
+  refreshWorkAddTargets();
+}
+
+// ---------- detail: road ----------
+async function selectRoad(id){
+  state.selectedRoad = id;
+  switchTab('roads');
+  renderRoadsList();
+  const r = customRoads.find(x=>x.id===id);
+  const panel = document.getElementById('detailPanel');
+  if(!r){ panel.innerHTML = '<div class="detail-empty">सापडलं नाही</div>'; return; }
+  const work = await loadWork('road', r.id);
+  panel.innerHTML = `
+    <span class="num-badge badge-${r.cat}" style="font-size:15px;">${CAT_LABEL[r.cat]} ${r.num}</span>
+    <div class="sub">${CAT_FULL[r.cat]}</div>
+    <div class="chain" id="chainWrap"></div>
+    <div class="small-note" style="margin:-8px 0 10px;"><span class="rm-chain" id="roadDeleteBtn">हा रस्ता काढून टाक</span></div>
+    <div class="section-title">काम-नोंद ${work.length? `<span class="work-flag">${work.length}</span>`:''}</div>
+    <div id="workList-road-${r.id}"></div>
+    <div class="section-title" style="margin-top:18px;">नवीन काम नोंदवा</div>
+    ${workFormHTML(`workForm-road-${r.id}`)}
+  `;
+  const chainWrap = document.getElementById('chainWrap');
+  r.villages.forEach((v, i)=>{
+    if(i>0) chainWrap.appendChild(Object.assign(document.createElement('span'),{className:'arrow',textContent:'→'}));
+    const span = document.createElement('span');
+    span.className='node';
+    span.textContent = v;
+    span.onclick = ()=>{ switchTab('villages'); selectVillage(v); };
+    chainWrap.appendChild(span);
+  });
+  document.getElementById('roadDeleteBtn').onclick = async ()=>{
+    if(!confirm(`"${CAT_LABEL[r.cat]} ${r.num}" हा रस्ता काढून टाकायचा?`)) return;
+    customRoads = customRoads.filter(x=>x.id!==r.id);
+    await saveCustomRoads();
+    state.selectedRoad = null;
+    renderRoadsList();
+    panel.innerHTML = '<div class="detail-empty">डावीकडून एखादा रस्ता निवडा —<br>त्याची गावं-साखळी व काम-नोंद इथे दिसेल.</div>';
+  };
+  renderWorkList('road', r.id, work);
+  bindWorkForm(`workForm-road-${r.id}`, 'road', r.id);
+}
+
+// ---------- detail: village ----------
+async function selectVillage(v){
+  state.selectedVillage = v;
+  switchTab('villages');
+  renderVillagesList();
+  const panel = document.getElementById('detailPanelV');
+  const roads = roadsForVillage(v);
+  const work = await loadWork('village', v);
+  panel.innerHTML = `
+    <h2>${v}</h2>
+    <div class="sub">${roads.length} रस्ता/रस्ते जोडलेले</div>
+    <div class="section-title">जोडलेले रस्ते</div>
+    <div class="related-list" id="relRoads"></div>
+    <div class="section-title">काम-नोंद ${work.length? `<span class="work-flag">${work.length}</span>`:''}</div>
+    <div id="workList-village-${cssSafe(v)}"></div>
+    <div class="section-title" style="margin-top:18px;">नवीन काम नोंदवा</div>
+    ${workFormHTML(`workForm-village-${cssSafe(v)}`)}
+  `;
+  const relEl = document.getElementById('relRoads');
+  if(roads.length===0){
+    relEl.innerHTML = '<div class="small-note">या गावाला अजून कुठलाच रस्ता जोडलेला नाही — "रस्ते" टॅबमधून गावांची साखळी बनवून रस्ता जोड.</div>';
+  }
+  roads.forEach(r=>{
+    const item = document.createElement('div');
+    item.className='related-item';
+    item.innerHTML = `<span class="num-badge badge-${r.cat}">${CAT_LABEL[r.cat]} ${r.num}</span><span>${r.route}</span>`;
+    item.onclick = ()=> { switchTab('roads'); selectRoad(r.id); };
+    relEl.appendChild(item);
+  });
+  renderWorkList('village', v, work);
+  bindWorkForm(`workForm-village-${cssSafe(v)}`, 'village', v);
+}
+
+function renderWorkList(type, id, arr){
+  const containerId = type==='road' ? `workList-road-${id}` : `workList-village-${cssSafe(id)}`;
+  const el = document.getElementById(containerId);
+  if(!el) return;
+  if(arr.length===0){ el.innerHTML = `<div class="small-note">अजून कुठलंच काम नोंदवलेलं नाही.</div>`; return; }
+  el.innerHTML='';
+  arr.forEach((w, idx)=>{
+    el.appendChild(buildWorkItemEl(w, idx, type, id, ()=> (type==='road'? selectRoad(id) : selectVillage(id))));
+  });
+}
+function buildWorkItemEl(w, idx, type, id, onChange){
+  const div = document.createElement('div');
+  div.className = `work-item status-${w.status||'pending'}`;
+  const statusLabel = {pending:'प्रलंबित', progress:'चालू आहे', done:'पूर्ण'}[w.status||'pending'];
+  const metaBits = [];
+  if(w.workOrderDate) metaBits.push(`<span><b>कार्यादेश:</b> ${w.workOrderDate}</span>`);
+  if(w.contractorName) metaBits.push(`<span><b>ठेकेदार:</b> ${w.contractorName}</span>`);
+  if(w.contractorPhone) metaBits.push(`<span><b>फोन:</b> ${w.contractorPhone}</span>`);
+  if(w.dlp) metaBits.push(`<span><b>DLP:</b> ${w.dlp}</span>`);
+  div.innerHTML = `
+    <div class="wtop">
+      <span><span class="status-tag status-${w.status||'pending'}">${statusLabel}</span>${w.logged? ' · नोंद: '+w.logged : ''}</span>
+      <span class="wdel">काढा</span>
+    </div>
+    <div>${w.text}</div>
+    ${metaBits.length? `<div class="wmeta">${metaBits.join('')}</div>` : ''}
+    <div class="wdocs" id="docs-${type}-${cssSafe(String(id))}-${idx}"></div>
+  `;
+  div.querySelector('.wdel').onclick = async (e)=>{
+    e.stopPropagation();
+    await deleteWorkEntry(type, id, idx);
+    onChange();
+  };
+  const docsEl = div.querySelector('.wdocs');
+  renderDocChip(docsEl, w, idx, type, id, 'orderFileKey', 'कार्यादेश/फोटो', onChange);
+  if(w.status==='done' || w.mbFileKey){
+    renderDocChip(docsEl, w, idx, type, id, 'mbFileKey', 'MB (मोजमाप पुस्तिका)', onChange);
+  }
+  return div;
+}
+function renderDocChip(container, w, idx, type, id, keyField, label, onChange){
+  const fileKey = w[keyField];
+  if(fileKey){
+    const chip = document.createElement('span');
+    chip.className = 'doc-chip';
+    chip.textContent = `📄 ${label} पहा`;
+    chip.onclick = async (e)=>{
+      e.stopPropagation();
+      const f = await getFile(fileKey);
+      if(f){
+        const a = document.createElement('a');
+        a.href = f.dataUrl; a.download = f.name; a.target='_blank';
+        document.body.appendChild(a); a.click(); a.remove();
+      }
+    };
+    container.appendChild(chip);
+  } else {
+    const chip = document.createElement('label');
+    chip.className = 'doc-chip add';
+    chip.textContent = `📎 ${label} जोडा`;
+    const input = document.createElement('input');
+    input.type='file'; input.accept='application/pdf,image/*'; input.style.display='none';
+    input.onchange = async ()=>{
+      const file = input.files[0];
+      if(!file) return;
+      if(file.size > MAX_FILE_BYTES){ alert('फाइल खूप मोठी आहे (कमाल ~4 MB).'); return; }
+      const arr = await loadWork(type, id);
+      const entry = arr[idx];
+      const newKey = `file:${entry.id}:${keyField==='orderFileKey'?'order':'mb'}`;
+      await storeFile(newKey, file);
+      entry[keyField] = newKey;
+      await saveWork(type, id, arr);
+      onChange();
+    };
+    chip.appendChild(input);
+    container.appendChild(chip);
+  }
+}
+
+// ---------- all-work tab ----------
+async function renderAllWork(){
+  const el = document.getElementById('allWorkList');
+  el.innerHTML = '<div class="small-note">लोड होत आहे…</div>';
+  const all = await getAllWorkEntries();
+  document.getElementById('cnt-work').textContent = all.length || '';
+  if(all.length===0){ el.innerHTML = '<div class="empty-state">अजून कुठलंच काम नोंदवलेलं नाही. एखादा रस्ता किंवा गाव उघडून "काम नोंदवा" वापर.</div>'; return; }
+  el.innerHTML='';
+  all.forEach(w=>{
+    const item = buildWorkItemEl(w, w.idx, w.refType, w.refId, renderAllWork);
+    const tag = document.createElement('div');
+    tag.style.cssText='font-weight:600;font-size:12.5px;margin-bottom:4px;cursor:pointer;';
+    tag.textContent = `▸ ${w.refLabel}`;
+    tag.onclick = ()=>{
+      if(w.refType==='road'){ selectRoad(w.refId); }
+      else { selectVillage(w.refId); }
+    };
+    const wrap = document.createElement('div');
+    wrap.appendChild(tag); wrap.appendChild(item);
+    el.appendChild(wrap);
+  });
+}
+
+// ---------- network view ----------
+let netBuilt = false;
+let nodePos = {};
+let savedPositions = {};
+let viewBox = {x:0,y:0,w:1000,h:1000};
+let baseViewBox = {x:0,y:0,w:1000,h:1000};
+
+async function loadPositions(){
+  try{
+    const res = await fbGet('layout:positions');
+    savedPositions = res ? JSON.parse(res.value) : {};
+  }catch(e){ savedPositions = {}; }
+}
+let savePosTimer = null;
+function schedulePositionSave(){
+  clearTimeout(savePosTimer);
+  savePosTimer = setTimeout(async ()=>{
+    try{ await fbSet('layout:positions', JSON.stringify(savedPositions)); }
+    catch(e){ console.error('position save failed', e); }
+  }, 400);
+}
+async function buildNetwork(){
+  await loadPositions();
+  const svg = document.getElementById('netsvg');
+  const villages = getAllVillages();
+  const N = villages.length;
+  const W = Math.max(900, N*11), H = W;
+  const cx = W/2, cy = H/2, R = W/2 - 90;
+  baseViewBox = {x:0,y:0,w:W,h:H};
+  viewBox = {...baseViewBox};
+
+  nodePos = {};
+  villages.forEach((v,i)=>{
+    if(savedPositions[v]){ nodePos[v] = {x:savedPositions[v].x, y:savedPositions[v].y}; }
+    else {
+      const ang = (i/Math.max(N,1)) * Math.PI*2 - Math.PI/2;
+      nodePos[v] = { x: cx + R*Math.cos(ang), y: cy + R*Math.sin(ang) };
+    }
+  });
+
+  svg.innerHTML = '<g id="viewport"></g>';
+  applyViewBox();
+  const vp = document.getElementById('viewport');
+  const idx = buildVillageIndex();
+  let svgHTML = '';
+  customRoads.forEach(r=>{
+    for(let i=0;i<r.villages.length-1;i++){
+      const a = nodePos[r.villages[i]], b = nodePos[r.villages[i+1]];
+      if(!a||!b) continue;
+      svgHTML += `<line class="net-edge" data-road="${r.id}" data-a="${encodeURIComponent(r.villages[i])}" data-b="${encodeURIComponent(r.villages[i+1])}" x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" style="stroke:${resolveVar(CAT_COLOR[r.cat])}" />`;
+    }
+  });
+  villages.forEach(v=>{
+    const p = nodePos[v]; const deg = (idx[v]||[]).length;
+    const rr = 4 + Math.min(deg,6)*1.3;
+    svgHTML += `<g class="net-node" data-village="${encodeURIComponent(v)}">
+      <circle cx="${p.x}" cy="${p.y}" r="${rr}" fill="#fffdf8" />
+      <text x="${p.x + rr + 4}" y="${p.y + 3}">${v}</text>
+    </g>`;
+  });
+  vp.innerHTML = svgHTML;
+  netBuilt = true;
+  wireNetworkInteractions(svg, vp);
+}
+function applyViewBox(){
+  const svg = document.getElementById('netsvg');
+  svg.setAttribute('viewBox', `${viewBox.x} ${viewBox.y} ${viewBox.w} ${viewBox.h}`);
+}
+function svgPoint(svg, clientX, clientY){
+  const pt = svg.createSVGPoint();
+  pt.x = clientX; pt.y = clientY;
+  const ctm = svg.getScreenCTM().inverse();
+  return pt.matrixTransform(ctm);
+}
+function wireNetworkInteractions(svg, vp){
+  let dragNode = null;
+  let panState = null;
+  vp.querySelectorAll('.net-node').forEach(g=>{
+    const village = decodeURIComponent(g.getAttribute('data-village'));
+    const circle = g.querySelector('circle');
+    circle.addEventListener('pointerdown', (e)=>{
+      e.stopPropagation();
+      circle.setPointerCapture(e.pointerId);
+      g.classList.add('dragging');
+      dragNode = { village, g };
+    });
+    g.addEventListener('click', (e)=>{
+      if(g.classList.contains('was-dragged')){ g.classList.remove('was-dragged'); return; }
+      selectVillage(village);
+    });
+    g.addEventListener('mouseenter', ()=> highlightVillage(g.getAttribute('data-village')));
+    g.addEventListener('mouseleave', ()=> clearHighlight());
+  });
+  vp.querySelectorAll('.net-edge').forEach(l=>{
+    l.addEventListener('click', ()=>{ selectRoad(l.getAttribute('data-road')); });
+  });
+  svg.addEventListener('pointermove', (e)=>{
+    if(dragNode){
+      const p = svgPoint(svg, e.clientX, e.clientY);
+      nodePos[dragNode.village] = {x:p.x, y:p.y};
+      dragNode.g.classList.add('was-dragged');
+      dragNode.g.querySelector('circle').setAttribute('cx', p.x);
+      dragNode.g.querySelector('circle').setAttribute('cy', p.y);
+      const rr = dragNode.g.querySelector('circle').getAttribute('r');
+      dragNode.g.querySelector('text').setAttribute('x', p.x + Number(rr) + 4);
+      dragNode.g.querySelector('text').setAttribute('y', p.y + 3);
+      const enc = encodeURIComponent(dragNode.village);
+      vp.querySelectorAll(`.net-edge[data-a="${enc}"]`).forEach(l=>{ l.setAttribute('x1',p.x); l.setAttribute('y1',p.y); });
+      vp.querySelectorAll(`.net-edge[data-b="${enc}"]`).forEach(l=>{ l.setAttribute('x2',p.x); l.setAttribute('y2',p.y); });
+      return;
+    }
+    if(panState){
+      const dx = (e.clientX - panState.startX) * (viewBox.w / svg.clientWidth);
+      const dy = (e.clientY - panState.startY) * (viewBox.h / svg.clientHeight);
+      viewBox.x = panState.vb.x - dx;
+      viewBox.y = panState.vb.y - dy;
+      applyViewBox();
+    }
+  });
+  svg.addEventListener('pointerup', async (e)=>{
+    if(dragNode){
+      dragNode.g.classList.remove('dragging');
+      savedPositions[dragNode.village] = nodePos[dragNode.village];
+      schedulePositionSave();
+      dragNode = null;
+    }
+    if(panState) panState = null;
+  });
+  svg.addEventListener('pointerdown', (e)=>{
+    if(e.target === svg || e.target.id==='viewport'){
+      panState = { startX:e.clientX, startY:e.clientY, vb:{x:viewBox.x,y:viewBox.y} };
+    }
+  });
+  svg.addEventListener('wheel', (e)=>{
+    e.preventDefault();
+    zoomBy(e.deltaY < 0 ? 0.88 : 1.14, e.clientX, e.clientY, svg);
+  }, {passive:false});
+}
+function zoomBy(factor, clientX, clientY, svg){
+  svg = svg || document.getElementById('netsvg');
+  const before = clientX!==undefined ? svgPoint(svg, clientX, clientY) : {x:viewBox.x+viewBox.w/2, y:viewBox.y+viewBox.h/2};
+  const newW = Math.max(150, Math.min(baseViewBox.w*4, viewBox.w * factor));
+  const newH = Math.max(150, Math.min(baseViewBox.h*4, viewBox.h * factor));
+  viewBox.x = before.x - (before.x - viewBox.x) * (newW/viewBox.w);
+  viewBox.y = before.y - (before.y - viewBox.y) * (newH/viewBox.h);
+  viewBox.w = newW; viewBox.h = newH;
+  applyViewBox();
+}
+document.getElementById('zoomIn').onclick = ()=> zoomBy(0.8);
+document.getElementById('zoomOut').onclick = ()=> zoomBy(1.25);
+document.getElementById('zoomReset').onclick = ()=>{ viewBox = {...baseViewBox}; applyViewBox(); };
+document.getElementById('layoutReset').onclick = async ()=>{
+  if(!confirm('सगळ्या गावांची जागा मूळ (auto) मांडणीत परत आणायची का? हे पूर्ववत करता येणार नाही.')) return;
+  savedPositions = {};
+  try{ await fbSet('layout:positions', JSON.stringify({})); }catch(e){}
+  netBuilt = false;
+  buildNetwork();
+};
+function resolveVar(v){
+  const map = {'var(--rm-green)':'#2f6b3e','var(--mdr-orange)':'#b5561f','var(--odr-blue)':'#2b5a8c','var(--gra-ink)':'#4a4234','#6b2f7a':'#6b2f7a'};
+  return map[v] || '#666';
+}
+function highlightVillage(encoded){
+  const v = decodeURIComponent(encoded);
+  const svg = document.getElementById('netsvg');
+  const idx = buildVillageIndex();
+  const connectedRoads = new Set(idx[v]||[]);
+  const connectedVillages = new Set([v]);
+  connectedRoads.forEach(rid=>{
+    const r = customRoads.find(x=>x.id===rid);
+    if(r) r.villages.forEach(vv=>connectedVillages.add(vv));
+  });
+  svg.querySelectorAll('.net-node').forEach(g=>{
+    const gv = decodeURIComponent(g.getAttribute('data-village'));
+    g.classList.toggle('dim', !connectedVillages.has(gv));
+  });
+  svg.querySelectorAll('.net-edge').forEach(l=>{
+    l.classList.toggle('dim', !connectedRoads.has(l.getAttribute('data-road')));
+  });
+}
+function clearHighlight(){
+  const svg = document.getElementById('netsvg');
+  svg.querySelectorAll('.net-node').forEach(g=>g.classList.remove('dim'));
+  svg.querySelectorAll('.net-edge').forEach(l=>l.classList.remove('dim'));
+}
+
+// ---------- tabs ----------
+function switchTab(tab){
+  state.tab = tab;
+  document.querySelectorAll('#tabs button').forEach(b=> b.setAttribute('aria-selected', b.dataset.tab===tab ? 'true':'false'));
+  document.getElementById('view-villages').style.display = tab==='villages' ? '' : 'none';
+  document.getElementById('view-roads').style.display = tab==='roads' ? '' : 'none';
+  document.getElementById('view-network').style.display = tab==='network' ? '' : 'none';
+  document.getElementById('view-work').style.display = tab==='work' ? '' : 'none';
+  if(tab==='network' && !netBuilt) buildNetwork();
+  if(tab==='work'){ refreshWorkAddTargets(); renderAllWork(); }
+}
+document.querySelectorAll('#tabs button').forEach(b=>{
+  b.addEventListener('click', ()=> switchTab(b.dataset.tab));
+});
+document.getElementById('searchBox').addEventListener('input', (e)=>{
+  state.query = e.target.value;
+  renderRoadsList();
+  renderVillagesList();
+});
+
+// ---------- village picker (District -> Taluka -> Village) ----------
+function initVillagePicker(){
+  const dEl = document.getElementById('pickDistrict');
+  const tEl = document.getElementById('pickTaluka');
+  const vEl = document.getElementById('pickVillage');
+  const btn = document.getElementById('pickAddBtn');
+  const note = document.getElementById('pickNote');
+  const defaultNote = note.textContent;
+
+  // जिल्ह्यांची यादी DISTRICT_MR मधून (हे फक्त 36 नावांचा छोटा object आहे, त्यामुळे
+  // हे लगेच भरता येतं — प्रत्येक जिल्ह्याचा गावांचा मोठा डेटा निवडल्यावरच fetch होतो).
+  Object.keys(DISTRICT_MR)
+    .sort((a,b)=> (DISTRICT_MR[a]||a).localeCompare(DISTRICT_MR[b]||b,'mr'))
+    .forEach(dist=>{
+      const opt = document.createElement('option'); opt.value=dist; opt.textContent = DISTRICT_MR[dist] || dist;
+      dEl.appendChild(opt);
+    });
+
+  async function fillTalukas(){
+    tEl.innerHTML='';
+    vEl.innerHTML='';
+    btn.disabled = true;
+    const dist = dEl.value;
+    note.textContent = 'जिल्ह्याची यादी लोड होत आहे…';
+    const data = await loadDistrictVillages(dist);
+    if (dEl.value !== dist) return; // दरम्यान वापरकर्त्याने दुसरा जिल्हा निवडला असेल तर थांबा
+    note.textContent = defaultNote;
+    Object.keys(data)
+      .sort((a,b)=> (TALUKA_MR[a]||a).localeCompare(TALUKA_MR[b]||b,'mr'))
+      .forEach(tal=>{
+        const opt = document.createElement('option'); opt.value=tal; opt.textContent = TALUKA_MR[tal] || tal;
+        tEl.appendChild(opt);
+      });
+    fillVillages();
+  }
+  function fillVillages(){
+    vEl.innerHTML='';
+    const dist = dEl.value, tal = tEl.value;
+    const data = villageDataCache[dist] || {};
+    const list = data[tal] || [];
+    list.slice().sort((a,b)=>a.mr.localeCompare(b.mr,'mr')).forEach(item=>{
+      const opt = document.createElement('option');
+      opt.value = item.mr;
+      opt.textContent = item.gp ? `${item.mr} (${item.en} — ग्रा.पं. ${item.gp})` : `${item.mr} (${item.en})`;
+      vEl.appendChild(opt);
+    });
+    updateBtnState();
+  }
+  function updateBtnState(){
+    const dist = dEl.value, tal = tEl.value;
+    const data = villageDataCache[dist] || {};
+    btn.disabled = !tal || !(data[tal]||[]).length;
+  }
+  dEl.addEventListener('change', fillTalukas);
+  tEl.addEventListener('change', fillVillages);
+  fillTalukas();
+
+  btn.addEventListener('click', async ()=>{
+    const dist = dEl.value, tal = tEl.value;
+    const vMr = vEl.value;
+    if(!vMr) return;
+    if(getAllVillages().includes(vMr)){
+      note.textContent = `"${vMr}" आधीच यादीत आहे.`;
+      note.classList.add('size-warn');
+      setTimeout(()=>{ note.classList.remove('size-warn'); note.textContent = defaultNote; }, 2200);
+      return;
+    }
+    const data = villageDataCache[dist] || {};
+    const item = (data[tal]||[]).find(v=>v.mr===vMr) || {mr:vMr};
+    customVillages.push({ mr:item.mr, en:item.en, gp:item.gp||'', district:dist, taluka:tal });
+    await saveCustomVillages();
+    netBuilt = false;
+    renderVillagesList();
+    refreshChainVillagePick();
+    note.textContent = `"${vMr}" यादीत जोडलं. आता "रस्ते" टॅबमधून याला साखळीत जोडून रस्ता तयार करता येईल.`;
+    setTimeout(()=>{ note.textContent = defaultNote; }, 2600);
+  });
+}
+// ---------- road picker (build a village-chain, then save as a road) ----------
+function refreshChainVillagePick(){
+  const sel = document.getElementById('chainVillagePick');
+  const current = sel.value;
+  sel.innerHTML = '<option value="">— यादीतलं गाव निवडा —</option>';
+  getAllVillages().forEach(v=>{
+    const opt = document.createElement('option'); opt.value=v; opt.textContent=v;
+    sel.appendChild(opt);
+  });
+  if(getAllVillages().includes(current)) sel.value = current;
+}
+function renderChainDraft(){
+  const el = document.getElementById('chainDraft');
+  el.innerHTML='';
+  chainDraft.forEach((v, i)=>{
+    const chip = document.createElement('span');
+    chip.className='cd-chip';
+    chip.innerHTML = `${i+1}. ${v} <span class="rm">✕</span>`;
+    chip.querySelector('.rm').onclick = ()=>{ chainDraft.splice(i,1); renderChainDraft(); updateRoadSaveBtn(); };
+    el.appendChild(chip);
+  });
+  updateRoadSaveBtn();
+}
+function updateRoadSaveBtn(){
+  document.getElementById('roadSaveBtn').disabled = chainDraft.length < 2 || !document.getElementById('roadNum').value.trim();
+}
+function initRoadPicker(){
+  refreshChainVillagePick();
+  const chainSel = document.getElementById('chainVillagePick');
+  const addBtn = document.getElementById('chainAddBtn');
+  const numInput = document.getElementById('roadNum');
+  const saveBtn = document.getElementById('roadSaveBtn');
+  const note = document.getElementById('roadNote');
+  const defaultNote = note.textContent;
+
+  addBtn.addEventListener('click', ()=>{
+    const v = chainSel.value;
+    if(!v) return;
+    if(chainDraft[chainDraft.length-1] === v){ return; }
+    chainDraft.push(v);
+    renderChainDraft();
+  });
+  numInput.addEventListener('input', updateRoadSaveBtn);
+
+  saveBtn.addEventListener('click', async ()=>{
+    const cat = document.getElementById('roadCat').value;
+    const num = numInput.value.trim();
+    if(chainDraft.length < 2 || !num) return;
+    const id = `${cat}-${num}-${newId().slice(0,6)}`;
+    const road = { id, cat, num, route: chainDraft.join(' - '), villages: chainDraft.slice() };
+    customRoads.push(road);
+    await saveCustomRoads();
+    chainDraft = [];
+    renderChainDraft();
+    numInput.value = '';
+    document.getElementById('roadCat').value = 'GRA';
+    netBuilt = false;
+    renderRoadsList();
+    note.textContent = `रस्ता जोडला — यादीत डावीकडे बघ.`;
+    setTimeout(()=>{ note.textContent = defaultNote; }, 2400);
+  });
+}
+
+// login झाल्यावर (userच्या uid सह) एकदाच चालणारा initial render
+async function initApp(){
+  // जिल्ह्यांची यादी (फक्त 36 नावं, local/static — नेटवर्क लागत नाही) आधी लगेच दाखवा,
+  // Firestore मधून जुना डेटा (customVillages/customRoads) येण्याची वाट न बघता.
+  initVillagePicker();
+  initRoadPicker();
+  initWorkAddPicker();
+  renderVillagesList();
+  renderRoadsList();
+  document.getElementById('cnt-work').textContent='';
+
+  // आता Firestore मधून आधीचा जोडलेला डेटा (गावं/रस्ते) लोड करा — हे background मध्ये,
+  // दोन्ही एकाच वेळी (parallel) — आणि आल्यावर संबंधित भाग पुन्हा render करा.
+  await Promise.all([loadCustomVillages(), loadCustomRoads()]);
+  renderVillagesList();
+  renderRoadsList();
+  refreshChainVillagePick();
+  refreshWorkAddTargets();
+}
+</script>
+</body>
+</html>
