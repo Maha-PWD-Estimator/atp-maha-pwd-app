@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>1st &amp; Final Bill Generator | Maha PWD Estimator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+<!-- ═════════ DOCUMENT (paper) CSS — also copied into the print window ═════════ -->
+<style id="docCss">
+@page{size:A4 portrait;margin:11mm}
+@page land{size:A4 landscape;margin:10mm}
+.page{background:#fff;color:#000;font-family:"Times New Roman","Noto Sans Devanagari","Mangal",serif;font-size:13px;line-height:1.45;width:210mm;min-height:277mm;padding:12mm 13mm;margin:0 auto 14px;box-shadow:0 1px 8px rgba(0,0,0,.25);box-sizing:border-box;position:relative}
+.page.land{width:297mm;min-height:190mm;page:land}
+.mr{font-family:"Noto Sans Devanagari","Mangal","Nirmala UI",sans-serif}
+.page h1,.page h2,.page h3{margin:0;font-weight:700}
+.tc{text-align:center}.tr{text-align:right}.b{font-weight:700}
+.ind{display:inline-block;margin-left:34px}
+.rule{border:0;border-top:2.5px double #222;margin:6px 0}
+.blank{display:inline-block;min-width:70px;border-bottom:1px dotted #000;height:1em;vertical-align:bottom}
+.ce{outline:none}
+.edit .ce{display:inline-block;min-width:34px;background:rgba(255,235,59,.18);border-bottom:1px dashed #b59b00;padding:0 2px}
+.edit .ce:focus{background:rgba(255,235,59,.45)}
+.edit input.ni{width:74px;text-align:right;border:1px solid #c8a200;background:#fffbe0;font:inherit;font-size:12px;padding:1px 3px}
+.edit input.nw{width:100%;box-sizing:border-box;border:1px solid #c8a200;background:#fffbe0;font:inherit;font-size:12px;padding:1px 3px}
+.edit select.ni{width:auto}
+.noprint{display:none}
+.edit .noprint{display:block}
+.mini{font-size:11px;cursor:pointer;border:1px solid #888;background:#eee;border-radius:3px;padding:1px 7px}
+table.t{border-collapse:collapse;width:100%}
+table.t th,table.t td{border:1px solid #000;padding:3px 5px;vertical-align:middle}
+table.t th{font-weight:700;text-align:center}
+table.t td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+table.t td.c{text-align:center}
+table.t tr{page-break-inside:avoid}
+.tot td{font-weight:700}
+.sigr{margin-top:26px;text-align:right;font-weight:700}
+/* checklist */
+table.ck td,table.ck th{font-size:12.5px}
+table.ck td.q{width:49%;vertical-align:top}
+table.ck td.r{width:17%;vertical-align:top;height:40px;text-align:center}
+table.ck td.r .ce{display:block}
+table.ck td.sub{padding-left:22px}
+.pb{page-break-before:always}
+.kv{display:flex;gap:6px;margin:5px 0}
+.kv .k{flex:0 0 38%}
+.kv .s{flex:0 0 14px}
+.kv .v{flex:1;font-weight:700}
+.issues .ln{height:23px;border-bottom:1px dotted #777;display:flex;gap:8px}
+.issues .ln .ce{flex:1}
+@media print{
+  .page{box-shadow:none;margin:0;width:auto;min-height:0;padding:0}
+  .page.land{width:auto;min-height:0}
+  .page+.page{page-break-before:always}
+  .noprint,.edit .noprint{display:none!important}
+  body{background:#fff}
+}
+</style>
+
+<!-- ═════════ APP (screen) CSS ═════════ -->
+<style>
+:root{--navy:#1a2744;--navy2:#26365f;--gold:#c8922a;--green:#1e6b3e;--red:#b3261e;--bg:#eef0f4;--card:#fff;--bd:#d7dbe3;--tx:#1d2433;--tx3:#6b7385}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--tx);font-family:"Noto Sans Devanagari",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;font-size:14px}
+header.top{background:var(--navy);color:#fff;padding:8px 12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;position:sticky;top:0;z-index:50}
+header.top .brand{font-weight:800;font-size:15px;margin-right:auto}
+header.top .brand small{display:block;font-weight:400;font-size:10px;opacity:.75}
+.btn{background:var(--gold);color:#fff;border:0;border-radius:6px;padding:7px 11px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap}
+.btn.g{background:var(--green)}.btn.n{background:#3b4a78}.btn.r{background:var(--red)}.btn.l{background:#e4e7ee;color:var(--tx)}
+.btn.sm{padding:4px 8px;font-size:11px}
+nav#tabs{display:flex;gap:4px;overflow-x:auto;background:#fff;border-bottom:1px solid var(--bd);padding:6px 8px;position:sticky;top:48px;z-index:40}
+nav#tabs button{border:1px solid var(--bd);background:#f6f7fa;border-radius:6px;padding:6px 10px;font-size:12px;font-weight:600;white-space:nowrap;cursor:pointer;font-family:inherit;color:var(--tx)}
+nav#tabs button.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+main#view{padding:12px;max-width:1200px;margin:0 auto}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:12px 14px;margin-bottom:12px}
+.card h3{margin:0 0 8px;font-size:14px;color:var(--navy)}
+.note{font-size:11.5px;color:var(--tx3);line-height:1.5}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px}
+.fld label{display:block;font-size:11px;font-weight:700;color:var(--tx3);margin-bottom:2px}
+.fld input,.fld textarea,.fld select{width:100%;border:1px solid var(--bd);border-radius:6px;padding:7px 8px;font-size:13px;font-family:inherit;background:#fff}
+.fld textarea{min-height:64px;resize:vertical}
+.fld.full{grid-column:1/-1}
+.tbl{width:100%;border-collapse:collapse;font-size:12px}
+.tbl th{background:var(--navy);color:#fff;padding:6px 5px;font-size:11px;text-align:left;white-space:nowrap}
+.tbl td{border-bottom:1px solid var(--bd);padding:3px 4px;vertical-align:top}
+.tbl input,.tbl textarea,.tbl select{width:100%;border:1px solid var(--bd);border-radius:4px;padding:4px 5px;font-size:12px;font-family:inherit;background:#fff}
+.tbl textarea{min-height:34px;resize:vertical}
+.tbl td.ro{text-align:right;font-family:ui-monospace,Consolas,monospace;white-space:nowrap;padding-top:8px}
+.scroll{overflow-x:auto}
+.sum{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.sum div{background:#f4f6fb;border:1px solid var(--bd);border-radius:8px;padding:8px 12px;font-size:12px}
+.sum b{display:block;font-size:16px;color:var(--navy)}
+.docbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.paperwrap{overflow:auto;padding-bottom:10px}
+#toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:9px 16px;border-radius:8px;font-size:13px;z-index:999;display:none;max-width:90vw}
+.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:100;padding:12px}
+.modal-ov.open{display:flex}
+.modal{background:#fff;border-radius:12px;padding:16px;width:100%;max-width:520px;max-height:88vh;overflow:auto}
+.modal h3{margin:0 0 10px;color:var(--navy)}
+.est{border:1px solid var(--bd);border-radius:8px;padding:8px 10px;margin-bottom:6px;cursor:pointer}
+.est.sel{border-color:var(--green);background:#eaf6ee}
+.est b{display:block}.est span{font-size:11px;color:var(--tx3)}
+.warn{background:#fff7e0;border:1px solid #f0d27a;border-radius:8px;padding:8px 10px;font-size:12px;margin-bottom:10px}
+@media(max-width:640px){header.top .brand small{display:none}nav#tabs{top:92px}}
+</style>
+</head>
+<body>
+<div id="toast"></div>
+
+<header class="top">
+  <div class="brand">📄 1st &amp; Final Bill<small>Maha PWD Estimator — देयक पॅकेट जनरेटर</small></div>
+  <button class="btn n" onclick="openEst()">📂 Estimate मधून घ्या</button>
+  <button class="btn g" onclick="printAll()">🖨️ Print All</button>
+  <button class="btn l" onclick="saveFile()">💾 Save</button>
+  <label class="btn l" style="display:inline-block">📥 Open<input type="file" accept=".json,application/json" style="display:none" onchange="openFile(this)"></label>
+  <button class="btn r" onclick="newBill()">➕ New</button>
+  <span id="userChip" style="font-size:11px;opacity:.85;cursor:pointer" onclick="openLogin()"></span>
+</header>
+<nav id="tabs"></nav>
+<main id="view"></main>
+
+<!-- Estimate picker -->
+<div class="modal-ov" id="estModal"><div class="modal">
+  <h3>📋 तुमचे Estimates (Firebase)</h3>
+  <div id="estList"></div>
+  <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px">
+    <button class="btn l" onclick="closeModal('estModal')">रद्द</button>
+    <button class="btn g" id="btnLoadEst" disabled onclick="loadEst()">✓ Load करा</button>
+  </div>
+</div></div>
+
+<!-- Login -->
+<div class="modal-ov" id="loginModal"><div class="modal">
+  <h3>🔐 Login</h3>
+  <p class="note">Estimate load करण्यासाठी तुमच्या Maha PWD Estimator account ने login करा. (Estimate शिवाय बिल manually पण भरता येते.)</p>
+  <button class="btn n" style="width:100%;margin-bottom:10px" onclick="loginGoogle()">Google ने Login</button>
+  <div class="fld"><label>Email</label><input id="lEmail" type="email"></div>
+  <div class="fld" style="margin-top:6px"><label>Password</label><input id="lPass" type="password"></div>
+  <div id="lErr" style="color:var(--red);font-size:12px;margin:6px 0"></div>
+  <div style="display:flex;gap:8px;justify-content:flex-end">
+    <button class="btn l" onclick="closeModal('loginModal')">रद्द</button>
+    <button class="btn g" onclick="loginEmail()">Login</button>
+  </div>
+</div></div>
+
+<script>
+/* CF_MAP — SSR item no → material consumption factors (same data as RA Bill app) */
+var CF_MAP={
+  "11.25":{scr_sand:0.425,m40mm:0.57,m20mm:0.28,cement_bags:7.0},
+  "14.07":{cement_bags:7.0,scr_sand:0.425,m40mm:0.57,m20mm:0.28},
+  "21.37":{rubble:1.0,quarry:0.2},
+  "21.38":{rubble:1.0,quarry:0.2},
+  "21.39":{sand:1.0},
+  "22.01":{cement_bags:8.0,scr_sand:0.425},
+  "22.02":{cement_bags:8.0,scr_sand:0.425},
+  "22.03":{cement_bags:8.0,scr_sand:0.425},
+  "22.04":{cement_bags:8.0,scr_sand:0.425},
+  "22.05":{cement_bags:8.0,scr_sand:0.425},
+  "22.06":{cement_bags:8.0,scr_sand:0.425},
+  "22.11":{cement_bags:8.0,scr_sand:0.425},
+  "22.12":{cement_bags:8.0,scr_sand:0.425},
+  "22.13":{cement_bags:8.0,scr_sand:0.425},
+  "22.14":{cement_bags:8.0,scr_sand:0.425},
+  "24.01":{cement_bags:3.4,scr_sand:0.47,m40mm:0.7,m20mm:0.24},
+  "24.04":{cement_bags:4.4,scr_sand:0.47,m40mm:0.7,m20mm:0.24},
+  "24.06":{cement_bags:6.4,scr_sand:0.445,m40mm:0.7,m20mm:0.22,m12_10:0.11},
+  "24.08":{cement_bags:6.0,scr_sand:0.44,m40mm:0.56,m20mm:0.22,m12_10:0.11},
+  "24.1":{cement_bags:7.0,scr_sand:0.425,m40mm:0.56,m20mm:0.22,m12_10:0.11},
+  "24.12":{cement_bags:7.0,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "24.14":{cement_bags:6.0,scr_sand:0.44,m40mm:0.56,m20mm:0.22,m12_10:0.11},
+  "24.15":{cement_bags:7.0,scr_sand:0.425,m40mm:0.56,m20mm:0.22,m12_10:0.11},
+  "24.16":{cement_bags:6.0,scr_sand:0.425,m20mm:0.67,m12_10:0.22},
+  "25.11":{cement_bags:7.0,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "25.13":{cement_bags:7.5,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "25.15":{cement_bags:8.0,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "25.17":{cement_bags:8.25,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "25.19":{cement_bags:8.5,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "25.31":{cement_bags:7.0,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "25.33":{cement_bags:7.5,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "25.35":{cement_bags:8.0,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "25.37":{cement_bags:8.25,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "25.39":{cement_bags:8.5,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "25.5":{cement_bags:7.0,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "25.52":{cement_bags:7.5,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "25.54":{cement_bags:8.0,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "25.56":{cement_bags:8.25,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "25.58":{cement_bags:8.5,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "25.7":{cement_bags:7.0,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "25.72":{cement_bags:7.5,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "25.74":{cement_bags:8.0,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "25.76":{cement_bags:8.25,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "25.78":{cement_bags:8.5,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "26.05":{cement_bags:7.0,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "26.07":{cement_bags:7.5,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "26.09":{cement_bags:7.0,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "26.11":{cement_bags:7.5,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "26.17":{cement_bags:7.0,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "26.19":{cement_bags:7.5,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "26.23":{cement_bags:7.0,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "26.25":{cement_bags:7.0,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "26.26":{cement_bags:7.5,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "26.27":{cement_bags:7.0,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "26.28":{cement_bags:7.5,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "26.29":{cement_bags:7.0,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "26.3":{cement_bags:7.5,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "26.31":{cement_bags:7.0,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "26.32":{cement_bags:7.5,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "26.33":{ms_bars:1.0},
+  "26.34":{ms_bars:1.0},
+  "26.58":{cement_bags:7.0,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "26.6":{cement_bags:7.5,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "26.62":{cement_bags:8.0,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "26.64":{cement_bags:8.25,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "26.66":{cement_bags:8.5,scr_sand:0.425,m20mm:0.57,m12_10:0.28},
+  "27.01":{cement_bags:1.58,scr_sand:0.32,bricks:475.0},
+  "27.02":{cement_bags:1.24,scr_sand:0.25,bricks:475.0},
+  "27.03":{cement_bags:1.58,scr_sand:0.32,bricks:475.0},
+  "27.05":{cement_bags:1.58,scr_sand:0.32,bricks:475.0},
+  "27.08":{cement_bags:2.6,scr_sand:0.25,bricks:475.0},
+  "27.1":{cement_bags:2.6,scr_sand:0.25,bricks:475.0},
+  "27.12":{cement_bags:1.58,scr_sand:0.32,bricks:475.0},
+  "27.13":{cement_bags:1.58,scr_sand:0.32,bricks:475.0},
+  "28.01":{rubble:1.16,cement_bags:1.7,scr_sand:0.35},
+  "28.02":{rubble:1.16,cement_bags:1.7,scr_sand:0.35},
+  "28.03":{rubble:1.16,cement_bags:2.05,scr_sand:0.35},
+  "28.04":{rubble:1.16,cement_bags:1.7,scr_sand:0.35},
+  "28.05":{rubble:1.16,cement_bags:1.7,scr_sand:0.35},
+  "28.06":{rubble:1.16,cement_bags:1.7,scr_sand:0.35},
+  "28.07":{rubble:1.16,cement_bags:1.7,scr_sand:0.35},
+  "28.08":{rubble:1.16,cement_bags:0.7,scr_sand:0.35},
+  "28.09":{rubble:0.35,m40mm:1.7,m20mm:0.35},
+  "28.1":{rubble:0.35,m40mm:1.7,m20mm:0.35},
+  "28.11":{rubble:0.35,m40mm:1.5,m20mm:0.3},
+  "28.12":{rubble:0.35,m40mm:1.5,m20mm:0.3},
+  "32.01":{cement_bags:0.054,scr_sand:0.0076},
+  "32.02":{cement_bags:0.07,scr_sand:0.0076},
+  "32.03":{cement_bags:0.09,scr_sand:0.015},
+  "32.04":{cement_bags:0.11,scr_sand:0.015},
+  "32.05":{cement_bags:0.14,scr_sand:0.015},
+  "32.08":{cement_bags:0.228,scr_sand:0.024},
+  "32.11":{cement_bags:0.25,scr_sand:0.033},
+  "32.12":{cement_bags:0.25,scr_sand:0.021},
+  "33.01":{cement_bags:0.135,scr_sand:0.022},
+  "33.02":{cement_bags:0.14,scr_sand:0.02},
+  "33.03":{cement_bags:0.15,scr_sand:0.02},
+  "33.04":{cement_bags:0.135,scr_sand:0.022},
+  "33.09":{cement_bags:0.185,scr_sand:0.02},
+  "33.11":{cement_bags:0.185,scr_sand:0.02},
+  "33.24":{cement_bags:0.19,scr_sand:0.02},
+  "33.4":{cement_bags:0.19,scr_sand:0.02},
+  "33.42":{cement_bags:0.19,scr_sand:0.02},
+  "33.49":{scr_sand:0.03},
+  "33.5":{scr_sand:0.03},
+  "41.56":{cement_bags:0.35,scr_sand:0.024,m12_10:0.048},
+  "44.01":{cement_bags:0.23,scr_sand:0.028},
+  "44.02":{cement_bags:0.29,scr_sand:0.035},
+  "44.03":{cement_bags:0.46,scr_sand:0.056},
+  "44.04":{cement_bags:0.576,scr_sand:0.07},
+  "44.07":{cement_bags:0.206,scr_sand:0.025},
+  "44.08":{cement_bags:0.257,scr_sand:0.031},
+  "44.09":{cement_bags:0.132,scr_sand:0.018,m12_10:0.036}
+};
+
+/* ═══════════════════════════════════════════════════════════
+   ROYALTY RATES (default) — editable in Items tab
+   ═══════════════════════════════════════════════════════════ */
+var SAND_KEYS=['sand','scr_sand'];
+var MURUM_KEYS=['m20mm','m12_10','m40mm','rubble','quarry'];
+var MAT_LABEL={sand:'Sand',scr_sand:'Screened Sand',m20mm:'Metal 20mm',m12_10:'Metal 12-10mm',m40mm:'Metal 40mm',rubble:'Rubble/Murum',quarry:'Quarry/Soling'};
+function normNo(n){if(!n)return'';return (n+'').trim().replace(/\s/g,'').replace(/^0+(\d)/,'$1');}
+function getCF(no){var n=normNo(no);if(!n)return null;if(CF_MAP[n])return CF_MAP[n];var n2=n.replace(/\.0$/,'');return CF_MAP[n2]||null;}
+function itemCF(it){if(it.cf&&typeof it.cf==='object'&&Object.keys(it.cf).length)return it.cf;return getCF(it.no);}
+
+/* ═══════════════════════════════════════════════════════════
+   FIREBASE (same project as the Estimator / RA Bill app)
+   ═══════════════════════════════════════════════════════════ */
+var FBCFG={apiKey:"AIzaSyCdH-k3hH1mYYcND0cBf7J2pLRG6xQydrU",authDomain:"atp-maha-pwd.firebaseapp.com",projectId:"atp-maha-pwd",storageBucket:"atp-maha-pwd.firebasestorage.app",messagingSenderId:"382409286731",appId:"1:382409286731:web:37daae9842bc3687bf99ce"};
+var DB=null,AUTH=null,CU=null;
+try{
+  if(!firebase.apps.length)firebase.initializeApp(FBCFG);
+  DB=firebase.firestore();AUTH=firebase.auth();
+  AUTH.onAuthStateChanged(function(u){CU=u;userChip();});
+}catch(e){console.warn('Firebase not available',e);}
+function userChip(){
+  var el=document.getElementById('userChip');if(!el)return;
+  el.textContent=CU?('👤 '+(CU.displayName||CU.email||'User')):'🔐 Login';
+}
+function openLogin(){if(CU){if(confirm('Logout करायचे?'))AUTH.signOut();return;}openModal('loginModal');}
+function loginGoogle(){if(!AUTH){toast('Firebase उपलब्ध नाही');return;}AUTH.signInWithPopup(new firebase.auth.GoogleAuthProvider()).then(function(){closeModal('loginModal');}).catch(function(e){document.getElementById('lErr').textContent=e.message;});}
+function loginEmail(){
+  var em=(document.getElementById('lEmail').value||'').trim(),pw=document.getElementById('lPass').value;
+  if(!em||!pw){document.getElementById('lErr').textContent='Email आणि Password टाका';return;}
+  AUTH.signInWithEmailAndPassword(em,pw).then(function(){closeModal('loginModal');}).catch(function(e){document.getElementById('lErr').textContent=e.message;});
+}
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+
+/* ═══════════════════════════════════════════════════════════
+   STATE
+   Placeholders ABCD / XYZ are used for Division / Sub-Division so no real
+   office name is ever printed unless the engineer types it himself.
+   ═══════════════════════════════════════════════════════════ */
+var LS_KEY='pwd_final_bill_v1';
+var _uid=0;function uid(){return 'x'+Date.now().toString(36)+(_uid++);}
+var DOC_LINES_DEFAULT='MB.No.{MB}\nC.Cs in Triplicate\nRoyalty Statement\nCement Statement\nComparative Statement\nNo Dues Certificate';
+function newState(){
+  return{v:1,
+    m:{division:'ABCD',subdiv:'XYZ',workName:'',contractor:'',agrNo:'',agrDate:'',acHead:'',
+       mbNo:'',mbPage:'',se:'',letterDate:'',completionDate:'',period:'12 Months',
+       estLakhs:'',tenderLakhs:'',checkedPct:'100',copies:3,docLines:DOC_LINES_DEFAULT},
+    items:[],tests:[],extraB:[],
+    roy:{on:true,rateMurum:216.18,rateSand:237.37,ov:{},extra:[]},
+    cem:{cf:{},act:{},rem:{},extra:[]},
+    txt:{}
+  };
+}
+var S=loadLocal()||newState();
+function loadLocal(){try{var j=localStorage.getItem(LS_KEY);if(!j)return null;var o=JSON.parse(j);return mergeDefaults(o);}catch(e){return null;}}
+function mergeDefaults(o){var d=newState();
+  o.m=Object.assign(d.m,o.m||{});o.items=o.items||[];o.tests=o.tests||[];o.extraB=o.extraB||[];
+  o.roy=Object.assign(d.roy,o.roy||{});o.roy.ov=o.roy.ov||{};o.roy.extra=o.roy.extra||[];
+  o.cem=Object.assign(d.cem,o.cem||{});o.txt=o.txt||{};return o;}
+var _pt;function persist(){clearTimeout(_pt);_pt=setTimeout(function(){try{localStorage.setItem(LS_KEY,JSON.stringify(S));}catch(e){}},250);}
+
+/* ═══════════════════════════════════════════════════════════
+   NUMBER HELPERS
+   ═══════════════════════════════════════════════════════════ */
+function num(x){var v=parseFloat(x);return isNaN(v)?0:v;}
+function amt(q,r){return Math.round(num(q)*num(r)+1e-9);}          // whole-rupee rounding (as in PWD bills)
+function n2(x){return (Math.round(num(x)*100)/100).toFixed(2);}
+function n3(x){return num(x).toFixed(3);}
+function inr(x){return new Intl.NumberFormat('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}).format(num(x));}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function shortDesc(d){d=String(d||'').replace(/^\s*Item\s*No\.?\s*[\d.]+\s*[:\-–]*\s*/i,'');var p=d.split(/\s+etc\b/i)[0];p=p.replace(/[\s,;:\-]+$/,'');return p.length>70?p.substring(0,70)+'…':p;}
+
+/* ═══════════════════════════════════════════════════════════
+   CALCULATIONS
+   ═══════════════════════════════════════════════════════════ */
+function validItem(it){return num(it.qty)>0||num(it.estQty)>0;}
+
+/* Royalty — per item, per material, from CF × executed qty (tender side uses estimate qty) */
+function royCalc(){
+  var rows=[];
+  if(S.roy.on){
+    S.items.forEach(function(it){
+      if(!validItem(it))return;
+      var cf=itemCF(it);if(!cf)return;
+      var q=num(it.qty),tq=num(it.estQty);
+      var mats=Object.keys(cf).filter(function(k){return SAND_KEYS.indexOf(k)>=0||MURUM_KEYS.indexOf(k)>=0;});
+      mats.forEach(function(k){
+        var g=SAND_KEYS.indexOf(k)>=0?'sand':'other';
+        var key=it.id+'|'+k,ov=S.roy.ov[key]||{};
+        var c=(ov.cf!==undefined&&ov.cf!=='')?num(ov.cf):num(cf[k]);
+        var rate=(ov.rate!==undefined&&ov.rate!=='')?num(ov.rate):(g==='sand'?num(S.roy.rateSand):num(S.roy.rateMurum));
+        rows.push({key:key,g:g,desc:shortDesc(it.desc),mat:MAT_LABEL[k]||k,multi:mats.length>1,q:q,tq:tq,cf:c,rate:rate,net:q*c,tnet:tq*c,amt:amt(q*c,rate),tamt:amt(tq*c,rate)});
+      });
+    });
+    S.roy.extra.forEach(function(x){
+      var q=num(x.qty),c=(x.cf===''||x.cf===undefined)?1:num(x.cf),r=num(x.rate),g=x.g==='sand'?'sand':'other';
+      rows.push({key:'x|'+x.id,extra:true,id:x.id,g:g,desc:x.desc||'',mat:'',q:q,tq:q,cf:c,rate:r,net:q*c,tnet:q*c,amt:amt(q*c,r),tamt:amt(q*c,r)});
+    });
+  }
+  var G={sand:{q:0,tq:0,amt:0,tamt:0,rates:{}},other:{q:0,tq:0,amt:0,tamt:0,rates:{}}};
+  rows.forEach(function(r){var g=G[r.g];g.q+=r.net;g.tq+=r.tnet;g.amt+=r.amt;g.tamt+=r.tamt;g.rates[r.rate]=1;});
+  ['sand','other'].forEach(function(k){var g=G[k],ks=Object.keys(g.rates);
+    g.rate=ks.length===1?num(ks[0]):(g.q>0?g.amt/g.q:(g.tq>0?g.tamt/g.tq:0));});
+  return{rows:rows,G:G};
+}
+
+/* Whole bill: Total A (work items) + Total B (royalty + V&QC + extra) */
+function billCalc(){
+  var rows=[],seq=0,tA=0,tAt=0,tB=0,tBt=0,exc=0,les=0;
+  function diff(a,t){var d=a-t;if(d>0)exc+=d;else if(d<0)les+=-d;}
+  S.items.forEach(function(it){
+    if(!validItem(it))return;seq++;
+    var q=num(it.qty),tq=num(it.estQty),r=num(it.rate),a=amt(q,r),ta=amt(tq,r);
+    tA+=a;tAt+=ta;diff(a,ta);
+    rows.push({sec:'A',kind:'item',key:it.id,no:seq,desc:it.desc,unit:it.unit,q:q,tq:tq,r:r,amt:a,tamt:ta});
+  });
+  var roy=royCalc();
+  ['other','sand'].forEach(function(g){
+    var G=roy.G[g];if(!(G.q>0||G.tq>0))return;seq++;
+    tB+=G.amt;tBt+=G.tamt;diff(G.amt,G.tamt);
+    rows.push({sec:'B',kind:'roy',key:'roy_'+g,no:seq,desc:'Royalty charges'+(g==='sand'?' (sand)':'')+' etc. complete',unit:'Cum',q:G.q,tq:G.tq,r:G.rate,amt:G.amt,tamt:G.tamt});
+  });
+  var tests=S.tests.filter(function(t){return t.desc&&(num(t.qty)>0||num(t.tq)>0);});
+  if(tests.length){
+    seq++;rows.push({sec:'B',kind:'vqc',key:'vqc',no:seq,desc:'V&QC charges etc. complete'});
+    tests.forEach(function(t){
+      var q=num(t.qty),tq=(t.tq===''||t.tq===undefined)?q:num(t.tq),r=num(t.rate),a=amt(q,r),ta=amt(tq,r);
+      tB+=a;tBt+=ta;diff(a,ta);
+      rows.push({sec:'B',kind:'test',key:'t_'+t.id,desc:t.desc,unit:t.unit||'Test',q:q,tq:tq,r:r,amt:a,tamt:ta});
+    });
+  }
+  S.extraB.forEach(function(x){
+    if(!x.desc||!(num(x.qty)>0||num(x.tq)>0))return;seq++;
+    var q=num(x.qty),tq=(x.tq===''||x.tq===undefined)?q:num(x.tq),r=num(x.rate),a=amt(q,r),ta=amt(tq,r);
+    tB+=a;tBt+=ta;diff(a,ta);
+    rows.push({sec:'B',kind:'xb',key:'xb_'+x.id,no:seq,desc:x.desc,unit:x.unit,q:q,tq:tq,r:r,amt:a,tamt:ta});
+  });
+  return{rows:rows,tA:tA,tAt:tAt,tB:tB,tBt:tBt,total:tA+tB,ttotal:tAt+tBt,excess:exc,less:les};
+}
+
+/* Cement statement: theoretical = qty × CF(bags); actual defaults to nearest whole bag (editable) */
+function cemCalc(){
+  var rows=[],tt=0,ta=0;
+  S.items.forEach(function(it){
+    if(!validItem(it))return;var cf=itemCF(it);if(!cf||!cf.cement_bags)return;
+    var q=num(it.qty);if(!(q>0))return;
+    var c=(S.cem.cf[it.id]!==undefined&&S.cem.cf[it.id]!=='')?num(S.cem.cf[it.id]):num(cf.cement_bags);
+    var th=Math.round(q*c*100)/100;
+    var ac=(S.cem.act[it.id]!==undefined&&S.cem.act[it.id]!=='')?num(S.cem.act[it.id]):Math.round(th);
+    rows.push({id:it.id,desc:it.desc,q:q,cf:c,th:th,ac:ac});tt+=th;ta+=ac;
+  });
+  S.cem.extra.forEach(function(x){
+    var q=num(x.qty),c=num(x.cf),th=Math.round(q*c*100)/100;
+    var ac=(x.act!==undefined&&x.act!=='')?num(x.act):Math.round(th);
+    rows.push({id:x.id,extra:true,desc:x.desc,q:q,cf:c,th:th,ac:ac});tt+=th;ta+=ac;
+  });
+  return{rows:rows,tt:tt,ta:ta};
+}
+
+function lakhs(v){return (num(v)/100000).toFixed(2);}
+function tenderLakhs(){return S.m.tenderLakhs||lakhs(billCalc().ttotal);}
+function docLines(){
+  var out=[];(S.m.docLines||'').split('\n').forEach(function(l){l=l.trim();if(l)out.push(l.replace('{MB}',S.m.mbNo||''));});return out;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   DOCUMENT HELPERS
+   E = true  → editable preview (yellow fields)   E = false → clean print
+   ═══════════════════════════════════════════════════════════ */
+function bl(v){v=(v==null)?'':String(v);return v?esc(v):'<span class="blank"></span>';}
+function ce(E,key,def,showBlank){
+  var v=(S.txt[key]!==undefined)?S.txt[key]:def;v=(v==null)?'':String(v);
+  if(E)return '<span class="ce" contenteditable="true" spellcheck="false" data-k="'+esc(key)+'">'+esc(v)+'</span>';
+  if(v==='')return showBlank===false?'':'<span class="blank"></span>';
+  return esc(v).replace(/\n/g,'<br>');
+}
+function page(E,inner,land){return '<section class="page'+(land?' land':'')+(E?' edit':'')+'">'+inner+'</section>';}
+function sigSDE(){return '<div class="sigr">Sub-Divisional Engineer,<br>P.W.Sub-Division, '+esc(S.m.subdiv)+'</div>';}
+function drawn(v){return v===''||v==null?'':v;}
+var MRD=['०','१','२','३','४','५','६','७','८','९'];
+function mrn(n){return String(n).replace(/\d/g,function(d){return MRD[+d];});}
+
+/* ───────────── 1. FORWARDING LETTER ───────────── */
+function dLetter(E){
+  var m=S.m;
+  var lines=docLines().map(function(l,i){return '<div>'+(i+1)+'. '+esc(l)+'</div>';}).join('');
+  var h='<div style="margin-left:56%">Office the<br>Sub-Divisional Engineer,<br>P.W.Sub-Division, '+esc(m.subdiv)+'<br>Date. '+bl(m.letterDate)+'</div>';
+  h+='<div style="margin-top:34px">To,<br><span class="ind">The Executive Engineer,<br>P.W. Division, '+esc(m.division)+'</span></div>';
+  h+='<div style="margin-top:26px" class="b">&nbsp;&nbsp;&nbsp;&nbsp;Sub :- '+ce(E,'l.sub','Submission of Bills for 1st & Final Bill')+'</div>';
+  h+='<p style="margin:14px 0 0 0;text-indent:34px;line-height:1.9">'+ce(E,'l.body','Following Bills duly recorded in M.B. No.'+(m.mbNo||'')+' along with C.C. and necessary documents are submitted here with for favor of further disposal please')+'</p>';
+  h+='<div style="margin-top:34px" class="b">Name of Work :- '+bl(m.workName)+'</div>';
+  h+='<div style="display:flex;justify-content:space-between;margin-top:26px"><div>Doc.:-<div style="margin-left:34px;line-height:1.7">'+lines+'</div></div><div class="b" style="align-self:flex-start;margin-top:4px;text-align:left">Sub-Divisional Engineer,<br>P.W.Sub-Division, '+esc(m.subdiv)+'</div></div>';
+  return page(E,h);
+}
+
+/* ───────────── 2. CHECKLIST (देयकासोबत जोडावयाची तपासणी पत्रिका) ───────────── */
+var CHK=[
+ {id:'q10',no:'१०',t:'अंतरिम देय/अंतिम देयकाचे पृष्ठ भाग व भाग क्रमांक /१,२,३,४ योग्य रितीने भरला आहे काय ?'},
+ {id:'q11',no:'११',t:'उप-अभियंता/अधिका-याने व वरिष्ठ लिपीकांनी अंकगणितीय दृष्टीने तपासले का? व तसेच प्रमाणपत्र दिले आहे काय ?'},
+ {id:'q12',no:'१२',t:'तांत्रिक तपासणी केली काय ?'},
+ {id:'q13',no:'१३',t:'देयका सोबत जोडावयाचे प्रमाणपत्र',subs:['अ) काम पुर्ण झाले बाबतचे','ब) काम पुर्णत्वाचे नकाशे','क) ना देय प्रमाणपत्र (नोड्यूज सर्टिफिकेट)']},
+ {id:'q14',no:'१४',t:'पायाचे नकाशे अंतरिम देयकासोबत जोडले आहेत काय ?'},
+ {id:'q15',no:'१५',t:'बांधकाम साहित्याचे चाचणी परिक्षण अहवाल सोबत जोडलेले आहे काय? समाधान कारक आहे काय ?'},
+ {id:'q16',no:'१६',t:'निरिक्षण टिप्पणी (ओएम) प्रलंबित आहे काय? असल्यास त्या बाबतचा कारवाई वसुलीचा तपशील'},
+ {id:'q17',no:'१७',t:'उपयोगात आणलेल्या बांधकाम साहित्याचा हिशोब सोबत जोडला आहे काय? ए-१/२१६१',subs:['अ) सिमेन्ट खप','ब) लोखंड खप','क) खडी / सोलींग','ड) डांबर खप']},
+ {id:'q18',no:'१८',t:'डांबर खप नोंदवहीची छायांकित प्रत जोडली आहे काय ?'},
+ {id:'q19',no:'१९',t:'रस्त्यावर जमा केलेल्या खडीचे विवरणपत्र अस्तित्वातील खडीच्या जाडीचे व प्रस्तावित जाडीचे एकत्र विवरण पत्र.'},
+ {id:'q20',no:'२०',t:'लेखा परिक्षकांनी देयकाची तपासणी अंकगणितीय दृष्टीने केली काय? आणि निविदा प्रमाणे दर तपासणी केली काय ?'},
+ {id:'q21',no:'२१',t:'उप-अभियंता / उपविभागीय अधिकारी यांनी मोजमाप तपासणी केली काय? केली असल्यास त्याची टक्केवारी'},
+ {id:'q22',no:'२२',t:'उप-अभियंता / उपविभागीय अधिकारी यांनी झाकली जाणारी मोजमापे ही १००टक्के तपासणी झाली काय? त्या अंतर्गत रस्त्याची खडी इत्यादीचा समावेश होता / पाया खोदकामाचे फोटो जोडावे'},
+ {id:'q23',no:'२३',t:'अ) लोखंड, खडी वापरण्यापुर्वी मोजमापाची उलट तपासणी अन्य अधिका-यांकडून करुन घेण्यात आली काय?',subs:['ब) असल्यास त्याचे नाव व हुद्दा','क) नसल्यास त्या बाबतचे स्पष्टीकरण']},
+ {id:'q24',no:'२४',t:'करवसुल तक्ते सोबत जोडले काय? व त्यात अमुद्रांकित पावतीचा संदर्भ दिला आहे काय ?',subs:['अ) सिमेन्ट','ब) लोखंड','क) यंत्र सामुग्री किराय ए-१/२१६१','ड) हत्यारे व अवजारे (लॉगबुक कॉपीसह)','इ) सेंटरींग साहित्य.']},
+ {id:'q25',no:'२५',t:'डांबराचे मूळ गेट पास मोजमाप पुस्तिकेत नोंद घेतली आहे काय? पान क्र.......... मो.पु.क्र......................'},
+ {id:'q26',no:'२६',t:'प्राप्तीकर देयकातून कमी केला काय? व त्याचे प्रमाणपत्र सोबत जोडले काय ?'},
+ {id:'q27',no:'२७',t:'काम सुरु करण्यापुर्वीचे फोटो व काम पुर्ण झाल्याचा फोटो, देयकासोबत साक्षांकित केलेला जोडलेले आहे काय ?'},
+ {id:'q28',no:'२८',t:'काम पुर्णत्वाचा दाखला व हस्तांतरण अहवाल सोबत जोडलेला आहे काय ?'},
+ {id:'q29',no:'२९',t:'उपकार्यकारी अभियंता यांनी गेटपासच्या सत्यतेची तपासणी केली आहे काय ?'},
+ {id:'q30',no:'३०',t:'अंतरिम देयकामध्ये केलेल्या कामाच्या बाबीमध्ये संख्या वाढीचे कारण',subs:['अ) कामाची बाब','ब) निविदा प्रमाणे संख्या','क) केलेल्या कामाप्रमाणे संख्या']},
+ {id:'q31',no:'३१',t:'अंतिम देयकासोबत तुलनात्मक विवरणपत्र जोडले आहे काय? त्याची तपासणी लेखा विभाग / तांत्रिक विभाग याजकडून झाली आहे काय ?'},
+ {id:'q32',no:'३२',t:'कार्यकारी अभियंता यांची तपासणी टक्केवारी आवश्यक आहे काय ?'},
+ {id:'q33',no:'३३',t:'आर्थिक तरतुद निधी उपलब्धता.'}
+];
+var CHK_GROUPS=[{h:'चौकशी विभागाचा शेरा',from:0,to:4},{h:'तांत्रिक विभागाचा शेरा',from:4,to:13},{h:'तांत्रिक विभागाचा शेरा',from:13,to:CHK.length}];
+
+function ckDefault(id,sub,col,ctx){
+  if(col!==0)return '';
+  var k=id+'.'+sub;
+  var d={'q10.':1,'q11.':1,'q12.':1,'q13.0':1,'q13.2':1,'q31.':1};
+  if(d[k])return 'Yes';
+  if(id==='q17'){if(sub==='0'&&ctx.cement)return 'Yes';if(sub==='2'&&ctx.roy)return 'Yes';}
+  return '';
+}
+function ckCells(E,id,sub,ctx){
+  var h='';
+  for(var c=0;c<3;c++)h+='<td class="r">'+ce(E,'c.'+id+'.'+sub+'.'+c,ckDefault(id,sub,c,ctx),false)+'</td>';
+  return h;
+}
+function ckTable(E,g,ctx){
+  var h='<table class="t ck mr" style="margin-top:10px"><thead><tr><th>&nbsp;</th><th>उपविभागीय<br>कार्यालयाचा शेरा</th><th>लेखा विभागाचा<br>शेरा</th><th>'+g.h.replace(' शेरा','<br>शेरा')+'</th></tr></thead><tbody>';
+  for(var i=g.from;i<g.to;i++){
+    var r=CHK[i];
+    h+='<tr><td class="q"><b>'+r.no+')</b> '+ce(E,'qt.'+r.id,r.t,false)+'</td>'+ckCells(E,r.id,'',ctx)+'</tr>';
+    (r.subs||[]).forEach(function(s,si){
+      h+='<tr><td class="q sub">'+ce(E,'qt.'+r.id+'.'+si,s,false)+'</td>'+ckCells(E,r.id,String(si),ctx)+'</tr>';
+    });
+  }
+  return h+'</tbody></table>';
+}
+function issueBlock(E,key,title,sig){
+  var h='<div class="issues mr" style="margin-top:22px"><div class="b" style="text-decoration:underline;margin-bottom:6px">'+title+'</div>';
+  for(var i=1;i<=10;i++)h+='<div class="ln"><span>'+mrn(i)+'</span>'+ce(E,key+'.'+i,'',false)+'</div>';
+  h+='<div class="sigr mr" style="margin-top:6px">'+sig+'</div></div>';
+  return h;
+}
+function dChk(E){
+  var m=S.m,ctx={cement:cemCalc().rows.length>0,roy:royCalc().rows.length>0};
+  function kv(k,v){return '<div class="kv"><div class="k">'+k+'</div><div class="s">:-</div><div class="v">'+v+'</div></div>';}
+  var d=esc(m.division);
+  var h='<div class="mr"><div class="tc b" style="font-size:16px">सार्वजनिक बांधकाम विभाग, '+d+'</div><div class="tc" style="font-size:19px;font-weight:600;border-bottom:2px solid #333;padding-bottom:6px">देयकासोबत जोडावयाची तपासणी पत्रिका</div>';
+  h+='<div style="margin-top:10px">';
+  h+=kv('लेखा शिर्ष',ce(E,'k.ac',m.acHead));
+  h+=kv('अंतिम देयक /अंतरीम देयक',ce(E,'k.type','1st & Final Bill'));
+  h+=kv('१) कामाचे नांव',bl(m.workName));
+  h+=kv('२) अंदाजित रक्कम','Rs. '+(m.estLakhs?esc(m.estLakhs):'<span class="blank"></span>')+' Lakhs');
+  h+=kv('३) कंत्राटदाराचे नाव',bl(m.contractor));
+  h+=kv('४) करारपत्राचा क्रमांक',bl(m.agrNo)+(m.agrDate?' Dt.'+esc(m.agrDate):''));
+  h+=kv('५) निविदाची रक्कम','Rs. '+esc(tenderLakhs())+' Lakhs');
+  h+=kv('६) या देयकापर्यंत केलेल्या कामाची रक्कम व सदरील कामाची प्रगती खंड - २ प्रमाणे आहे काय ?',ce(E,'k.q6',''));
+  h+=kv('७) करारपत्राची विहित मुदत',ce(E,'k.q7',m.period));
+  h+=kv('८) मुदत वाढ','दिनांक '+ce(E,'k.q8a','')+' पर्यन्त माहे '+ce(E,'k.q8b',''));
+  h+=kv('९) मुदत ठेव (सेक्युरिटी डिपॉझिट)',ce(E,'k.q9',''));
+  h+='</div></div>';
+  h+=ckTable(E,CHK_GROUPS[0],ctx);
+  var p1=page(E,h);
+  var p2=page(E,ckTable(E,CHK_GROUPS[1],ctx));
+  var p3=page(E,ckTable(E,CHK_GROUPS[2],ctx));
+  var p4=page(E,issueBlock(E,'is.p','प्रकल्प शाखेतील तपासणीतील मुद्दे','शाखा अभियंता,<br>प्रकल्प शाखा,<br>सा.बां.विभाग,'+d)
+    +issueBlock(E,'is.a','लेखा शाखेतील तपासणीतील मुद्दे','लेखा शाखा,<br>सा.बां.विभाग,'+d)
+    +issueBlock(E,'is.e','कार्यकारी अभियंता यांच्या तपासणीतील मुद्दे','कार्यकारी अभियंता,<br>सा.बां.विभाग,'+d));
+  return p1+p2+p3+p4;
+}
+
+/* ───────────── 3. FORM 46 (P.W.412) — cover + bill ───────────── */
+function dF46cover(E){
+  var m=S.m;
+  var h='<div class="tr" style="font-size:12px">Outer P.W.413<br>(Half Sheet)</div>';
+  h+='<div style="margin-top:6px">Division:- &nbsp;<b>P.W.Division, '+esc(m.division)+'</b><br>Sub Division :- <b>'+ce(E,'f46.sub','P.W.S.P.Sub Division, '+m.division)+'</b></div>';
+  h+='<hr class="rule" style="margin-top:12px"><div class="tc b" style="font-size:15px">FORM 46 (P.W.412)</div><div class="tc b" style="font-size:24px;letter-spacing:.5px">FIRST AND FINAL BILL</div>';
+  h+='<div class="tc" style="font-size:12px">(Referred to in Paragraph 10-2-10 of M.P.W.A. Code)</div><div class="tc b" style="font-size:19px">CASH – BOOK VOUCHER NO.</div><div class="tc b" style="font-size:17px">FOR</div><hr class="rule">';
+  h+='<div style="margin-top:22px">Name of Contractor Piece Work Supplier :- <b>'+bl(m.contractor)+'</b></div>';
+  h+='<div style="margin-top:34px">Agreement / Rate List Requisition</div>';
+  h+='<div style="margin-top:14px">No. <b>'+bl(m.agrNo)+'</b> &nbsp;of &nbsp;<span class="blank" style="min-width:40px"></span>&nbsp; Dt. <b>'+bl(m.agrDate)+'</b></div>';
+  h+='<div style="margin-top:22px">Name of Work :- <b>'+bl(m.workName)+'</b></div>';
+  h+='<div style="margin-top:18px;line-height:1.9;max-width:55%">Transaction of road side material entered in the statement of receipts issues and balance or road metal.</div>';
+  h+='<div style="display:flex;justify-content:space-between;margin-top:34px"><span>Clerk</span><span>Accountant</span><span>( For use in Accountant General’s officer)</span></div>';
+  h+='<div style="display:flex;justify-content:space-between;margin-top:34px"><span>(For use Divisional Office)</span><span>Audited</span><span>Received</span></div>';
+  h+='<div style="display:flex;justify-content:space-between;margin-top:34px"><span>Checked</span><span>Audited</span><span>Superintendent/Gazetted officer</span></div>';
+  h+='<div style="display:flex;justify-content:space-between;margin-top:34px"><span>Account Clerk</span><span>Divisional Accountant</span></div>';
+  return page(E,h);
+}
+function billRowHtml(r){
+  if(r.kind==='vqc')return '<tr><td></td><td class="b">Item No.'+r.no+' : - '+esc(r.desc)+'</td><td></td><td></td><td></td><td></td></tr>';
+  var isItem=r.kind!=='test';
+  var label=isItem?'<span class="b">Item No.'+r.no+' : -</span> '+esc(r.desc):'<b>'+esc(r.desc)+'</b>';
+  return '<tr><td class="n">'+n2(r.q)+'</td><td>'+label+'</td><td class="n">'+n2(r.r)+'</td><td class="c">'+esc(r.unit||'')+'</td><td class="n">'+n2(r.amt)+'</td><td></td></tr>';
+}
+function dF46bill(E){
+  var m=S.m,B=billCalc();
+  var h='<div class="tc b" style="font-size:20px">FIRST AND FINAL BILL</div>';
+  h+='<div class="b" style="margin:4px 0">Name of Work :- '+bl(m.workName)+'</div>';
+  h+='<table class="t" style="font-size:12.5px"><thead><tr><th style="width:8%">Quantity</th><th>Items of work grouped under sub work of estimate</th><th style="width:10%">Rate</th><th style="width:7%">Unit</th><th style="width:12%">Amount</th><th style="width:7%">Rs.</th></tr><tr><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th></tr></thead><tbody>';
+  B.rows.filter(function(r){return r.sec==='A';}).forEach(function(r){h+=billRowHtml(r);});
+  h+='<tr class="tot"><td colspan="4" class="n">Total - A Rs.</td><td class="n">'+n2(B.tA)+'</td><td></td></tr>';
+  B.rows.filter(function(r){return r.sec==='B';}).forEach(function(r){h+=billRowHtml(r);});
+  h+='<tr class="tot"><td colspan="4" class="n">Total - B Rs.</td><td class="n">'+n2(B.tB)+'</td><td></td></tr>';
+  h+='<tr class="tot"><td colspan="4" class="n">Total A+B Rs.</td><td class="n">'+n2(B.total)+'</td><td></td></tr></tbody></table>';
+  var se=m.se?('Shri '+esc(m.se)):'<span class="blank" style="min-width:120px"></span>';
+  h+='<div style="display:flex;gap:18px;margin-top:10px;font-size:12px;line-height:1.7"><div style="flex:1.25">';
+  h+='Measurements recorded by <b>'+se+' Sectional Engineer</b>, on <span class="blank"></span><br>M. Book No. <b>'+bl(m.mbNo)+'</b> &nbsp;Page No. <b>'+bl(m.mbPage)+'</b><br>';
+  h+='The Sub Divisional officer on <span class="blank"></span> and <span class="blank"></span> and checked <b>'+esc(m.checkedPct||'')+'</b>&nbsp;% by <span class="blank"></span><br>checked by E.E. on <span class="blank"></span> and <span class="blank"></span> &nbsp;<span class="blank" style="min-width:30px"></span>%';
+  h+='<div style="margin-top:22px;display:flex;justify-content:space-between"><div style="line-height:1.6">Date Signature of officer preparing the bill<br>pay by cash / Cheque Rs. <span class="blank"></span><br>Dated Signature of the officer authorizing payment<br><span class="blank" style="min-width:150px"></span><br>This Signature necessary only when the officer preparing the bill is officer authorizing payment</div><div class="b" style="align-self:flex-end;text-align:center">Executive Engineer,<br>P.W.D. '+esc(m.division)+'</div></div></div>';
+  h+='<div style="flex:1;line-height:1.9">Received Rs. ( <span class="blank" style="min-width:230px"></span> )<br>In full settlement of all demands and account of this <span style="display:inline-block;width:70px;height:46px;border:1px solid #000;vertical-align:middle"></span><br><div style="margin-left:60px">witness <span class="blank"></span> payee’s dated signature<br>vide Cheque No. <span class="blank"></span> Dated <span class="blank" style="min-width:50px"></span><br>by Cash <span class="blank"></span> Paid by me <span class="blank"></span><br>Dated initials of person making the payment</div></div></div>';
+  return page(E,h,true);
+}
+function dF46(E,forPrint){
+  var cover=dF46cover(E),bill=dF46bill(E);
+  if(!forPrint)return cover+bill;
+  var n=Math.max(1,Math.min(5,parseInt(S.m.copies,10)||1)),out='';
+  for(var i=0;i<n;i++)out+=cover+bill;
+  return out;
+}
+
+/* ───────────── 4. COMPARATIVE STATEMENT ───────────── */
+function dCmp(E){
+  var m=S.m,B=billCalc();
+  var h='<div class="tc b" style="font-size:20px;letter-spacing:.5px">COMPARATIVE STATEMENT</div>';
+  h+='<div class="b" style="margin:8px 0 2px">Name of Work :- '+bl(m.workName)+'</div><div class="b" style="margin-bottom:8px">Name of agency :- '+bl(m.contractor)+'</div>';
+  h+='<table class="t" style="font-size:12px"><thead><tr><th rowspan="2">Item of Work</th><th colspan="3">As per Tender</th><th colspan="3">As per Actual</th><th rowspan="2" style="width:7%">Excess</th><th rowspan="2" style="width:7%">Less</th><th rowspan="2" style="width:11%">Remarks</th></tr><tr><th>Qty</th><th>Rate</th><th>Amount</th><th>Qty</th><th>Rate</th><th>Amount</th></tr>';
+  h+='<tr><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th><th>10</th><th>11</th></tr></thead><tbody>';
+  B.rows.forEach(function(r){
+    if(r.kind==='vqc'){h+='<tr><td class="b">Item No.'+r.no+' : - '+esc(r.desc)+'</td><td colspan="9"></td></tr>';return;}
+    var d=r.amt-r.tamt,ex=d>0?d:0,le=d<0?-d:0;
+    var label=r.kind==='test'?'<b>'+esc(r.desc)+'</b>':'<span class="b">Item No.'+r.no+' : -</span> '+esc(r.desc);
+    h+='<tr><td>'+label+'</td><td class="n">'+n2(r.tq)+'</td><td class="n">'+n2(r.r)+'</td><td class="n">'+n2(r.tamt)+'</td><td class="n">'+n2(r.q)+'</td><td class="n">'+n2(r.r)+'</td><td class="n">'+n2(r.amt)+'</td><td class="n">'+n2(ex)+'</td><td class="n">'+n2(le)+'</td><td>'+ce(E,'cmp.'+r.key,'',false)+'</td></tr>';
+  });
+  h+='<tr class="tot"><td class="n">Total Rs.</td><td></td><td></td><td class="n">'+n2(B.ttotal)+'</td><td></td><td></td><td class="n">'+n2(B.total)+'</td><td class="n">'+n2(B.excess)+'</td><td class="n">'+n2(B.less)+'</td><td></td></tr></tbody></table>';
+  var net=B.total-B.ttotal;
+  h+='<div style="margin-top:8px;font-size:12px" class="b">'+(net>=0?'Net Excess':'Net Less')+' = Rs. '+n2(Math.abs(net))+' ('+(B.ttotal>0?(Math.abs(net)/B.ttotal*100).toFixed(2):'0.00')+'% of tender)</div>';
+  h+=sigSDE();
+  return page(E,h,true);
+}
+
+/* ───────────── 5. CEMENT CONSUMPTION STATEMENT ───────────── */
+function dCem(E){
+  var m=S.m,C=cemCalc();
+  var h='<div class="tc b" style="font-size:18px">CEMENT CONSUMPTION STATEMENT</div>';
+  h+='<div class="b" style="margin:14px 0 4px">Name of Work :- '+bl(m.workName)+'</div><div class="b" style="margin-bottom:12px">Name of agency :- '+bl(m.contractor)+'</div>';
+  h+='<table class="t" style="font-size:12.5px"><thead><tr><th style="width:6%">Sr. No.</th><th>Item of work</th><th style="width:11%">Quantity</th><th style="width:12%">Rate of Consumption</th><th style="width:13%">Theoretical Consumption (Bags)</th><th style="width:13%">Actual Consumption (Bags)</th><th style="width:11%">Remarks</th></tr><tr><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th></tr></thead><tbody>';
+  if(!C.rows.length)h+='<tr><td colspan="7" class="c" style="padding:14px">— Cement CF असलेला item नाही —</td></tr>';
+  C.rows.forEach(function(r,i){
+    var cfCell=E?'<input class="ni" value="'+n3(r.cf)+'" onchange="cemSet(\''+r.id+'\',\'cf\',this.value)">':n3(r.cf);
+    var acCell=E?'<input class="ni" value="'+n2(r.ac)+'" onchange="cemSet(\''+r.id+'\',\'act\',this.value)">':n2(r.ac);
+    h+='<tr><td class="c">'+(i+1)+'</td><td><b>'+esc(r.desc)+'</b></td><td class="n">'+n2(r.q)+'</td><td class="n">'+cfCell+'</td><td class="n">'+n2(r.th)+'</td><td class="n">'+acCell+'</td><td>'+ce(E,'cem.'+r.id,'',false)+(E&&r.extra?' <span class="mini" onclick="cemDel(\''+r.id+'\')">✕</span>':'')+'</td></tr>';
+  });
+  h+='<tr class="tot"><td></td><td></td><td></td><td class="n">Total</td><td class="n">'+n2(C.tt)+'</td><td class="n">'+n2(C.ta)+'</td><td></td></tr></tbody></table>';
+  h+='<div class="noprint" style="margin-top:8px"><button class="mini" onclick="cemAdd()">＋ manual row जोडा</button> <span style="font-size:11px;color:#666">(Rate of Consumption / Actual पिवळ्या box मध्ये बदलता येतो)</span></div>';
+  h+=sigSDE();
+  return page(E,h);
+}
+
+/* ───────────── 6. ROYALTY CHARGES STATEMENT ───────────── */
+function dRoy(E){
+  var m=S.m,R=royCalc(),tot=R.G.sand.amt+R.G.other.amt;
+  var h='<div class="tc b" style="font-size:18px;letter-spacing:2px">ROYALTY CHARGES STATEMENT</div>';
+  h+='<div class="b" style="margin:14px 0 4px">Name of Work :- '+bl(m.workName)+'</div><div class="b" style="margin-bottom:12px">Name of agency :- '+bl(m.contractor)+'</div>';
+  h+='<table class="t" style="font-size:12.5px"><thead><tr><th style="width:6%">Sr.No.</th><th>Item of Work</th><th style="width:10%">Quantity</th><th style="width:9%">Rate</th><th style="width:11%">Net Qty.</th><th style="width:11%">Rate</th><th style="width:14%">Amount</th></tr><tr><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th></tr></thead><tbody>';
+  var sec=0;
+  [['sand','For sand'],['other','For other material']].forEach(function(gp){
+    var rows=R.rows.filter(function(r){return r.g===gp[0];});if(!rows.length)return;
+    sec++;h+='<tr><td class="c">'+sec+'</td><td colspan="6" class="b">'+gp[1]+'</td></tr>';
+    rows.forEach(function(r){
+      var label=r.extra?(E?'<input class="nw" value="'+esc(r.desc)+'" onchange="royXSet(\''+r.id+'\',\'desc\',this.value)">':esc(r.desc)):esc(r.desc)+(r.multi?' <i>('+esc(r.mat)+')</i>':'');
+      var qCell=r.extra&&E?'<input class="ni" value="'+n2(r.q)+'" onchange="royXSet(\''+r.id+'\',\'qty\',this.value)">':n2(r.q);
+      var cfCell=E?'<input class="ni" value="'+n3(r.cf)+'" onchange="'+(r.extra?'royXSet(\''+r.id+'\',\'cf\',this.value)':'royOv(\''+r.key+'\',\'cf\',this.value)')+'">':n3(r.cf);
+      var rtCell=E?'<input class="ni" value="'+n2(r.rate)+'" onchange="'+(r.extra?'royXSet(\''+r.id+'\',\'rate\',this.value)':'royOv(\''+r.key+'\',\'rate\',this.value)')+'">':n2(r.rate);
+      h+='<tr><td></td><td>'+label+(E&&r.extra?' <span class="mini" onclick="royXDel(\''+r.id+'\')">✕</span>':'')+'</td><td class="n">'+qCell+'</td><td class="n">'+cfCell+'</td><td class="n">'+n2(r.net)+'</td><td class="n">'+rtCell+'</td><td class="n">'+n2(r.amt)+'</td></tr>';
+    });
+  });
+  if(!R.rows.length)h+='<tr><td colspan="7" class="c" style="padding:14px">— Royalty लागू असलेला item नाही —</td></tr>';
+  h+='<tr class="tot"><td></td><td></td><td></td><td></td><td></td><td></td><td class="n">'+n2(tot)+'</td></tr></tbody></table>';
+  h+='<div class="noprint" style="margin-top:8px"><button class="mini" onclick="royXAdd(\'other\')">＋ other material row</button> <button class="mini" onclick="royXAdd(\'sand\')">＋ sand row</button></div>';
+  h+=sigSDE();
+  return page(E,h);
+}
+
+/* ───────────── 7. NO DUES AND COMPLETION CERTIFICATE ───────────── */
+function dCert(E){
+  var m=S.m;
+  var h='<div class="tc b" style="font-size:19px;margin-top:20px">NO DUES AND COMPLETION CERTIFICATE</div>';
+  function row(k,v){return '<div style="display:flex;gap:8px;margin-top:14px"><div style="flex:0 0 190px">'+k+'</div><div>:-</div><div class="b" style="flex:1">'+v+'</div></div>';}
+  h+='<div style="margin-top:20px">'+row('Name of Work',bl(m.workName))+row('Name of Agency',bl(m.contractor))+row('Agreement No. &amp; Date',bl(m.agrNo)+(m.agrDate?' &nbsp;Dt. '+esc(m.agrDate):''))+row('Date of Completion','Dt. '+bl(m.completionDate))+'</div>';
+  h+='<p style="margin-top:36px;line-height:2;text-indent:40px">'+ce(E,'cert.body','This is to certify that there are no dues or recoveries outstanding against the Agency. The above work is completed in all respects and according to the specification.')+'</p>';
+  h+=sigSDE().replace('margin-top:26px','margin-top:70px');
+  return page(E,h);
+}
+
+/* ───────────── registry ───────────── */
+var DOCS=[
+ {id:'letter',label:'Forwarding Letter',fn:dLetter},
+ {id:'chk',label:'तपासणी पत्रिका',fn:dChk},
+ {id:'f46',label:'Form 46 Bill',fn:dF46},
+ {id:'cmp',label:'Comparative',fn:dCmp},
+ {id:'cem',label:'Cement',fn:dCem},
+ {id:'roy',label:'Royalty',fn:dRoy},
+ {id:'cert',label:'No Dues Cert.',fn:dCert}
+];
+
+/* ═══════════════════════════════════════════════════════════
+   UI
+   ═══════════════════════════════════════════════════════════ */
+var TAB='det';
+var TABS=[{id:'det',label:'1 Details'},{id:'items',label:'2 Items & Qty'}].concat(DOCS.map(function(d,i){return{id:d.id,label:(i+3)+' '+d.label};}));
+
+function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.style.display='block';clearTimeout(toast._t);toast._t=setTimeout(function(){t.style.display='none';},3200);}
+
+function renderTabs(){
+  document.getElementById('tabs').innerHTML=TABS.map(function(t){return '<button class="'+(t.id===TAB?'on':'')+'" onclick="go(\''+t.id+'\')">'+esc(t.label)+'</button>';}).join('');
+}
+function go(id){TAB=id;renderTabs();render();window.scrollTo(0,0);}
+function render(){
+  var v=document.getElementById('view');
+  if(TAB==='det'){v.innerHTML=viewDetails();return;}
+  if(TAB==='items'){v.innerHTML=viewItems();updTotals();return;}
+  var d=DOCS.filter(function(x){return x.id===TAB;})[0];
+  var bar='<div class="docbar"><button class="btn g" onclick="printDocs([\''+d.id+'\'])">🖨️ Print: '+esc(d.label)+'</button><button class="btn l" onclick="render()">🔄 Refresh</button><span class="note">पिवळ्या जागा थेट editable आहेत. Qty/Rate बदलायचे असल्यास "2 Items &amp; Qty" tab वापरा.</span></div>';
+  v.innerHTML=bar+'<div class="paperwrap">'+d.fn(true)+'</div>';
+}
+
+/* ── Details ── */
+function fld(label,path,opts){
+  opts=opts||{};var m=S.m,val=m[path]==null?'':m[path];
+  var inner=opts.area?'<textarea oninput="setM(\''+path+'\',this.value)" placeholder="'+esc(opts.ph||'')+'">'+esc(val)+'</textarea>'
+    :'<input value="'+esc(val)+'" placeholder="'+esc(opts.ph||'')+'" oninput="setM(\''+path+'\',this.value)">';
+  return '<div class="fld'+(opts.full?' full':'')+'"><label>'+label+'</label>'+inner+'</div>';
+}
+function setM(p,v){S.m[p]=v;persist();}
+function viewDetails(){
+  var h='<div class="warn">ℹ️ Division / Sub-Division चे नाव मुद्दाम <b>ABCD / XYZ</b> ठेवले आहे — तुमच्या कार्यालयाचे नाव आपोआप कुठेही येत नाही. हवे असल्यास खाली बदला.</div>';
+  h+='<div class="card"><h3>कार्यालय</h3><div class="grid">'+fld('Division (EE office) — e.g. ABCD','division',{ph:'ABCD'})+fld('Sub-Division (SDE office) — e.g. XYZ','subdiv',{ph:'XYZ'})+fld('Sectional Engineer (Shri ...)','se',{ph:'नाव (MB record करणारे)'})+fld('लेखा शिर्ष (Account Head)','acHead')+'</div></div>';
+  h+='<div class="card"><h3>काम व कंत्राटदार</h3><div class="grid">'+fld('Name of Work','workName',{area:1,full:1})+fld('Contractor / Agency','contractor')+fld('Agreement No. (e.g. B-1/80)','agrNo')+fld('Agreement Date (e.g. 25.6.2026)','agrDate')+fld('करारपत्राची विहित मुदत','period')+fld('काम पूर्ण दिनांक (Completion)','completionDate',{ph:'dd.mm.yyyy'})+'</div></div>';
+  h+='<div class="card"><h3>रक्कम / MB</h3><div class="grid">'+fld('अंदाजित रक्कम (Lakhs) — Estimate मधून आपोआप','estLakhs',{ph:'e.g. 5.40'})+fld('निविदा रक्कम (Lakhs) — रिकामे = Tender qty×rate वरून आपोआप','tenderLakhs',{ph:'auto: '+lakhs(billCalc().ttotal)})+fld('M.B. No.','mbNo')+fld('M.B. Page No.','mbPage')+fld('Bill checked by SDE (%)','checkedPct')+fld('Letter Date','letterDate',{ph:'dd.mm.yyyy'})+'</div></div>';
+  h+='<div class="card"><h3>Print पर्याय</h3><div class="grid"><div class="fld"><label>Form 46 (Cover + Bill) copies — Triplicate = 3</label><select onchange="setM(\'copies\',this.value)">'+[1,2,3,4,5].map(function(n){return '<option'+(+S.m.copies===n?' selected':'')+'>'+n+'</option>';}).join('')+'</select></div>'
+    +fld('Forwarding letter — Doc. यादी (प्रत्येक ओळ = एक doc; {MB} = MB No.)','docLines',{area:1,full:1})+'</div></div>';
+  h+='<div class="card"><button class="btn n" onclick="go(\'items\')">पुढे → Items &amp; Qty</button></div>';
+  return h;
+}
+
+/* ── Items ── */
+function viewItems(){
+  var h='<div class="card"><h3>A) Work items (Total A)</h3><p class="note">Tender Qty = estimate मधील qty. Executed Qty = MB प्रमाणे प्रत्यक्ष qty — ती बदला, बाकी सर्व (Bill, Comparative, Cement, Royalty, Checklist) आपोआप बदलते. Amount = Qty × Rate (whole ₹ मध्ये round).</p>';
+  h+='<div class="docbar"><button class="btn n sm" onclick="openEst()">📂 Estimate मधून items घ्या</button><button class="btn l sm" onclick="addItem()">＋ Item जोडा</button><button class="btn l sm" onclick="copyQty()">Executed = Tender (सर्व)</button></div>';
+  h+='<div class="scroll"><table class="tbl"><thead><tr><th>#</th><th>SSR No.</th><th style="min-width:230px">Description (Bill मध्ये दिसेल)</th><th>Unit</th><th>Rate</th><th>Tender Qty</th><th>Executed Qty</th><th>Tender ₹</th><th>Actual ₹</th><th></th></tr></thead><tbody>';
+  if(!S.items.length)h+='<tr><td colspan="10" class="note" style="padding:14px">अजून items नाहीत — वर "Estimate मधून items घ्या" वापरा किंवा "Item जोडा".</td></tr>';
+  S.items.forEach(function(it,i){
+    h+='<tr><td>'+(i+1)+'</td><td style="min-width:62px"><input value="'+esc(it.no)+'" onchange="itSet('+i+',\'no\',this.value)"></td>'
+     +'<td><textarea onchange="itSet('+i+',\'desc\',this.value)">'+esc(it.desc)+'</textarea></td>'
+     +'<td style="min-width:56px"><input value="'+esc(it.unit)+'" onchange="itSet('+i+',\'unit\',this.value)"></td>'
+     +'<td style="min-width:84px"><input inputmode="decimal" value="'+esc(it.rate)+'" oninput="itSet('+i+',\'rate\',this.value,1)"></td>'
+     +'<td style="min-width:80px"><input inputmode="decimal" value="'+esc(it.estQty)+'" oninput="itSet('+i+',\'estQty\',this.value,1)"></td>'
+     +'<td style="min-width:80px"><input inputmode="decimal" value="'+esc(it.qty)+'" oninput="itSet('+i+',\'qty\',this.value,1)"></td>'
+     +'<td class="ro" id="ta'+i+'"></td><td class="ro" id="aa'+i+'"></td><td><button class="btn r sm" onclick="itDel('+i+')">✕</button></td></tr>';
+  });
+  h+='</tbody></table></div></div>';
+
+  h+='<div class="card"><h3>B) Royalty</h3><div class="grid"><div class="fld"><label><input type="checkbox" style="width:auto" '+(S.roy.on?'checked':'')+' onchange="S.roy.on=this.checked;persist();updTotals()"> Royalty charges Bill मध्ये घ्या (CF × Executed qty)</label></div>'
+    +'<div class="fld"><label>Royalty rate — other material (murum/metal/soling) ₹/Cum</label><input inputmode="decimal" value="'+esc(S.roy.rateMurum)+'" oninput="S.roy.rateMurum=this.value;persist();updTotals()"></div>'
+    +'<div class="fld"><label>Royalty rate — sand ₹/Cum</label><input inputmode="decimal" value="'+esc(S.roy.rateSand)+'" oninput="S.roy.rateSand=this.value;persist();updTotals()"></div></div>'
+    +'<p class="note">Royalty Statement tab मध्ये प्रत्येक row चा CF / rate वेगळा बदलता येतो. CF नसलेल्या item साठी तिथे manual row जोडा.</p></div>';
+
+  h+='<div class="card"><h3>B) V&amp;QC / Testing charges</h3><div class="docbar"><button class="btn l sm" onclick="addTest()">＋ Test row</button><button class="btn l sm" onclick="addTest(\'C.C. cube\',\'Test\',725)">＋ C.C. cube (₹725)</button></div>';
+  h+='<div class="scroll"><table class="tbl"><thead><tr><th>Test / Description</th><th>Unit</th><th>Tender Qty</th><th>Executed Qty</th><th>Rate</th><th>Amount</th><th></th></tr></thead><tbody>';
+  if(!S.tests.length)h+='<tr><td colspan="7" class="note" style="padding:10px">Test charges नसल्यास रिकामे ठेवा.</td></tr>';
+  S.tests.forEach(function(t,i){
+    h+='<tr><td><input value="'+esc(t.desc)+'" onchange="tSet('+i+',\'desc\',this.value)"></td><td style="min-width:56px"><input value="'+esc(t.unit)+'" onchange="tSet('+i+',\'unit\',this.value)"></td>'
+     +'<td style="min-width:70px"><input inputmode="decimal" value="'+esc(t.tq)+'" oninput="tSet('+i+',\'tq\',this.value,1)"></td><td style="min-width:70px"><input inputmode="decimal" value="'+esc(t.qty)+'" oninput="tSet('+i+',\'qty\',this.value,1)"></td>'
+     +'<td style="min-width:80px"><input inputmode="decimal" value="'+esc(t.rate)+'" oninput="tSet('+i+',\'rate\',this.value,1)"></td><td class="ro" id="tt'+i+'"></td><td><button class="btn r sm" onclick="tDel('+i+')">✕</button></td></tr>';
+  });
+  h+='</tbody></table></div></div>';
+
+  h+='<div class="card"><h3>B) इतर charges (optional)</h3><div class="docbar"><button class="btn l sm" onclick="addXB()">＋ Row जोडा</button></div><div class="scroll"><table class="tbl"><thead><tr><th>Description</th><th>Unit</th><th>Tender Qty</th><th>Executed Qty</th><th>Rate</th><th>Amount</th><th></th></tr></thead><tbody>';
+  S.extraB.forEach(function(t,i){
+    h+='<tr><td><input value="'+esc(t.desc)+'" onchange="xSet('+i+',\'desc\',this.value)"></td><td><input value="'+esc(t.unit)+'" onchange="xSet('+i+',\'unit\',this.value)"></td><td><input inputmode="decimal" value="'+esc(t.tq)+'" oninput="xSet('+i+',\'tq\',this.value,1)"></td><td><input inputmode="decimal" value="'+esc(t.qty)+'" oninput="xSet('+i+',\'qty\',this.value,1)"></td><td><input inputmode="decimal" value="'+esc(t.rate)+'" oninput="xSet('+i+',\'rate\',this.value,1)"></td><td class="ro" id="xt'+i+'"></td><td><button class="btn r sm" onclick="xDel('+i+')">✕</button></td></tr>';
+  });
+  h+='</tbody></table></div></div>';
+
+  h+='<div class="sum" id="sumBox"></div>';
+  return h;
+}
+/* live totals without re-rendering inputs (keeps cursor/keyboard) */
+function updTotals(){
+  S.items.forEach(function(it,i){var a=document.getElementById('aa'+i),t=document.getElementById('ta'+i);if(a)a.textContent=inr(amt(it.qty,it.rate));if(t)t.textContent=inr(amt(it.estQty,it.rate));});
+  S.tests.forEach(function(t,i){var e=document.getElementById('tt'+i);if(e)e.textContent=inr(amt(t.qty,t.rate));});
+  S.extraB.forEach(function(t,i){var e=document.getElementById('xt'+i);if(e)e.textContent=inr(amt(t.qty,t.rate));});
+  var B=billCalc(),el=document.getElementById('sumBox');
+  if(el)el.innerHTML='<div>Total A<b>₹ '+inr(B.tA)+'</b></div><div>Total B (Royalty+V&amp;QC)<b>₹ '+inr(B.tB)+'</b></div><div>Total A+B (Bill)<b>₹ '+inr(B.total)+'</b></div><div>Tender total<b>₹ '+inr(B.ttotal)+'</b></div><div>Excess<b style="color:var(--green)">₹ '+inr(B.excess)+'</b></div><div>Less<b style="color:var(--red)">₹ '+inr(B.less)+'</b></div>';
+}
+function itSet(i,f,v,live){S.items[i][f]=v;persist();if(live)updTotals();}
+function itDel(i){if(!confirm('हा item काढायचा?'))return;S.items.splice(i,1);persist();render();}
+function addItem(){S.items.push({id:uid(),no:'',desc:'',unit:'Cum',rate:'',estQty:'',qty:'',cf:null});persist();render();}
+function copyQty(){S.items.forEach(function(it){it.qty=it.estQty;});S.tests.forEach(function(t){t.qty=t.tq;});persist();render();toast('Executed qty = Tender qty');}
+function addTest(d,u,r){S.tests.push({id:uid(),desc:d||'',unit:u||'Test',tq:1,qty:1,rate:r||''});persist();render();}
+function tSet(i,f,v,live){S.tests[i][f]=v;persist();if(live)updTotals();}
+function tDel(i){S.tests.splice(i,1);persist();render();}
+function addXB(){S.extraB.push({id:uid(),desc:'',unit:'',tq:1,qty:1,rate:''});persist();render();}
+function xSet(i,f,v,live){S.extraB[i][f]=v;persist();if(live)updTotals();}
+function xDel(i){S.extraB.splice(i,1);persist();render();}
+
+/* ── Doc inline handlers (cement / royalty) ── */
+function cemSet(id,k,v){var ex=S.cem.extra.filter(function(x){return x.id===id;})[0];
+  if(ex){if(k==='cf')ex.cf=v;else ex.act=v;}else S.cem[k][id]=v;persist();render();}
+function cemAdd(){S.cem.extra.push({id:uid(),desc:prompt('Item description?','')||'Item',qty:+prompt('Quantity?','0')||0,cf:+prompt('Cement bags per unit (CF)?','0')||0});persist();render();}
+function cemDel(id){S.cem.extra=S.cem.extra.filter(function(x){return x.id!==id;});persist();render();}
+function royOv(key,k,v){S.roy.ov[key]=S.roy.ov[key]||{};S.roy.ov[key][k]=v;persist();render();}
+function royXAdd(g){S.roy.extra.push({id:uid(),g:g,desc:prompt('Description?','')||'Material',qty:+prompt('Quantity (Cum)?','0')||0,cf:1,rate:g==='sand'?S.roy.rateSand:S.roy.rateMurum});persist();render();}
+function royXSet(id,k,v){var x=S.roy.extra.filter(function(e){return e.id===id;})[0];if(x)x[k]=v;persist();render();}
+function royXDel(id){S.roy.extra=S.roy.extra.filter(function(x){return x.id!==id;});persist();render();}
+
+/* contenteditable → state */
+document.addEventListener('input',function(e){var t=e.target;
+  if(t&&t.classList&&t.classList.contains('ce')){S.txt[t.getAttribute('data-k')]=t.innerText.replace(/\n$/,'');persist();}});
+
+/* ═══════════════════════════════════════════════════════════
+   LOAD FROM ESTIMATE (Firebase 'estimates' collection)
+   Pulls: items (no, desc, unit, rate, qty, cf), work name, contractor, grand total.
+   Does NOT pull division / sub-division → ABCD / XYZ stay.
+   ═══════════════════════════════════════════════════════════ */
+var SEL_EST=null;
+function openEst(){
+  if(!DB){toast('Firebase उपलब्ध नाही — items manually भरा');return;}
+  if(!CU){openLogin();return;}
+  SEL_EST=null;document.getElementById('btnLoadEst').disabled=true;
+  document.getElementById('estList').innerHTML='<p class="note">Loading…</p>';openModal('estModal');
+  DB.collection('estimates').where('uid','==',CU.uid).orderBy('updatedAt','desc').limit(50).get().then(function(snap){
+    if(snap.empty){document.getElementById('estList').innerHTML='<p class="note">Saved estimates नाहीत. Estimator मध्ये estimate save करा.</p>';return;}
+    var h='';snap.forEach(function(doc){var d=doc.data(),n=(d.items||[]).length,dt=d.updatedAt&&d.updatedAt.toDate?d.updatedAt.toDate().toLocaleDateString('en-IN'):'—';
+      h+='<div class="est" id="e_'+doc.id+'" onclick="selEst(\''+doc.id+'\')"><b>'+esc(d.name||'Untitled Estimate')+'</b><span>'+dt+' | '+n+' items'+(d.grand?' | ₹'+inr(d.grand):'')+'</span></div>';});
+    document.getElementById('estList').innerHTML=h;
+  }).catch(function(e){document.getElementById('estList').innerHTML='<p class="note" style="color:var(--red)">'+esc(e.message)+'</p>';});
+}
+function selEst(id){SEL_EST=id;document.querySelectorAll('.est').forEach(function(x){x.classList.remove('sel');});var el=document.getElementById('e_'+id);if(el)el.classList.add('sel');document.getElementById('btnLoadEst').disabled=false;}
+function loadEst(){
+  if(!SEL_EST)return;
+  DB.collection('estimates').doc(SEL_EST).get().then(function(doc){
+    if(!doc.exists){toast('Estimate सापडला नाही');return;}
+    var d=doc.data(),src=d.items||[];if(!src.length){toast('Items नाहीत');return;}
+    if(S.items.length&&!confirm('सध्याचे items बदलले जातील. चालेल?'))return;
+    var meta=d.cover||d.meta||{};
+    S.items=[];
+    src.forEach(function(it,i){
+      var rate=parseFloat(it.finalRate)||parseFloat(it.baseRate)||parseFloat(it.rate)||parseFloat(it.rateAmt)||parseFloat(it.ssrRate)||parseFloat(it.unitRate)||parseFloat(it.basicRate)||0;
+      var q=parseFloat(it.qty)||parseFloat(it.estQty)||0;
+      S.items.push({id:uid(),no:String(it.no||'').trim(),desc:it.desc||it.description||'',unit:it.unit||'',rate:rate,estQty:q,qty:q,cf:(it.cf&&typeof it.cf==='object')?it.cf:null});
+    });
+    if(meta.pName&&!S.m.workName)S.m.workName=meta.pName;
+    if(meta.contractor&&!S.m.contractor)S.m.contractor=meta.contractor;
+    if(d.grand)S.m.estLakhs=lakhs(d.grand);
+    // forwarding-letter doc list: add Steel / Asphalt lines only if estimate really uses them
+    var hasSteel=S.items.some(function(x){var c=itemCF(x);return c&&c.ms_bars;}),hasBit=S.items.some(function(x){var c=itemCF(x);return c&&c.bitumen;});
+    var L=DOC_LINES_DEFAULT.split('\n');
+    if(hasBit)L.splice(4,0,'Asphalt Cons.');if(hasSteel)L.splice(4,0,'Steel statement');
+    S.m.docLines=L.join('\n');
+    S.tests=S.tests||[];S.roy.ov={};S.cem.cf={};S.cem.act={};
+    persist();closeModal('estModal');go('items');
+    var noRate=S.items.filter(function(x){return !num(x.rate);}).length;
+    toast('✅ '+S.items.length+' items load झाले'+(noRate?(' — ⚠️ '+noRate+' items ला rate नाही'):''));
+  }).catch(function(e){toast('Load error: '+e.message);});
+}
+
+/* ═══════════════════════════════════════════════════════════
+   PRINT
+   ═══════════════════════════════════════════════════════════ */
+function printDocs(ids){
+  var html='';
+  ids.forEach(function(id){var d=DOCS.filter(function(x){return x.id===id;})[0];html+=(id==='f46')?dF46(false,true):d.fn(false);});
+  var w=window.open('','_blank');
+  if(!w){toast('Popup block झाला — browser मध्ये popup allow करा');return;}
+  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>1st &amp; Final Bill</title>'
+    +'<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600;700&display=swap" rel="stylesheet">'
+    +'<style>'+document.getElementById('docCss').textContent+'body{margin:0;background:#fff}</style></head><body>'+html
+    +'<div class="noprint" style="display:block!important"></div>'
+    +'<script>window.onload=function(){setTimeout(function(){window.print();},700);};<\/script></body></html>');
+  w.document.close();
+}
+function printAll(){
+  if(!S.items.length&&!confirm('Items अजून भरलेले नाहीत. तरीही print करायचे?'))return;
+  printDocs(DOCS.map(function(d){return d.id;}));
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SAVE / OPEN / NEW (file based, plus automatic local autosave)
+   ═══════════════════════════════════════════════════════════ */
+function saveFile(){
+  var blob=new Blob([JSON.stringify(S,null,1)],{type:'application/json'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='final_bill_'+(S.m.agrNo||'draft').replace(/[^\w\-]+/g,'_')+'.json';document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},500);
+  toast('💾 File save झाली (autosave सुद्धा चालू आहे)');
+}
+function openFile(inp){
+  var f=inp.files&&inp.files[0];if(!f)return;var r=new FileReader();
+  r.onload=function(){try{S=mergeDefaults(JSON.parse(r.result));persist();go('det');toast('📥 File open झाली');}catch(e){toast('File वाचता आली नाही');}};
+  r.readAsText(f);inp.value='';
+}
+function newBill(){if(!confirm('नवीन bill सुरू करायचे? सध्याचा data पुसला जाईल (आधी Save करा).'))return;S=newState();persist();go('det');}
+
+/* boot */
+renderTabs();render();userChip();
+</script>
+</body>
+</html>
