@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Maha PWD Estimator – Tutorial</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,Helvetica,sans-serif;background:#1c1f26;color:#222;padding-bottom:24px}
+#top{max-width:1000px;margin:0 auto;padding:12px;color:#fff}
+#top b{font-size:17px}#top small{opacity:.7;margin-left:10px;font-size:12px}
+#tabs{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+#tabs span{font-size:10px;font-weight:700;padding:4px 8px;border-radius:3px;background:#2c313b;color:#8a92a0;cursor:not-allowed}
+#tabs span.on{background:#e65100;color:#fff;cursor:default}
+#wrap{max-width:1000px;margin:0 auto;position:relative;overflow:hidden;background:#efe9e1}
+#stage{position:absolute;left:0;top:0;width:960px;height:700px;transform-origin:0 0;font-size:12px;background:#efe9e1;overflow:hidden}
+#bar{height:34px;background:#1a1410;color:#fff;display:flex;align-items:center;gap:16px;padding:0 12px}
+#bar small{opacity:.6;font-size:9px}#bar .gt{margin-left:auto;color:#ff9800}#bar .gt b{color:#ffb300}
+#nav{height:26px;background:#fff;display:flex;gap:14px;align-items:center;padding:0 12px;font-size:9px;font-weight:700;color:#555;border-bottom:1px solid #ddd;white-space:nowrap;overflow:hidden}
+#nav .on{color:#e65100;border-bottom:2px solid #e65100;padding:6px 0}
+#pg{padding:8px 0}
+.pt{font-weight:800;font-size:11px;margin:0 0 6px 14px;display:flex;align-items:center;gap:6px}
+.pt i{width:16px;height:16px;border-radius:50%;background:#bf5b0e;display:inline-block}
+#cov{width:400px;margin:0 auto;background:#fff;border:2px solid #222;outline:1px solid #222;outline-offset:-5px}
+.hd{text-align:center;padding:8px 0 6px;border-bottom:1px solid #222}.hd div:first-child{font-size:26px;line-height:28px}
+.hd b{font:700 14px Georgia,serif;letter-spacing:1px}
+.es{width:200px;margin:8px auto;border:2px solid #222;text-align:center;font:700 18px Georgia,serif;letter-spacing:4px;padding:5px}
+.cr{margin:0 14px;border-bottom:1px solid #bbb}
+.cr input,.cr textarea{width:100%;border:0;background:none;text-align:center;font:700 10px Georgia,serif;padding:4px 0;outline:0;resize:none}
+.nm{display:flex;gap:6px;margin:6px 14px;border-bottom:1px solid #bbb;align-items:flex-start}
+.nm span{font:800 10px Georgia,serif;padding-top:5px;white-space:nowrap}
+.nm textarea{flex:1;border:0;outline:0;resize:none;font:700 10px Georgia,serif;height:36px;padding:3px 0;background:none}
+.cs{display:flex;align-items:center;gap:6px;margin:8px 14px 8px}
+.cs b{font:800 11px Georgia,serif;text-decoration:underline}
+.cs input{width:80px;border:0;border-bottom:1px solid #222;text-align:center;font:700 14px Georgia,serif;outline:0}
+.cs select,.cs button{font-size:9px;padding:2px 4px;border:1px solid #bbb;background:#fff;border-radius:3px}
+#au{display:none;color:#1565c0!important;border-color:#1565c0!important}
+#stp{display:none;border-top:1px solid #222;padding:4px 6px 6px;gap:4px;grid-template-columns:repeat(5,1fr);font-size:7px;text-align:center;font-style:italic;--sg:12px}
+#stp span{padding-top:var(--sg)}#stp b{display:block;font-weight:700}
+.bt{display:flex;gap:6px;width:400px;margin:8px auto 0}
+.btn{border:0;color:#fff;border-radius:4px;font:700 10px Arial;padding:6px 10px}
+#sv{width:400px;margin:8px auto 0;background:#f8f9fa;border:1px solid #e0ddd8;border-radius:8px;padding:8px 10px}
+#sv .h{display:flex;justify-content:space-between;font-weight:800;font-size:10px;margin-bottom:5px}
+.sr{display:flex;gap:5px;align-items:center;padding:4px 2px;border-bottom:1px solid #eee;font-size:9px}
+.sr b{flex:1;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.sr em{color:#999;font-size:8px;font-style:normal}.sr u{text-decoration:none;font-size:9px}
+.ov{position:absolute;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:20}
+.mb{background:#fff;border-radius:10px;width:540px;box-shadow:0 8px 40px rgba(0,0,0,.4);overflow:hidden}
+.mh{background:linear-gradient(135deg,#0284c7,#1a237e);color:#fff;padding:9px 14px;font-weight:800;font-size:12px;display:flex;justify-content:space-between}
+.tb{display:flex;border-bottom:2px solid #e3e8f0;background:#f8faff}.tb span{flex:1;text-align:center;padding:8px 2px;font-size:10px;font-weight:700;color:#888}
+.tb span.on{color:#0284c7;border-bottom:3px solid #0284c7}
+.pn{padding:10px 14px;display:none;height:326px;overflow:hidden}.pn.on{display:block}
+.tip{font-size:9px;background:#e8f4fd;padding:5px 8px;border-left:3px solid #0284c7;border-radius:4px;margin-bottom:8px}
+.oc{background:#f8faff;border:1px solid #dde4f0;border-radius:6px;padding:5px 8px;margin-bottom:6px}.oc>b{font-size:9px;color:#1a237e;display:block;margin-bottom:3px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.oc input{width:100%;padding:4px 6px;border:1.5px solid #ccc;border-radius:4px;font-size:10px}
+.ch{display:flex;flex-wrap:wrap;gap:4px}.ch .c{font-size:9px;background:#eee;padding:3px 7px;border-radius:3px;font-weight:600}.ch .c.on{background:#0284c7;color:#fff}
+.mf{display:flex;gap:8px;padding:10px 14px;border-top:1px solid #eee}
+.b1{flex:1;background:#0284c7;color:#fff;border-radius:5px;text-align:center;padding:8px;font-weight:700;font-size:11px}.b2{background:#eee;border-radius:5px;padding:8px 14px;font-size:11px}
+#sl{width:100%}
+.pk{background:#fff;border-radius:10px;width:360px;padding:14px 16px;box-shadow:0 10px 40px rgba(0,0,0,.35)}
+.pk h4{color:#1a237e;font-size:14px}.pk p{font-size:10px;color:#666;margin:3px 0 8px}
+#pl{height:236px;overflow:hidden;border:1px solid #eee;border-radius:6px;padding:2px 8px;margin-bottom:6px}
+#pl label{display:flex;align-items:center;gap:7px;padding:4px 2px;border-bottom:1px solid #f0f0f0;font-size:11px}#pl span{width:18px;text-align:right;color:#888}
+.bx{width:14px;height:14px;border:1.5px solid #888;border-radius:2px;display:inline-block;text-align:center;font:700 10px/12px Arial;font-style:normal}
+.bx.on{background:#1565c0;border-color:#1565c0;color:#fff}.bx.on:after{content:"✓"}
+.pk .a{display:flex;gap:12px;font-size:10px;color:#1565c0;margin-bottom:10px}
+.pk .f{display:flex;gap:8px;justify-content:flex-end}.pk .f span{padding:6px 14px;border-radius:6px;font-weight:700;font-size:11px}
+#m3 .mb{width:640px;display:flex;background:#f1f3f4}
+.pv{flex:1;background:#dadce0;padding:12px;display:flex;gap:8px;justify-content:center;align-items:flex-start;height:300px}
+.pv div{width:90px;height:128px;background:#fff;padding:7px;font-size:6px;font-weight:700;box-shadow:0 1px 3px #0005}.pv div:after{content:"";display:block;height:70px;margin-top:6px;background:repeating-linear-gradient(#ccc 0 2px,#fff 2px 7px)}
+.ps{width:220px;padding:14px;font-size:11px}.ps b{font-size:15px;display:block;margin-bottom:10px}.ps p{margin:7px 0;color:#555}.ps p i{display:block;border:1px solid #bbb;border-radius:4px;padding:4px 6px;color:#222;font-style:normal;background:#fff}
+#pdf{display:block;margin-top:14px;background:#1a73e8;color:#fff;text-align:center;border-radius:16px;padding:7px;font-weight:700}
+#m4 .mb{width:340px;padding:16px;text-align:center}#m4 p{font-size:12px;margin-bottom:12px}#m4 .f{display:flex;gap:10px;justify-content:center}#m4 .f span{padding:6px 18px;border-radius:5px;background:#eee;font-weight:700}#m4 .f span:last-child{background:#1565c0;color:#fff}
+#rg{position:absolute;border:3px solid #e65100;border-radius:5px;box-shadow:0 0 0 3px #e6510033;display:none;z-index:50;pointer-events:none}
+#cu{position:absolute;left:0;top:0;z-index:60;pointer-events:none;filter:drop-shadow(1px 2px 2px #0006)}
+.rp{position:absolute;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;border:3px solid #e65100;z-index:59;animation:rp .6s forwards}
+@keyframes rp{from{transform:scale(.3);opacity:1}to{transform:scale(1.4);opacity:0}}
+#ts{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:8px 18px;border-radius:20px;font-size:12px;z-index:70;opacity:0;transition:opacity .3s}
+#cap{max-width:1000px;margin:0 auto;background:#fffef9;border-left:5px solid #e65100;padding:10px 14px;min-height:112px}
+#cap b{font-size:15px;color:#1a237e}#cap p{margin-top:6px;font-size:13px;line-height:1.45}#cap span{font-size:10px;font-weight:800;color:#fff;background:#0284c7;padding:2px 6px;border-radius:3px;margin-right:6px}#cap p.o span{background:#2e7d32}
+#ctl{max-width:1000px;margin:8px auto 0;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+#ctl button{background:#fff;border:0;border-radius:4px;padding:7px 14px;font-weight:700;cursor:pointer}
+#dots{flex:1;display:flex;gap:3px;flex-wrap:wrap}#dots i{width:11px;height:11px;border-radius:50%;background:#444;cursor:pointer}#dots i.on{background:#e65100}
+#cnt{color:#fff;font-size:12px}
+@media(max-width:700px){#tabs,#top small{display:none}#top{padding:8px 10px}#cap{min-height:0}}
+#lcp{display:none;padding:0 12px}
+#lcp table{width:100%;border-collapse:collapse;background:#fff;font-size:10px}
+#lcp th{background:#1a4a7a;color:#fff;font-size:8px;text-align:left;padding:4px 6px;text-transform:uppercase}
+#lcp td{padding:3px 6px;border-bottom:1px solid #eee;font-weight:600}#lcp .r,#lcp th.r{text-align:right}
+#lcp td input{border:1px solid #ccc;border-radius:3px;padding:3px 5px;font-size:10px;width:110px}#lcp td .r input,#lcp td.r input{width:56px;text-align:right}
+#lcp .cv{color:#1a4a7a;font-weight:800}#lcp tr.z .cv{color:#999}#lcp .xx{color:#c00;margin-left:6px}
+#lcp .lb{display:inline-block;border:0;color:#fff;border-radius:4px;font:700 10px Arial;padding:5px 10px;margin:8px 8px 0 0}
+#lcert{margin-top:10px;padding:8px 18px;background:#fffde7;border:1.5px solid #f9a825;border-radius:6px;font-size:9px;line-height:1.7}
+#lcert h5{text-align:center;text-decoration:underline;color:#5d4037;font-size:11px;margin-bottom:3px}
+#lstp{display:flex;justify-content:space-between;margin-top:10px;padding:6px 30px;border-top:1px solid #999;font:italic 9px/1.6 Arial}
+#lstp div{width:35%;border-top:1px solid #ccc;padding-top:26px}
+#lsel{border:1px solid #ccc;border-radius:5px;padding:5px 7px;font-size:10px;color:#777;margin:4px 0 8px}#m5 input{width:100%;padding:5px 7px;border:1px solid #ccc;border-radius:5px;font-size:10px;margin:4px 0 10px}
+#srp{display:none;padding:0 12px}
+#sbox{display:flex;align-items:center;gap:6px;background:#fff;border:1.5px solid #ccc;border-radius:6px;padding:6px 9px;margin-top:2px}#sbox input{flex:1;border:0;outline:0;font-size:11px;background:none}
+#srp .si2{font-size:8px;color:#777;margin:3px 0;display:flex;align-items:center;gap:6px}#srp .si2 label{color:#6a1b9a;display:inline-flex;gap:3px;align-items:center;margin-left:6px}#srp .si2 u{color:#1565c0;text-decoration:none;margin-left:6px}#srp .si2 input[type=text]{width:46px;font-size:8px;padding:2px 4px;border:1px solid #ccc;border-radius:3px}
+#srh,.sri{display:grid;grid-template-columns:40px 1fr 74px 62px;gap:8px;padding:0 8px}
+#srh{font-size:7px;color:#888;text-transform:uppercase;padding-top:3px;padding-bottom:3px}#srh span:nth-child(n+3){text-align:right}
+#sres{background:#fff;border:1px solid #ddd;height:300px;overflow:hidden}
+.sri{align-items:center;height:34px;border-bottom:1px solid #eee;font-size:9px}.sri b{color:#bf5b0e;font-size:9px}.sri span{overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.3;color:#333}.sri em{font-style:normal;font-size:8px;color:#777;text-align:right}.sri strong{color:#1b5e20;text-align:right}
+#saf{display:none;background:#f3eefc;border:1.5px solid #b8a8e8;border-radius:6px;padding:6px 8px;margin-bottom:6px;font-size:9px}
+#saf .mr2{display:grid;grid-template-columns:1fr 44px 40px 46px 46px 46px 62px;gap:4px;margin-top:3px;align-items:center}#saf input,#saf .fl{border:1.5px solid #ccc;border-radius:3px;padding:3px 4px;font-size:9px;width:100%;background:#fff;min-height:19px}#saf .mt2{text-align:right;font-weight:800;color:#1a4a7a}
+#sbd{background:#bf5b0e;color:#fff;border-radius:8px;padding:0 4px;font-size:8px;font-style:normal;margin-left:3px}
+#rcp{display:none;padding:0 12px}
+#rct{width:400px;margin:6px auto 0;border-collapse:collapse;background:#fff;font-size:10px;box-shadow:0 1px 3px #0002}
+#rct th{background:#18150f;color:#fff;font-size:8px;text-align:left;padding:4px 7px;text-transform:uppercase}#rct th:last-child,#rct td.r{text-align:right}
+#rct td{padding:5px 7px;border-bottom:1px solid #eee;color:#777}#rct td.k{color:#222;font-weight:700}#rct tr.sub td{padding-left:22px;font-size:9px}
+#rct tr.tt td{background:#efe9e1;color:#222;font-weight:700;text-align:right}#rct tr.tt td.r{color:#222}
+#rct tr.gt td{background:#18150f;color:#fff;font-weight:900;font-size:12px;text-align:right;padding:8px 7px}#rct tr.gt td.r{color:#f5a623}
+#rct tr.lk td{background:#efe9e1;color:#555;text-align:right;font-size:9px}#rct tr.lk td.r{color:#222;font-weight:700}
+#rct .v{color:#222;font-weight:700}
+#rbtn{border:1px solid #1565c0;color:#1565c0;background:#fff;border-radius:3px;padding:1px 5px;font:700 8px Arial;margin-left:5px}#rbtn.abc{background:#1565c0;color:#fff}
+#rstp{display:flex;justify-content:space-between;gap:14px;margin-top:22px;padding:6px 30px;border-top:1px solid #999;font:italic 9px/1.6 Arial}
+#rstp div{flex:1;border-top:1px solid #ccc;padding-top:30px}
+#rsp{display:none;position:absolute;left:12px;top:92px;width:336px;background:#fff;border:1px solid #ddd;border-radius:8px;padding:8px 10px;font-size:10px;box-shadow:0 1px 4px #0002}
+#rsp .hh{font-size:8px;font-weight:800;color:#666;letter-spacing:.5px;border-bottom:1px solid #ddd;padding:4px 0;margin-top:2px}
+#rsp .srw{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid #eee;color:#444}
+#rsp input{border:1px solid #bbb;border-radius:3px;padding:3px 5px;font-size:10px;text-align:right;width:60px}
+#rsp .sel{border:1px solid #bbb;border-radius:3px;padding:3px 6px;font-size:10px;margin-left:4px;background:#fff;display:inline-block}
+#rsp .xr2{display:flex;gap:6px;align-items:center;padding:4px 0}#rsp .xr2 input:first-child{flex:1;text-align:left;width:auto}
+#rsp .xd{background:#c62828;color:#fff;border-radius:3px;padding:2px 6px;font-size:9px}
+#rsp .ad{background:#1a4a7a;color:#fff;border-radius:3px;padding:2px 6px;font-size:8px;margin-left:6px}
+#rsp .au{font-size:8px;color:#555;display:flex;gap:6px;padding:5px 0;align-items:flex-start;line-height:1.4}
+#rct tr.xr td,#rct tr.xr td.v{background:#e8f5e9;color:#1b5e20}
+#rcp.sd #rct{margin:6px 0 0 360px;width:560px}
+#abp{display:none;padding:0 12px}
+#ah,.abr{display:grid;grid-template-columns:24px 46px 1fr 54px 62px 48px 56px 66px 52px;gap:8px;padding:0 8px;align-items:center}
+#ah{background:#18150f;color:#fff;font-size:7px;font-weight:700;text-transform:uppercase;height:20px;margin-top:4px}#ah span:nth-child(n+6):nth-child(-n+8){text-align:right}
+#abb{background:#fff}
+.abr{min-height:40px;border-bottom:1px solid #ddd;font-size:8.5px;color:#333;line-height:1.35}.abr .n{font-weight:700;text-align:center}.abr .no{color:#bf5b0e;font-weight:700}
+.abr .u{font-size:7px;color:#777}.abr .r{text-align:right}.abr .am{text-align:right;color:#1b5e20;font-weight:700}.abr .fr{font-size:8px;text-align:right}
+.abr .fb{font-size:7px;color:#2e7d32;text-align:center;font-weight:700;line-height:1.2}
+.abr .ac{display:flex;gap:4px;align-items:center}.abr .cfb{background:#ff6f00;color:#fff;font-size:7px;font-weight:700;padding:2px 5px;border-radius:3px}.abr .dl{font-size:8px;color:#c62828;border:1px solid #e57373;border-radius:3px;padding:1px 4px;background:#fff}
+#rap{display:none;padding:0 12px}
+#raW{display:flex;gap:10px;align-items:flex-start}
+#raL{flex:1;min-width:0}
+#rat{width:100%;border-collapse:collapse;background:#fff;font-size:10px;box-shadow:0 1px 3px #0002}
+#rat th{background:#1a4a7a;color:#fff;font-size:8px;text-align:left;padding:4px 6px;text-transform:uppercase}
+#rat th.r,#rat td.r{text-align:right}
+#rat td{padding:3px 6px;border-bottom:1px solid #eee;font-size:9px;color:#333;font-family:Arial,Helvetica,sans-serif}
+#rat tr.ih td{background:#f0f4ff;font-weight:700;font-size:8.5px;line-height:1.4}
+#rat tr.ih td.no{color:#bf5b0e}
+#rat td.rd{color:#c62828}#rat td.pu{color:#6a1b9a}
+#rat tr.fin td{background:#f0faf0;font-weight:800;color:#1b5e20}
+#rat .rbt{display:inline-block;font:700 8px Arial;color:#fff;border-radius:3px;padding:2px 6px;margin-right:4px}
+#rat .rbn{font-size:8px;margin-left:4px}
+#rat input{border:0;border-bottom:1px dotted #9fb3d9;background:none;font:9px Arial,Helvetica,sans-serif;text-align:right;width:74px;color:inherit;outline:0}
+#rat input.lb{border:1px solid #d4b106;border-radius:3px;background:#fff;text-align:left;width:92%;padding:1px 3px}
+#rat input.ax{border:1px solid #d4b106;border-radius:3px;background:#fff;width:84px;padding:1px 3px}
+#rat .xb{display:inline-block;background:#c62828;color:#fff;border-radius:3px;font:700 8px Arial;padding:1px 5px}
+#rat tr.dl td{background:#fff3f3;color:#999}
+#raR{width:330px;flex:none}
+.rc{display:none;background:#fff;border:1px solid #ddd;border-radius:8px;padding:8px 10px;font-size:10px;box-shadow:0 1px 4px #0002;margin-bottom:8px}
+.rc>b{display:block;font-size:10px;color:#1a4a76;margin-bottom:5px}
+.rc small{display:block;font-size:8px;color:#888;margin-top:6px;line-height:1.4}
+#rsb{display:inline-block;border:2px solid #c62828;border-radius:5px;padding:4px 9px;font:700 10px Arial;color:#c62828;background:#fff}
+#rsb.on{border-color:#2e7d32;color:#2e7d32;background:#e8f5e9}
+#rchg{display:inline-block;background:#ef6c00;color:#fff;border-radius:3px;font:700 9px Arial;padding:3px 7px}
+#rbn{background:#fff3e0;border:1px solid #ef6c00;color:#e65100;border-radius:4px;padding:5px 7px;font-size:9px;margin-bottom:6px;line-height:1.4}
+.rsi{display:grid;grid-template-columns:36px 1fr 46px;gap:6px;border:1px solid #eee;padding:5px 6px;font-size:8.5px;align-items:center;line-height:1.35}
+.rsi b{color:#bf5b0e}.rsi strong{text-align:right;color:#1b5e20}
+body{padding-bottom:8px}
+#msp{display:none;padding:0 12px}
+#msp .nb{display:inline-block;background:#6a1b9a;color:#fff;border-radius:4px;font:700 9px Arial;padding:5px 9px;margin:0 0 5px}
+#mst{width:100%;border-collapse:collapse;background:#fff;font-size:9px;table-layout:fixed}
+#mst th{background:#18150f;color:#fff;font-size:7px;text-align:left;padding:4px 5px;text-transform:uppercase}
+#mst th.r,#mst td.r{text-align:right}
+#mst td{padding:2px 5px;border-bottom:1px solid #eee;font-family:Arial,Helvetica,sans-serif;color:#222;vertical-align:middle}
+#mst tr.mhd td{background:#f0f4ff;font-weight:600;font-size:8px;line-height:1.35;vertical-align:top;padding:4px 5px}
+#mst td.no{color:#bf5b0e;font-weight:700}
+#mst input{font:9px Arial,Helvetica,sans-serif;border:0;border-bottom:1px dotted #9fb3d9;background:none;outline:0;color:inherit}
+#mst input.mi{width:100%;text-align:right}
+#mst input.md{width:150px}
+#mst input[type=checkbox]{border:0;width:11px;height:11px;vertical-align:middle}
+#mst select{font:8px Arial,Helvetica,sans-serif;padding:0;border:1px solid #bbb;border-radius:3px;background:#fff}
+#mst tr.mnet td{background:#efe9e1;font-size:9px;font-weight:900}
+.mbt{display:inline-block;color:#fff;border-radius:3px;font:700 8px Arial;padding:3px 7px;margin-right:3px}
+.mtl{margin-top:3px;font-weight:400;display:flex;gap:3px;align-items:center}
+.mdd{display:inline-block;font:700 6px Arial;background:#c62828;color:#fff;padding:1px 4px;border-radius:3px}
+.mbg{font:700 6.5px Arial;background:#1565c0;color:#fff;border-radius:2px;padding:1px 3px;margin-left:3px;white-space:nowrap}
+.mcm{display:inline-block;background:#b26a00;color:#fff;font:700 6.5px Arial;border-radius:2px;padding:1px 4px;margin-left:3px}
+.mxb{display:inline-block;background:#c62828;color:#fff;border-radius:3px;font:700 8px Arial;padding:2px 6px}
+.m_p{background:#fff;border-radius:10px;width:330px;padding:12px 14px;box-shadow:0 8px 40px rgba(0,0,0,.4);font-size:10px}
+.m_p h4{font-size:12px;margin-bottom:2px}.m_p p{font-size:8px;color:#888;margin:0 0 4px;line-height:1.4}
+.m_p label{display:block;font-size:8px;color:#555;margin:5px 0 2px}.m_p small{font-size:8px;color:#777}
+.m_p input,.m_p select,.m_p textarea{width:100%;border:1px solid #ccc;border-radius:4px;padding:4px 5px;font-size:10px;font-family:Arial,Helvetica,sans-serif}
+.m_g4{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+.m_bb{display:flex;gap:6px;justify-content:flex-end;margin-top:8px}.m_bb span{padding:5px 12px;border-radius:5px;font-weight:700;background:#eee}
+.m_pv{font-size:9px;font-weight:700;text-align:right;min-height:12px;margin-top:4px}
+.m_cb{border:1px solid #ccc;border-radius:4px;padding:3px 7px;font-size:9px;background:#fff}.m_cb.on{font-weight:900;background:#fff3e0;border-color:#b26a00}
+
+#sgp{display:none;padding:0 12px}
+#sgW{display:flex;gap:12px;align-items:flex-start}
+#sgL{width:340px;height:565px;overflow:hidden;background:#fff;border:1px solid #ddd;border-radius:8px;box-shadow:0 1px 4px #0002;scroll-behavior:smooth;flex:none}
+#sgI{position:relative;padding:6px 10px 330px;font-family:Arial,Helvetica,sans-serif}
+.sgh{font-size:8px;font-weight:800;color:#666;letter-spacing:.5px;border-bottom:1px solid #ddd;padding:7px 0 3px;margin-top:4px;text-transform:uppercase;display:flex;align-items:center;gap:6px}
+.sgr{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid #eee;font-size:10px;color:#444;gap:6px}
+.sgn{font-size:7.5px;color:#888;line-height:1.4;padding:3px 2px}
+#sgI input[type=number],#sgI input[type=text]{border:1px solid #bbb;border-radius:3px;padding:3px 5px;font-size:10px;text-align:right;width:68px}
+#sgI select{border:1px solid #bbb;border-radius:3px;padding:3px 4px;font-size:10px;background:#fff;max-width:100%}
+.sgb{display:inline-block;border:2px solid #c62828;border-radius:5px;padding:4px 9px;font:700 9px Arial;color:#c62828;background:#fff;text-align:center}
+.sgb.on{border-color:#2e7d32;color:#2e7d32;background:#e8f5e9}
+.sgbt{display:inline-block;color:#fff;border-radius:3px;font:700 8px Arial;padding:3px 7px;margin-right:3px}
+.sgxr{display:flex;align-items:center;gap:4px;margin:3px 0;background:#f8f6f2;border-radius:4px;padding:3px 5px}
+.sgck{display:flex;gap:4px;align-items:flex-start;padding:2px 0;font-size:8.5px;line-height:1.3}
+.sgchip{display:inline-block;background:#f3e5f5;color:#6a1b9a;border-radius:10px;padding:1px 6px;margin:1px;font-size:8px}
+#sgR{flex:1;min-width:0}
+#sgFx{display:none;background:#fff;border:1px solid #ddd;border-left:4px solid #e65100;border-radius:8px;padding:10px 12px;font-size:11px;box-shadow:0 1px 4px #0002;line-height:1.5}
+#sgFx b{display:block;color:#1a4a76;font-size:11px;margin-bottom:4px}
+#sgFx small{display:block;margin-top:6px;color:#888;font-size:9px}
+#msChg{display:none;background:#fff3e0;border:1px solid #ef6c00;color:#e65100;border-radius:4px;padding:5px 8px;margin:4px 0;font-size:9px;justify-content:space-between;align-items:center;gap:6px}
+</style></head><body>
+<div id="top"><b>Maha PWD Estimator</b><small>Interactive tutorial · learn each tab step by step</small><div id="tabs"></div></div>
+<div id="wrap"><div id="stage">
+ <div id="bar"><b>Maha PWD Estimator</b><small>Maharashtra PWD · SSR 2022-23</small><span class="gt"><b>12</b> items &nbsp;<b>18.72 L</b> Grand Total</span><span>👤 Aditya &nbsp;▫ Logout</span></div>
+ <div id="nav"><span id="nMain" class="on">MAIN</span><span>LEAD CHARGES</span><span>SEARCH</span><span>RECAPITULATION</span><span>ABSTRACT</span><span>RATE ANALYSIS</span><span>MEASUREMENTS</span><span>CONSUMPTION</span><span>ROYALTY</span><span>DIFF. COST</span><span>STEEL CALC</span><span>SETTINGS</span><span>TESTING</span><span>QUARRY CHART</span><span>PLAN</span></div>
+ <div id="pg">
+  <div class="pt"><i></i>Main Page</div>
+  <div id="cov">
+   <div class="hd"><div>🏛</div><b>GOVERNMENT OF MAHARASHTRA</b></div>
+   <div class="es">ESTIMATE</div>
+   <div class="cr"><input id="r1"></div><div class="cr"><input id="r2"></div><div class="cr"><input id="r3"></div><div class="cr"><input id="r4"></div>
+   <div class="nm"><span>Name of Work :-</span><textarea id="nw" placeholder="Enter full name of work here..."></textarea></div>
+   <div class="cs"><b>ESTIMATED COST :-</b><input id="cv"><select id="un"><option>LAKHS</option><option>THOUSANDS</option></select><button id="au">Auto</button></div>
+   <div id="stp"></div>
+  </div>
+  <div class="bt"><span class="btn" id="bst" style="background:#0284c7">✎ Edit Stamp</span><span class="btn" id="bpr" style="background:#1b5e20">Print All</span><span class="btn" id="bxl" style="background:#1b5e20">📊 Export Excel</span><span class="btn" id="bnw" style="background:#e65100;margin-left:auto">➕ New</span></div>
+  <div id="sv"><div class="h"><span>☁ My Saved Estimates</span><span class="btn" id="rf" style="background:#18602f;padding:3px 7px;font-size:9px">Refresh</span></div><div id="list"></div><span class="btn" id="svb" style="display:block;text-align:center;background:#18602f;margin-top:6px">Save Current Estimate</span></div>
+ </div>
+  <div id="abp"><div class="pt" style="margin-left:2px"><i style="color:#fff;font:700 10px/16px Arial;text-align:center">3</i>Abstract</div>
+   <div id="ah"><span>Sr.</span><span>Item No.</span><span>Description</span><span>Unit</span><span>Floor</span><span>Qty</span><span>Final Rate</span><span>Amount</span><span>CF</span></div><div id="abb"></div></div>
+  <div id="rcp"><div class="pt" style="margin-left:2px"><i style="color:#fff;font:700 10px/16px Arial;text-align:center">8</i>Recapitulation</div>
+   <table id="rct"><thead><tr><th>Description</th><th class="r">Amount</th></tr></thead><tbody id="rtb"></tbody></table>
+   <div id="rsp"><div style="display:flex;align-items:center;gap:6px;font-weight:800;font-size:12px;margin-bottom:4px"><i style="width:18px;height:18px;border-radius:50%;background:#bf5b0e;color:#fff;font:700 10px/18px Arial;text-align:center;font-style:normal">S</i>Settings</div>
+    <div class="hh">GA PERCENTAGES</div>
+    <div class="srw">GST %<span><input id="x_gst"> %</span></div>
+    <div class="srw">Contingencies<span><input id="x_c"><span class="sel" id="x_cu"></span></span></div>
+    <div class="srw">Labour Insurance %<span><input id="x_li"> %</span></div>
+    <div class="au"><span id="x_au" class="bx"></span><span>Auto: 0.50% (≤25 Lakh) / 1.00% (&gt;25 Lakh) — SSR Sec. B (i)A. Untick to use your own %.</span></div>
+    <div class="hh">EXTRA % ROWS <span class="ad" id="x_add">+ Add</span></div><div id="x_ex"></div></div>
+   <div id="rstp"><div><b>(Name)</b><br>Sub Divisional Engineer<br>P.W. Sub Division</div><div style="text-align:center"><b>(Name)</b><br>Executive Engineer<br>P.W. Division</div><div style="text-align:right"><b>(Name)</b><br>Superintending Engineer<br>P.W. Circle</div></div></div>
+  <div id="srp"><div class="pt" style="margin-left:2px"><i style="color:#fff;font:700 10px/16px Arial;text-align:center">2</i>SSR Item Search</div>
+   <div id="saf"><b style="font-size:10px;color:#1a4a7a">Add Item</b>
+    <div style="margin:4px 0"><b id="sno" style="color:#bf5b0e"></b> <span id="sdesc"></span> <b id="srate" style="color:#1b5e20;margin-left:6px"></b></div>
+    <div style="font-weight:700;color:#555">Measurements (Floor wise) -- No x L x B x H/D</div>
+    <div class="mr2"><input id="s_d" placeholder="Desc"><span class="fl">G</span><input id="s_n" value="1"><input id="s_l" placeholder="L"><input id="s_b" placeholder="B"><input id="s_h" placeholder="D/H"><span class="mt2" id="s_t">0.000</span></div>
+    <div style="margin-top:6px;display:flex;gap:6px"><span style="background:#e8eaf6;border-radius:4px;padding:4px 8px;font-weight:700;color:#1a237e">+ Row</span><span id="sadd" style="background:#1a237e;color:#fff;border-radius:4px;padding:4px 10px;font-weight:700">Add to Estimate</span><span style="background:#eee;border-radius:4px;padding:4px 10px">Cancel</span></div></div>
+   <div id="msChg"><span>&#8644; <b id="msChgT"></b></span><span class="mbt" style="background:#e65100;margin:0">Cancel</span></div><div id="sbox">🔍<input id="sq" placeholder="Item No. / multiple words...  21.01 / M 20 slab / brick masonry / earth excavation"></div>
+   <div class="si2"><span id="sinfo">2009 items</span><label><input type="checkbox" id="sdm" checked>Direct Measurement Sheet</label><u>Insert at Sr.</u><input type="text" id="sins" value="end"></div>
+   <div id="srh"><span>No.</span><span>Description</span><span>Unit</span><span>Rate</span></div><div id="sres"></div></div>
+  <div id="lcp"><div class="pt" style="margin-left:2px"><i style="color:#fff;font:700 10px/16px Arial;text-align:center">1</i>Lead Charges -- SSR 2022-23</div>
+   <table><thead><tr><th>Name of Item</th><th class="r">Unit</th><th class="r">Lead (km)</th><th>Location</th><th class="r">Lead charges</th></tr></thead><tbody id="lcb"></tbody></table>
+   <span class="lb" id="lab" style="background:#1a237e">+ Add Row</span><span style="font-size:9px;color:#777">To set a different km value for a material</span><br>
+   <span class="lb" id="lsb" style="background:#bf5b0e">Search</span>
+   <div id="lcert"><h5>CERTIFICATE</h5>1. Certified that the nearest quarry for materials is considered while framing the estimate.<br>2. Certified that sufficient materials are available in the quarry.<br>3. Certified that material available in the quarry is of good quality.</div>
+   <div id="lstp"><div><b>(Name)</b><br>Sub Divisional Engineer<br>P.W. Sub Division</div><div style="text-align:right"><b>(Name)</b><br>Executive Engineer<br>P.W. Division</div></div></div>
+<div id="sgp"><div class="pt" style="margin-left:2px"><i style="color:#fff;font:700 10px/16px Arial;text-align:center">S</i>Settings</div>
+ <div id="sgW"><div id="sgL"><div id="sgI">
+  <div class="sgh">GA Percentages</div>
+  <div class="sgr"><span>GST %</span><span><input type="number" id="ssGST" value="18"> %</span></div>
+  <div class="sgr"><span>Contingencies</span><span><input type="number" id="ssCont" value="2"> <select id="ssContM"><option value="pct">%</option><option value="amt">&#8377;</option></select></span></div>
+  <div class="sgr"><span>Labour Insurance %</span><span><input type="number" id="ssLI" value="1"> %</span></div>
+  <div class="sgr" style="align-items:flex-start"><input type="checkbox" id="ssAuto" checked style="width:12px"><span style="font-size:8px;flex:1">Auto: 0.50% (&le;25 Lakh) / 1.00% (&gt;25 Lakh) &mdash; SSR Sec. B (i)A. Untick to use your own %.</span></div>
+  <div class="sgh">Extra % Rows <span class="sgbt" id="ssAdd" style="background:#1a4a76;margin:0">+ Add</span></div>
+  <div id="ssXL"></div>
+  <div class="sgh">Bitumen Rate Settings</div>
+  <div class="sgr"><span>SSR Bitumen Rate (per MT)</span><input type="number" id="ssBitS" value="49862"></div>
+  <div class="sgr"><span>Current Bitumen Rate (per MT)</span><input type="number" id="ssBitC" value="49862"></div>
+  <div class="sgr" style="background:#fff3e0;padding:5px 6px"><b>Change in Rate (per MT)</b><b id="ssBitChg" style="color:#bf5b0e;font-size:11px">+0</b></div>
+  <div class="sgn">Change = Current Rate - SSR Rate. Negative = deduction.</div>
+  <div class="sgr"><span>Heating &amp; Decanning of Bulk Bitumen (Rs. per MT)</span><input type="number" id="ssHeat" value="137"></div>
+  <div class="sgn">For every item that has a Bitumen CF: Bitumen CF &times; this rate is added in Rate Analysis as &ldquo;Add Heating &amp; Decanning For Bitumen&rdquo;.</div>
+  <div id="ssRef" style="margin:6px 0"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><b style="font-size:9px;color:#555">&#128738; Bitumen Rates &mdash; <span style="color:#888;font-weight:600">16.10.2026</span></b><span style="font-size:8px;font-weight:700;color:#1565c0;border:1px solid #1565c0;border-radius:20px;padding:1px 7px">SSR 2022-23</span></div>
+   <table style="width:100%;border-collapse:collapse;font-size:8.5px;border:1px solid #e0dbd4"><thead><tr style="background:#e8eaf6"><th style="padding:3px;text-align:left">Product</th><th>Unit</th><th>Basic (excl. GST)</th><th>SSR Rate</th></tr></thead><tbody>
+   <tr style="border-top:1px solid #eee"><td style="padding:3px;font-weight:700">Btmn VG 10 Bulk</td><td style="text-align:center">MT</td><td style="text-align:center">82500</td><td style="text-align:center;font-weight:800;color:#1a237e">49488</td></tr>
+   <tr style="border-top:1px solid #eee"><td style="padding:3px;font-weight:700">Btmn VG 30 Bulk</td><td style="text-align:center">MT</td><td style="text-align:center">83460</td><td style="text-align:center;font-weight:800;color:#1a237e">49862</td></tr>
+   <tr style="border-top:1px solid #eee"><td style="padding:3px;font-weight:700">Btmn VG 40 Bulk</td><td style="text-align:center">MT</td><td style="text-align:center">90260</td><td style="text-align:center;font-weight:800;color:#1a237e">52764</td></tr></tbody></table></div>
+  <div class="sgh">Floor Settings</div>
+  <div class="sgr"><span style="color:#1a4a76;font-weight:700">Only Ground Floor Estimate</span><span class="sgb" id="ssGF"></span></div>
+  <div class="sgn">When ON, floor is not shown anywhere in Measurement Sheet, Abstract and Rate Analysis (no Floor column either). Items with a depth / lift / height band dropdown are not affected by this. When OFF, everything goes back to normal.</div>
+  <div class="sgh">SSR Condition Add-ons (item-wise)</div>
+  <div class="sgn">Select the items the PDF % should apply to and press Add. The % is applied on the SSR base rate (like Area %) and shows as a row in Rate Analysis.</div>
+  <div class="sgr"><select id="ssRule" style="max-width:210px"><option value="foul">Foul condition</option><option value="scarcity">Water scarcity (excavation)</option><option value="depth1">Excavation depth 3.0-4.5 m</option><option value="depth2">Excavation depth 4.5-6.0 m</option><option value="scaff">Scaffolding (external repair)</option><option value="curing">Modified curing (RCC/PQC)</option></select><span><input type="number" id="ssPct" value="5" style="width:48px"> %</span></div>
+  <div class="sgn" id="ssRefTxt">Gen. Note (x): foul condition, up to ground/bed level</div>
+  <div style="border:1px solid #ddd;border-radius:4px;padding:3px 5px">
+   <label class="sgck"><input type="checkbox" id="ssAd0"><span><b>1.</b> 21.06 &mdash; Excavation for foundation in hard murum including removing t</span></label>
+   <label class="sgck"><input type="checkbox" id="ssAd1"><span><b>2.</b> 24.01 &mdash; Providing and laying Cast in situ/Ready Mix cement concrete</span></label>
+   <label class="sgck"><input type="checkbox" id="ssAd2"><span><b>3.</b> 25.11 &mdash; Providing and laying in situ /Ready Mix cement concrete M-20</span></label></div>
+  <div style="margin:5px 0"><span class="sgbt" id="ssAdGo" style="background:#1a4a76;font-size:9px;padding:4px 8px">+ Add to selected items</span><span class="sgbt" id="ssAdAll" style="background:#fff;color:#333;border:1px solid #999;font-size:9px;padding:3px 7px">Select all</span><span class="sgbt" id="ssAdClr" style="background:#fff;color:#333;border:1px solid #999;font-size:9px;padding:3px 7px">Clear</span></div>
+  <div id="ssAdApp"></div>
+  <div class="sgh">SCADA Settings</div>
+  <div class="sgr"><span style="color:#1a4a76;font-weight:700">Cancel SCADA Deduction</span><span class="sgb" id="ssSc"></span></div>
+  <div class="sgn">This button applies only to newly added items. To turn SCADA ON/OFF for an individual item, use the SCADA button under that item in the Rate Analysis tab.</div>
+  <div class="sgr"><span>SCADA Default Value (per unit)</span><input type="number" id="ssScV" value="-126"></div>
+  <div class="sgn">Default -126 per cum for concrete items (SSR Sec. B).</div>
+  <div class="sgr"><span>BT SCADA Value (per cum)</span><input type="number" id="ssScB" value="-63"></div>
+  <div class="sgn">-63 per cum for BT items (BM 3.40/3.42, DBM 3.44/3.46, BC 3.48/3.50). Applies to newly added items; for existing items use the SCADA button in Rate Analysis.</div>
+  <div class="sgh">Royalty Rates</div>
+  <div class="sgr"><span>Sand (per M3)</span><input type="number" id="ssRS" value="237.37"></div>
+  <div class="sgr"><span>Coarse (per M3)</span><input type="number" id="ssRC" value="216.18"></div>
+  <div class="sgh">Specific Area Surcharge (F)</div>
+  <div class="sgr" style="display:block"><div style="margin-bottom:3px">Area Type (as per GR Table)</div><select id="ssArea" style="width:100%"><option value="0">-- None (No surcharge) --</option><option value="5">a) Corporation Areas — 5%</option><option value="4">b) Municipal Council Areas — 4%</option><option value="5">c) Sugarcane factory area (within 10km) — 5%</option><option value="10">d) Notified Tribal / Hilly / Inaccessible Areas — 10%</option><option value="15">e) Central Jail / Mental Hospital / Yerawada — 15%</option><option value="20">f) Tiger Project Area (Amravati / Yavatmal etc.) — 20%</option><option value="5">g) Coal / Lime / Manganese Mining Area — 5%</option><option value="20">h) Naxalite Affected Area — 20%</option><option value="2">i) Metropolitan areas (UDD, excl. Corp/Council) — 2%</option></select></div>
+  <div style="font-size:9px;color:#555;margin:4px 0 2px">+ 2nd Area Type (if needed):</div><select id="ssArea2" style="max-width:100%"><option value="0">— None —</option><option value="5">a) Corporation Areas — 5%</option><option value="4">b) Municipal Council Areas — 4%</option><option value="5">c) Sugarcane factory area (within 10km) — 5%</option><option value="10">d) Notified Tribal / Hilly / Inaccessible Areas — 10%</option><option value="15">e) Central Jail / Mental Hospital / Yerawada — 15%</option><option value="20">f) Tiger Project Area (Amravati / Yavatmal etc.) — 20%</option><option value="5">g) Coal / Lime / Manganese Mining Area — 5%</option><option value="20">h) Naxalite Affected Area — 20%</option><option value="2">i) Metropolitan areas (UDD, excl. Corp/Council) — 2%</option></select>
+  <div class="sgr" style="margin-top:4px"><label style="display:flex;align-items:center;gap:4px;font-size:9px"><input type="checkbox" id="ssCess" style="width:12px"> Deduct / add Cess (surcharge on Net Basic)</label><span><input type="number" id="ssCessP" value="21" style="width:42px"> %</span></div>
+  <div class="sgr"><label style="display:flex;align-items:center;gap:4px;font-size:9px"><input type="checkbox" id="ssCessS" checked style="width:12px"> Deduct SCADA along with Cess (before the %)</label></div>
+  <div class="sgr" style="background:#fff3e0;padding:5px 6px"><b style="color:#bf5b0e">F Surcharge %</b><b id="ssAreaPct" style="color:#bf5b0e;font-size:12px">0%</b></div>
+  <div class="sgn">Surcharge on A (Cost of Work) only, before C/D/E.</div>
+ </div></div>
+ <div id="sgR"><div id="sgFx"></div></div></div></div>
+<div id="msp"><div class="pt" style="margin-left:2px"><i style="color:#fff;font:700 10px/16px Arial;text-align:center">5</i>Measurement Sheet</div>
+ <span class="nb" id="mnp">+ Non-SSR / Other SSR Item</span>
+ <table id="mst"><colgroup><col style="width:24px"><col style="width:40px"><col style="width:52px"><col><col style="width:44px"><col style="width:56px"><col style="width:56px"><col style="width:56px"><col style="width:58px"><col style="width:36px"><col style="width:50px"></colgroup>
+ <thead><tr><th>Sr.</th><th>Item No.</th><th>Floor</th><th>Detail</th><th class="r">No.</th><th class="r">Length</th><th class="r">Width</th><th class="r">Height</th><th class="r">Quantity</th><th>Unit</th><th>Act.</th></tr></thead><tbody id="mstb"></tbody></table></div>
+<div id="rap"><div class="pt" style="margin-left:2px"><i style="color:#fff;font:700 10px/16px Arial;text-align:center">4</i>Rate Analysis</div>
+ <div id="raW"><div id="raL"><table id="rat"><thead><tr><th style="width:24px">Sr.</th><th style="width:42px">Item No.</th><th>Rate Component</th><th class="r" style="width:80px">SSR Rate</th><th style="width:70px">Unit</th></tr></thead><tbody id="rab"></tbody></table></div>
+ <div id="raR">
+  <div class="rc" id="raSet"><b>⚙️ SETTINGS tab</b><div style="font-weight:700;color:#1a4a76;margin-bottom:5px">Cancel SCADA Deduction</div><span id="rsb">❌ SCADA Deduction Active</span><small>This button applies only to newly added items. To turn SCADA ON/OFF for an individual item, use the SCADA button under that item in the Rate Analysis tab.</small></div>
+  <div class="rc" id="raSr"><b>🔍 SEARCH tab</b><div class="rsi" id="rsr"></div></div>
+ </div></div></div>
+ <div class="ov" id="m1"><div class="mb"><div class="mh"><span>✏️ Stamp / Signature Manager</span><span>✕</span></div>
+  <div class="tb"><span id="t1" class="on">👥 Officer Names</span><span id="t2">📋 Sheet-wise Stamps</span><span id="t3">📐 Sign Space</span></div>
+  <div class="pn on" id="pn1"><div class="tip">💡 Enter the officer names in this tab. These names will be applied to all sheets.</div><div id="of"></div></div>
+  <div class="pn" id="pn2"><div class="tip" style="display:flex;justify-content:space-between;align-items:center">💡 Select which signatures are needed on each sheet. Click to enable/disable.<span id="rst" style="border:1px solid #f57c00;color:#e65100;padding:3px 8px;border-radius:4px;font-weight:700;background:#fff">Reset Default Stamps</span></div><div id="shs"></div></div>
+  <div class="pn" id="pn3"><div class="tip">💡 Set how much space (height) is needed inside the stamp for signing.</div><p style="font-size:11px;margin:14px 0 6px">Sign space (px) <b id="sv2" style="float:right;color:#0284c7">45px</b></p><input type="range" id="sl" min="20" max="100" value="45"><p style="font-size:9px;color:#888;margin-top:4px">Vertical space for signing inside the stamp (px)</p></div>
+  <div class="mf"><span class="b1" id="sap">💾 Save &amp; Apply</span><span class="b2">Cancel</span></div></div></div>
+ <div class="ov" id="m2"><div class="pk"><h4 id="pt"></h4><p id="ps"></p><div id="pl"></div><div class="a"><span id="psa">Select all</span><span id="psn">Clear all</span></div><div class="f"><span style="border:1px solid #999;color:#444">Cancel</span><span id="pgo" style="background:#1565c0;color:#fff"></span></div></div></div>
+ <div class="ov" id="m3" style="background:#000a"><div class="mb"><div class="pv"><div>Main Page</div><div>Abstract</div><div>Measurements</div></div><div class="ps"><b>Print</b><p>Total: <strong>3 sheets</strong></p><p>Destination<i>Save as PDF</i></p><p>Pages<i>All</i></p><span id="pdf">Save</span></div></div></div>
+ <div class="ov" id="m4"><div class="mb"><p id="cm"></p><div class="f"><span>Cancel</span><span id="cok">OK</span></div></div></div>
+<div class="ov" id="m5"><div class="mb" style="width:300px;padding:14px"><b style="color:#1a237e;font-size:12px">+ Add Lead Row</b><p style="font-size:10px;color:#555;margin-top:8px">Select Name of Item:</p><div id="lsel">-- Select Item --</div><p style="font-size:10px;color:#555">Location (optional):</p><input id="lloc2" placeholder="e.g. Sirsala Quarry"><div style="display:flex;gap:8px;justify-content:flex-end"><span style="border:1px solid #ccc;border-radius:5px;padding:5px 12px;font-size:10px;background:#f5f5f5">Cancel</span><span id="lok" style="border-radius:5px;padding:5px 12px;font-size:10px;background:#1a237e;color:#fff;font-weight:700">Add Row</span></div></div></div>
+<div class="ov" id="m6"><div class="m_p"><h4 style="color:#c62828">&#8722; Deduction Add</h4><p>Deduct quantity for openings, holes, voids</p>
+<label>Description / Remark *</label><input id="mmD_d" placeholder="e.g. Deduct door opening 1.2×2.1 or Window 1×1.2" oninput="mmDprev()" style="border-color:#c62828">
+<label>Measurements — <span style="color:#b26a00">you can write avg(a,b,c) for average</span></label>
+<div class="m_g4"><div><small>Nos.</small><input id="mmD_n" value="1" oninput="mmDprev()"></div><div><small>L</small><input id="mmD_l" placeholder="avg(a,b)" oninput="mmDprev()"></div><div><small>B</small><input id="mmD_b" placeholder="avg(a,b)" oninput="mmDprev()"></div><div><small>D/H</small><input id="mmD_h" placeholder="avg(a,b)" oninput="mmDprev()"></div></div>
+<label>Floor (deduction is taken from this floor)</label><select id="mmD_fl"><option>Ground Floor</option><option>1st Floor</option><option>2nd Floor</option></select>
+<label>Comment / Explanation <small>(optional — will appear in measurement sheet)</small></label><input id="mmD_c" placeholder="e.g. 90% of total length as per IS, avg of 3 readings">
+<div class="m_pv" id="mmD_prev" style="color:#c62828"></div>
+<div class="m_bb"><span>Cancel</span><span id="mmD_ok" style="background:#c62828;color:#fff">&#8722; Deduction Add</span></div></div></div>
+<div class="ov" id="m7"><div class="m_p"><h4 style="color:#6a1b9a">Add % Row</h4><p>Qty = % × base (or, in Factor mode, base × factor). This qty will be <b>added</b> to the total of the item (and carried through to the Abstract).</p>
+<label>Description</label><input id="mmP_d" placeholder="e.g. Add 5% for laps / wastage" oninput="mmPprev()">
+<label>Base (% of what)</label><select id="mmP_src"><option>Total of this item's rows</option><option>2) 24.01 - Providing and laying Cast in situ/Ready Mix cem…</option></select>
+<label>Floor</label><select id="mmP_fl"><option>Ground Floor</option><option>1st Floor</option></select>
+<label>Type</label><select id="mmP_mode"><option>% (Percent)</option><option>Factor</option></select>
+<label>% (use a negative value for minus, e.g. -5)</label><input id="mmP_v" value="5" oninput="mmPprev()">
+<div class="m_pv" id="mmP_prev" style="color:#6a1b9a"></div>
+<div class="m_bb"><span>Cancel</span><span id="mmP_ok" style="background:#6a1b9a;color:#fff">+ % Row</span></div></div></div>
+<div class="ov" id="m8"><div class="m_p" style="width:300px"><h4 style="color:#b26a00">Add Comment / Note</h4><p>Which column should the comment appear under?</p>
+<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px"><span class="m_cb" id="mmC_l">Length (L)</span><span class="m_cb" id="mmC_b">Width (B)</span><span class="m_cb" id="mmC_d">Depth (D)</span><span class="m_cb" id="mmC_g">General</span></div>
+<textarea id="mmC_t" rows="3" placeholder="Type your comment or note here..."></textarea>
+<div class="m_bb"><span style="border:1px solid #f5a623;color:#b26a00;background:#fff8e1">Clear</span><span>Cancel</span><span id="mmC_ok" style="background:#b26a00;color:#fff">Save</span></div></div></div>
+<div class="ov" id="m9"><div class="m_p" style="width:340px"><h4>Add Non-SSR / Other SSR Item</h4>
+<label>Type</label><select id="mmN_type"><option value="se">Non SSR - SE Approved</option><option value="ssr">Other SSR</option></select>
+<div id="mmN_ssrw" style="display:none"><label>SSR name / year (e.g. SSR 2023-24)</label><input id="mmN_ssr"></div>
+<label>Item No.</label><input id="mmN_no"><label>Description</label><textarea id="mmN_desc" rows="2"></textarea>
+<div style="display:flex;gap:6px"><div style="flex:1"><label>Unit</label><input id="mmN_unit"></div><div style="flex:1"><label>Rate (per unit)</label><input id="mmN_rate"></div></div>
+<div style="margin-top:6px"><span class="mbt" id="mmN_cfb" style="background:#1565c0;font-size:9px;padding:4px 8px">Consumption Factor</span></div>
+<div id="mmN_cfp" style="display:none;margin-top:5px;padding:5px;background:#f0f6ff;border:1px solid #b6d0f0;border-radius:4px"><div style="font-size:7.5px;color:#666;margin-bottom:3px">Consumption factor per unit (0 = skip). Lead is taken automatically from the Lead Chart km of each material, same as normal SSR items.</div>
+<div style="display:flex;align-items:center;gap:4px;margin:2px 0"><span style="flex:1;font-size:8.5px">Cement (bags)</span><input id="mmN_cf0" style="width:70px;text-align:right"><span style="width:30px;font-size:8px;color:#888">Bags</span></div>
+<div style="display:flex;align-items:center;gap:4px;margin:2px 0"><span style="flex:1;font-size:8.5px">Screened Sand</span><input id="mmN_cf1" style="width:70px;text-align:right"><span style="width:30px;font-size:8px;color:#888">M3</span></div>
+<div style="display:flex;align-items:center;gap:4px;margin:2px 0"><span style="flex:1;font-size:8.5px">Metal 20mm</span><input id="mmN_cf2" style="width:70px;text-align:right"><span style="width:30px;font-size:8px;color:#888">M3</span></div></div>
+<div class="m_bb"><span id="mmN_ok" style="flex:1;text-align:center;background:#18602f;color:#fff">Add Item</span><span style="background:#666;color:#fff">Cancel</span></div></div></div>
+ <div id="rg"></div>
+ <svg id="cu" width="24" height="24" viewBox="0 0 24 24"><path d="M3 2l7 19 3-8 8-3z" fill="#fff" stroke="#000" stroke-width="1.5"/></svg>
+ <div id="ts"></div>
+</div></div>
+<div id="cap"><b id="ct"></b><p><span>▶ INPUT</span><i id="ci" style="font-style:normal"></i></p><p class="o"><span>✔ RESULT</span><i id="co" style="font-style:normal"></i></p></div>
+<div id="ctl"><button id="bp">⏮ Prev</button><button id="bq">⏸ Pause</button><button id="bn">Next ⏭</button><div id="dots"></div><span id="cnt"></span></div>
+<script>
+const RATE=location.hash=='#rate',LEAD=location.hash=='#lead',SRCH=location.hash=='#search',RCP=location.hash=='#recap',ABS=location.hash=='#abstract',MEAS=location.hash=='#measure',SETT=location.hash=='#settings',$=i=>document.getElementById(i),st=$('stage'),wrap=$('wrap'),cu=$('cu'),rg=$('rg');
+let TOK=0,fast=false,paused=false,cur=0,PK='p',px=0,py=0;
+const D={r1:'P.W. Region, ',r2:'P.W. Circle, ',r3:'P.W. Division, ',r4:'P.W. Sub Division, '},AUTO='18.72';
+/* ── tutorial tab list (more tabs will be added one by one) ── */
+$('tabs').innerHTML='<span class="on">MAIN</span>'+['LEAD CHARGES','SEARCH','RECAPITULATION','ABSTRACT','RATE ANALYSIS','MEASUREMENTS','CONSUMPTION','ROYALTY','DIFF. COST','STEEL CALC','SETTINGS','TESTING','QUARRY CHART','PLAN','CF TABLE'].map(t=>`<span title="Coming next">${t}</span>`).join('');
+/* ── mock data ── */
+const OFF=[['SE','Section Engineer','Section Engineer (Sub Division)'],['SDE','Sub Divisional Engineer','Sub Divisional Engineer (Sub Division)'],['EE','Executive Engineer','Executive Engineer (Division)'],['SC','Superintending Engineer','Superintending Engineer (Circle)'],['CE','Chief Engineer','Chief Engineer (Region)']];
+$('of').innerHTML=OFF.map(([k,d,l],i)=>`<div class="oc"><b>${'①②③④⑤'[i]} ${l}</b><div class="g2"><input id="n${k}" placeholder="Officer name"><input id="d${k}" value="${d}"></div></div>`).join('');
+const CH=['Section Engineer (SE)','Sub Divisional Engineer (SDE)','Executive Engineer (EE)','Superintending Engineer (SE Circle)','Chief Engineer (CE)'],SH=[['Lead Charges',[0,1,1,0,0]],['Abstract',[0,1,1,0,0]],['Recapitulation',[0,1,1,1,0]]];
+$('shs').innerHTML=SH.map(([n],i)=>`<div class="oc"><b>${n}</b><div class="ch">${CH.map((c,j)=>`<span class="c" id="c${i}${j}" data-n="${c}"></span>`).join('')}</div></div>`).join('');
+const chip=(e,on)=>{e.classList.toggle('on',!!on);e.textContent=(on?'✓ ':'☐ ')+e.dataset.n};
+const PS=['Main Page (Cover)','Recapitulation','Abstract','Measurements','Rate Analysis','Lead Charges','Quarry Chart','Consumption','Royalty','Testing','Diff. Cost of Material','Plan','Steel Calculation'],ES=PS.slice();ES.splice(1,0,'General Report (सर्वसाधारण अहवाल)');
+const SV=[['Construction of Community Hall at Shivpur (v2)','10/11/2026','₹9,84,300'],['Rain water harvesting at Bhimapur school','10/11/2026','₹1,02,125'],['Improvement of Krishnapur–Ramwadi road km 4/00 to 9/00','4/11/2026','₹2,94,88,161']],NEW=['Construction of Gram Panchayat Bhavan at Ramwadi (v1)','11/11/2026','₹18,72,000'];
+const rows=n=>(n?[NEW]:[]).concat(SV).map(a=>`<div class="sr"><b>${a[0]}</b><em>${a[1]} · ${a[2]}</em><u>🔗</u><u>🔒</u><u>📗</u><u>🗑</u></div>`).join('');
+const pane=n=>{[1,2,3].forEach(i=>{$('pn'+i).classList.toggle('on',i==n);$('t'+i).classList.toggle('on',i==n)})};
+function openPick(k){PK=k;const L=k=='p'?PS:ES,on=k=='p'?10:11;$('pt').textContent=k=='p'?'Print All – select sheets':'Export Excel – select sheets';$('ps').textContent=k=='p'?'Choose the sheets you want in this printout. They print in the order shown.':'Choose the sheets you want in this Excel file. They are exported in the same order as Print All.';$('pgo').textContent=k=='p'?'Print':'Export';$('pl').innerHTML=L.map((n,i)=>`<label id="k${i}"><i class="bx${i<on?' on':''}"></i><span>${i+1}</span>${n}</label>`).join('');$('m2').style.display='flex'}
+const allBx=on=>document.querySelectorAll('#pl .bx').forEach(b=>b.classList.toggle('on',on));
+const tick=i=>$('k'+i).firstChild.classList.toggle('on');
+const show=(id,on=true)=>$(id).style.display=on?'flex':'none';
+const toast=t=>{$('ts').textContent=t;$('ts').style.opacity=1};
+const ask=m=>{$('cm').textContent=m;show('m4')};
+function covDefault(){for(const k in D)$(k).value=D[k];$('nw').value='';$('cv').value=AUTO;$('au').style.display='none'}
+function reset(){if(SETT)return sgReset();if(MEAS)return msReset();if(RATE)return raReset();if(LEAD)return leadReset();if(SRCH)return srReset();if(RCP)return rcReset();if(ABS)return abReset();covDefault();OFF.forEach(([k,d])=>{$('n'+k).value='';$('d'+k).value=d});SH.forEach(([n,v],i)=>v.forEach((x,j)=>chip($('c'+i+j),x)));$('sl').value=45;$('sv2').textContent='45px';pane(1);['m1','m2','m3','m4'].forEach(m=>show(m,false));$('stp').style.display='none';$('ts').style.opacity=0;ring(null);$('list').innerHTML=rows(0);px=480;py=330;cu.style.transition='none';cu.style.transform=`translate(${px-3}px,${py-2}px)`}
+/* ── animation engine ── */
+async function sleep(ms){const t=TOK;if(fast)return;let e=0;while(e<ms){await new Promise(r=>setTimeout(r,40));if(t!==TOK)throw 0;if(!paused)e+=40}}
+const geo=el=>{const r=el.getBoundingClientRect(),s=st.getBoundingClientRect(),k=s.width/960;return{x:(r.left-s.left)/k,y:(r.top-s.top)/k,w:r.width/k,h:r.height/k}};
+function ring(el){if(!el){rg.style.display='none';return}const g=geo(el);Object.assign(rg.style,{display:'block',left:g.x-4+'px',top:g.y-4+'px',width:g.w+8+'px',height:g.h+8+'px'})}
+async function mv(el){const g=geo(el);px=g.x+Math.min(g.w/2,60);py=g.y+g.h/2;cu.style.transition=fast?'none':'transform .8s ease';cu.style.transform=`translate(${px-3}px,${py-2}px)`;await sleep(850)}
+function rip(){if(fast)return;const d=document.createElement('div');d.className='rp';d.style.left=px+'px';d.style.top=py+'px';st.appendChild(d);setTimeout(()=>d.remove(),600)}
+async function click(el){await mv(el);ring(el);await sleep(300);rip();await sleep(250);ring(null)}
+async function type(el,txt){ring(el);if(fast){el.value+=txt}else for(const c of txt){el.value+=c;if(el.tagName=='TEXTAREA'){el.style.height='auto';el.style.height=el.scrollHeight+'px'}el.oninput&&el.oninput();await sleep(45)}el.oninput&&el.oninput();ring(null)}
+$('cv').oninput=()=>{$('au').style.display=$('cv').value.trim()===''?'none':'inline-block'};
+const S=(t,i,o,run)=>({t,i,o,run});
+const mainSteps=[
+S('MAIN tab – the cover page of your estimate','Open the MAIN tab (first tab on the left).','This is the front sheet. The names and cost entered here appear on the printed estimate, and the buttons below control stamps, printing, Excel and saved estimates.',async()=>{await click($('nMain'))}),
+S('Region','Click the Region box and type your region after “P.W. Region,” – for example: Shivnagar.','The region is also copied automatically into the stamp’s Region location.',async()=>{await click($('r1'));await type($('r1'),'Shivnagar')}),
+S('Circle','Click the Circle box and type the circle name – for example: Krishnapur.','The circle is also copied automatically into the stamp’s Circle location.',async()=>{await click($('r2'));await type($('r2'),'Krishnapur')}),
+S('Division','Click the Division box and type the division – for example: Bhimapur.','The division is shown on the cover page.',async()=>{await click($('r3'));await type($('r3'),'Bhimapur')}),
+S('Sub Division','Click the Sub Division box and type it – for example: Ramwadi.','The sub division is shown on the cover page.',async()=>{await click($('r4'));await type($('r4'),'Ramwadi')}),
+S('Name of Work','Click the Name of Work box and type the full name of the work (imaginary example below).','The box grows as you type. The name identifies this estimate – it is also shown in My Saved Estimates.',async()=>{await click($('nw'));await type($('nw'),'Construction of Gram Panchayat Bhavan at Ramwadi Tal. Bhimapur Dist. Krishnapur')}),
+S('Estimated cost','Normally leave it alone – it shows the total of your items automatically. To override, click it and type your own value in the chosen unit (LAKHS / THOUSANDS), e.g. 20.','While a typed value is used, a blue “Auto” button appears next to the unit.',async()=>{await click($('cv'));$('cv').value='';await type($('cv'),'20')}),
+S('Back to the automatic cost','Click the blue Auto button.','The typed value is removed and the cost follows your estimate again.',async()=>{await click($('au'));$('cv').value=AUTO;$('au').style.display='none'}),
+S('Edit Stamp','Click the blue Edit Stamp button.','The Stamp / Signature Manager opens. It has 3 tabs: Officer Names, Sheet-wise Stamps and Sign Space.',async()=>{await click($('bst'));show('m1')}),
+S('Officer Names – Section Engineer','Click Officer Name and type the officer’s name (imaginary example).','The Designation box is already filled – you can edit it. Auto-Fill ✨ can fill the designation from the name for known officers.',async()=>{await click($('nSE'));await type($('nSE'),'A. B. Kadam')}),
+S('Other officers','Do the same for the Sub Divisional Engineer, Executive Engineer (and SE Circle / Chief Engineer if needed).','One entry here is applied to all sheets – no need to retype it for every sheet.',async()=>{await click($('nSDE'));await type($('nSDE'),'C. D. Jadhav');await click($('nEE'));await type($('nEE'),'E. F. Pawar')}),
+S('Sheet-wise Stamps tab','Click the “Sheet-wise Stamps” tab.','Every sheet lists the officers. A blue ✓ chip means that officer signs that sheet.',async()=>{await click($('t2'));pane(2)}),
+S('Choose who signs','Click an officer chip to switch it on or off – here the Section Engineer on Lead Charges.','The chip turns blue ✓ – the Lead Charges sheet will now carry the Section Engineer’s stamp.',async()=>{await click($('c00'));chip($('c00'),true)}),
+S('Reset Default Stamps','Click “Reset Default Stamps”, then OK in the question box.','Every sheet goes back to its default officers (the chip you switched on goes off again).',async()=>{await click($('rst'));ask('Sheet-wise stamp config will be reset to default. Continue?');await sleep(900);await click($('cok'));show('m4',false);SH.forEach(([n,v],i)=>v.forEach((x,j)=>chip($('c'+i+j),x)))}),
+S('Sign Space','Open the Sign Space tab and drag the slider – here from 45 px to 70 px.','This sets the blank height inside each stamp, where the officer signs.',async()=>{await click($('t3'));pane(3);await click($('sl'));for(let v=45;v<=70;v+=5){$('sl').value=v;$('sv2').textContent=v+'px';await sleep(90)}}),
+S('Save & Apply','Click Save & Apply (Cancel throws the changes away).','The window closes and the stamp updates immediately – names, designations and sign space – on the sheets.',async()=>{await click($('sap'));show('m1',false);$('stp').innerHTML=OFF.map(([k])=>`<span><b>${$('n'+k).value?'('+$('n'+k).value+')':'(Name)'}</b>${$('d'+k).value}</span>`).join('');$('stp').style.setProperty('--sg',$('sl').value*.4+'px');$('stp').style.display='grid'}),
+S('Print All','Click the green Print All button.','A “select sheets” list opens. Ten sheets are ticked by default; Diff. Cost, Plan and Steel Calculation are not.',async()=>{await click($('bpr'));openPick('p')}),
+S('Choose the sheets','Click Clear all, then tick only what you need – here Main Page, Abstract and Measurements. (Select all ticks everything.)','The sheets are printed in the order shown in the list.',async()=>{await click($('psn'));allBx(false);for(const i of [0,2,3]){await click($('k'+i));tick(i)}}),
+S('Print','Click Print, then choose Save as PDF (or your printer) in the browser’s print window.','Only the chosen sheets are printed, with the latest stamps. The estimate is also saved to the cloud silently in the background.',async()=>{await click($('pgo'));show('m2',false);show('m3');await sleep(1800);await click($('pdf'));show('m3',false);toast('PDF saved')}),
+S('Export Excel','Click the green Export Excel button.','A similar list opens – with one extra sheet, “General Report”.',async()=>{await click($('bxl'));openPick('x')}),
+S('Export','Click Select all, then Export.','An Excel file with the chosen sheets, in Print All order, is downloaded.',async()=>{await click($('psa'));allBx(true);await click($('pgo'));show('m2',false);toast('Excel file downloaded')}),
+S('Save Current Estimate','Click Save Current Estimate (you must be logged in).','The estimate is saved to the cloud and appears at the top of My Saved Estimates.',async()=>{await click($('svb'));$('list').innerHTML=rows(1);toast('Saved to cloud ✓')}),
+S('Refresh','Click Refresh.','The list is loaded again from the cloud. Without login it only shows “Login to see saved estimates”.',async()=>{await click($('rf'));$('list').innerHTML='<div style="color:#aaa;font-style:italic;padding:6px 0">Loading…</div>';await sleep(900);$('list').innerHTML=rows(1)}),
+S('New','Click the orange New button when you want to start a fresh estimate – save or print the current one first.','After you confirm, the cover and estimate are cleared for a new work.',async()=>{await click($('bnw'));ask('Start a new estimate? Unsaved changes will be lost.');await sleep(900);await click($('cok'));show('m4',false);covDefault();$('cv').value='0';$('stp').style.display='none';toast('New estimate started')}),
+S('Summary – how to use the MAIN tab','Fill the cover → set the stamps → add items in the other tabs → Save → Print / Export.','Next tutorial: the next tab in the menu.',async()=>{await click($('nMain'))})
+];
+/* ── LEAD CHARGES lesson (opened with #lead) ── */
+const LR=[['Sand (Natural)','Cu.M.',25,'Pohner','566.860'],['Screened / Crushed Sand','Cu.M.',15,'Sirsala','410.550'],['Metal 20mm','Cu.M.',15,'Sirsala','410.550'],['Cement (Bags)','MT',15,'Sirsala','282.905'],['Steel MS / TMT','MT',0,'Mumbai','0.000'],['Bitumen (VG-30)','MT per Cum',0,'Parali (V)','0.000']];
+const lrow=(i,a,x)=>`<tr id="lr${i}" class="${a[2]>0?'':'z'}"><td>${a[0]}${x?'<b class="xx">✕</b>':''}</td><td class="r">${a[1]}</td><td class="r"><input id="lk${i}" value="${a[2]}"></td><td><input id="ll${i}" value="${a[3]}" placeholder="Location"></td><td class="r"><span class="cv" id="lc${i}">${a[4]}</span></td></tr>`;
+const lupd=(i,km,c)=>{$('lc'+i).textContent=c;$('lr'+i).classList.toggle('z',km<=0)};
+const lset=async(i,v)=>{const e=$('lk'+i);await click(e);e.value='';await type(e,v)};
+function leadReset(){$('lcb').innerHTML=LR.map((a,i)=>lrow(i,a)).join('');['m1','m2','m3','m4','m5'].forEach(m=>show(m,false));$('lsel').textContent='-- Select Item --';$('lsel').style.color='#777';$('lloc2').value='';$('ts').style.opacity=0;ring(null);[...$('nav').children].forEach((c,i)=>c.classList.toggle('on',i==1));px=480;py=330;cu.style.transition='none';cu.style.transform=`translate(${px-3}px,${py-2}px)`}
+const leadSteps=[
+S('LEAD CHARGES tab – lead charges of materials','Open the LEAD CHARGES tab (second tab from the left).','Every material of the SSR is listed with its unit. Here you tell the app how far each material is carried – the lead charges then flow into the rate of every item automatically.',async()=>{await click($('nav').children[1])}),
+S('Lead (km)','Click the Lead (km) box of a material and type the distance from its source to the work site – here Sand changed from 25 to 15 km.','The Lead charges column updates at once (Sand: 566.860 → 410.550).',async()=>{await lset(0,'15');lupd(0,15,'410.550')}),
+S('Location','Click the Location box and type the name of the quarry / source – for example: Sirsala.','The location is for reference – it is shown beside the item on the printed Lead Charges sheet.',async()=>{const e=$('ll0');await click(e);e.value='';await type(e,'Sirsala')}),
+S('Lead charges are automatic','Nothing to type here – look at the Lead charges column.','The charge is picked from the SSR lead table, not simply km × rate (so it does not grow in a straight line). Every item that uses this material is recalculated.',async()=>{await mv($('lc0'));ring($('lc0'));await sleep(1600);ring(null)}),
+S('Materials you do not use','Leave Lead (km) = 0 for materials not used in this estimate (like Steel here).','Charge stays 0.000 and the row is left out of the printed sheet – only rows with km above 0 are printed.',async()=>{await mv($('lr4'));ring($('lr4'));await sleep(1600);ring(null)}),
+S('Bitumen','Click the Bitumen Lead (km) box and type the distance – for example 20.','Bitumen is different: its charge is simply km × 10, so 20 km gives 200.000.',async()=>{await lset(5,'20');lupd(5,20,'200.000')}),
+S('+ Add Row','Click the blue + Add Row button when the same material comes from a second source at a different distance.','The “Add Lead Row” window opens.',async()=>{await click($('lab'));show('m5')}),
+S('Choose item and location','Pick the material from the Name of Item list – here Sand (Natural) – and type the location (optional).','The list holds all the materials of the Lead Charges sheet.',async()=>{await click($('lsel'));$('lsel').textContent='Sand (Natural)';$('lsel').style.color='#222';const e=$('lloc2');await click(e);await type(e,'Sirsala Quarry')}),
+S('Add Row','Click Add Row in the window (Cancel closes it without adding).','A new Sand row appears at the bottom with Lead (km) 0. The red ✕ beside its name is used to remove the extra row.',async()=>{await click($('lok'));show('m5',false);$('lcb').insertAdjacentHTML('beforeend',lrow(6,['Sand (Natural)','Cu.M.',0,'Sirsala Quarry','0.000'],1));toast('Sand (Natural) added!')}),
+S('Km for the new row','Type the lead km of this second source – for example 25.','It gets its own lead charge (566.860) – the first Sand row keeps its own km.',async()=>{await lset(6,'25');lupd(6,25,'566.860')}),
+S('Search button','Click the orange Search button when you have finished with lead.','It takes you to the SEARCH tab, where you pick the items for your estimate.',async()=>{await click($('lsb'));toast('Opens the SEARCH tab')}),
+S('Certificate','Nothing to do – the certificate is already written under the table.','It certifies that the nearest quarry is considered, material is sufficient and of good quality. It prints with this sheet.',async()=>{await mv($('lcert'));ring($('lcert'));await sleep(1600);ring(null)}),
+S('Officer stamps','Nothing to type here – names come from Edit Stamp on the MAIN tab.','Who signs this sheet is chosen in Edit Stamp → Sheet-wise Stamps (by default the Sub Divisional Engineer and the Executive Engineer).',async()=>{await mv($('lstp'));ring($('lstp'));await sleep(1600);ring(null)}),
+S('Summary – how to use LEAD CHARGES','Type the Lead (km) and Location of each material → use + Add Row for a second source → press Search.','Lead charges are calculated automatically and go into your rates. Next tutorial: the next tab in the menu.',async()=>{await click($('nav').children[1])})
+];
+
+/* ── SEARCH lesson (opened with #search) ── */
+const SRL=[['1.01','Fixing chainage Stone / Bench mark Stone / Center Stone / Apex Stone in earth and all sorts of soil … complete. -- As directed by Engineer in charge','Number','189.00'],['1.02','Taking the trial pit for roads, alignment, C.D. Works in earth soil of all sorts … back filling upto depth 1.5 meters -- As directed by Engineer in charge','Cubic Metre','482.00'],['1.03','Taking the trial pit for roads, alignment, C.D. Works in earth soil of all sorts … back filling upto depth 3.0 meters -- As directed by Engineer in charge','Cubic Metre','520.00'],['1.04','Taking the trial pit for roads, alignment, C.D. Works in Hard murum … back filling upto depth 1.5 meters -- As directed by Engineer in charge','Cubic Metre','631.00'],['1.05','Taking the trial pit for roads, alignment, C.D. Works in Hard murum … back filling upto depth 3.0 meters -- As directed by Engineer in charge','Cubic Metre','706.00'],['1.08','Fixing survey pegs in earth and all sorts Soil, Sand, Gravel, Soft Murum, etc. including conveying, fixing etc. complete.','Number','12.00']];
+const SRM=[['11.29','Providing cast in situ / ready mix M20 grade cement concrete for head walls of CD work / retaining walls etc. including form work, compaction, finishing and curing etc. complete.','Cubic Meter','9,747.00'],['11.31','Providing and casting in situ / ready mix PCC M20 grade of trap metal for coping to head walls / parapet including centering, form work … complete.','Cubic Meter','9,258.00'],['12.32','Providing and laying in situ / ready mix M20 RCC work with trap / granite / quartzite / gneiss metal in well steining including shuttering … complete.','Cubic Metre','6,976.00'],['12.36','Providing and laying in situ / ready mix M20 RCC work with trap / granite / quartzite / gneiss metal in well steining including shuttering … complete.','Cubic Metre','6,976.00']];
+const SRE=[['2.10','Excavation for roadway in earth, soil of all sorts, sand, gravel or soft murum including dressing section … By Manual Means. -- MORTH 301','Cubic Metre','300.00'],['2.11','Excavation for roadway in earth, soil of all sorts, sand, gravel or soft murum including dressing section … -- MORTH 301','Cubic Metre','119.00'],['2.13','Excavation for roadway in hard murum and boulder including dressing section to the required grade … -- MORTH 301','Cubic Metre','139.00'],['2.14','Excavation for roadway in soft rock, including dressing section to the required grade … -- MORTH 301','Cubic Metre','177.00'],['2.15','Excavation for roadway in hard rock by controlled blasting including dressing section … -- MORTH 301','Cubic Metre','250.00'],['2.16','Excavation for roadway in hard rock by wedging and chiselling or line drilling … -- MORTH 301','Cubic Metre','1,419.00']];
+const sres=(L,info)=>{$('sinfo').textContent=info;$('sres').innerHTML=L.map(a=>`<div class="sri" id="sr${a[0].replace('.','_')}"><b>${a[0]}</b><span>${a[1]}</span><em>${a[2]}</em><strong>${a[3]}</strong></div>`).join('')};
+const sbd=n=>{$('sbd').textContent=n};
+function srReset(){sres(SRL,'2009 items');$('sq').value='';$('sdm').checked=true;$('sins').value='end';$('saf').style.display='none';['s_d','s_l','s_b','s_h'].forEach(i=>$(i).value='');$('s_t').textContent='0.000';$('nav').children[2].innerHTML='SEARCH <i id="sbd">12</i>';['m1','m2','m3','m4','m5'].forEach(m=>show(m,false));$('ts').style.opacity=0;ring(null);[...$('nav').children].forEach((c,i)=>c.classList.toggle('on',i==2));px=480;py=330;cu.style.transition='none';cu.style.transform=`translate(${px-3}px,${py-2}px)`}
+const srSteps=[
+S('SEARCH tab – find SSR items','Open the SEARCH tab (third tab from the left).','The whole SSR (2009 items) is listed with Item No., description, unit and rate. The orange badge on the tab shows how many items are already in your estimate.',async()=>{await click($('nav').children[2])}),
+S('Search by words or item number','Click the search box and type what you need – an item number (like 21.01) or words (like M20).','The list shrinks while you search – here M20 gives 51 results.',async()=>{const e=$('sq');await click(e);await type(e,'M20');sres(SRM,'51 results')}),
+S('Several words','Clear the box and type more words – for example: excavation. You can type several words (like “brick masonry”).','Only items that contain all the words are listed. At most 80 results are shown, so add more words to narrow the list.',async()=>{const e=$('sq');e.value='';await type(e,'excavation');sres(SRE,'80 results')}),
+S('Direct Measurement Sheet – ON','With the purple “Direct Measurement Sheet” box ticked, simply click an item row – here 2.11.','The item is added straight to the Measurements sheet, where you type L / B / D. The tab badge goes up by one.',async()=>{await mv($('sdm'));ring($('sdm'));await sleep(900);ring(null);await click($('sr2_11'));sbd(13);toast('Item added — enter L / B / D here')}),
+S('Direct Measurement Sheet – OFF','Click the box to untick it when you want to enter the measurements here, before adding.','Now clicking an item opens an “Add Item” form above the search box.',async()=>{await click($('sdm'));$('sdm').checked=false;$('ts').style.opacity=0}),
+S('Pick the item','Click the item you want – here 2.11, Excavation for roadway.','The Add Item form shows the item number, description and rate. Cancel closes it without adding.',async()=>{await click($('sr2_11'));$('sno').textContent='Item No. 2.11';$('sdesc').textContent='Excavation for roadway in earth, soil of all sorts, sand, gravel or soft murum … -- MORTH 301';$('srate').textContent='119 / One Cubic Metre';$('saf').style.display='block'}),
+S('Enter measurements','Type a description and the measurements No. × L × B × D/H – here 1 × 100 × 5 × 0.5.','Total = 250.000 Cu.M. The Floor box is G by default, and + Row adds more measurement lines for the same item.',async()=>{await click($('s_d'));await type($('s_d'),'Road side excavation');await click($('s_l'));await type($('s_l'),'100');await click($('s_b'));await type($('s_b'),'5');await click($('s_h'));await type($('s_h'),'0.5');$('s_t').textContent='250.000'}),
+S('Add to Estimate','Click Add to Estimate.','The item goes into the estimate with its quantity; amount = rate × quantity. If the same item is added again, its new rows are added to the existing item.',async()=>{await click($('sadd'));$('saf').style.display='none';sbd(14);toast('Added to estimate ✓')}),
+S('Insert at Sr.','To place the next item in the middle of the estimate, type its serial number in the “Insert at Sr.” box.','Leave it as “end” to add new items at the bottom.',async()=>{const e=$('sins');await click(e);e.value='';await type(e,'3')}),
+S('Summary – how to use the SEARCH tab','Search → click the item → (enter measurements) → Add to Estimate.','Added items appear in the other tabs (Abstract, Measurements …). Next tutorial: the next tab in the menu.',async()=>{await click($('nav').children[2])})
+];
+
+/* ── RECAPITULATION lesson (opened with #recap) ── */
+const RA=10942387,RB=108822,RR=81607,RM=27215;let RS;
+const rinit=()=>{RS={gst:18,base:'A',c:2,cu:'%',li:1,auto:true,ex:[{n:'Electrification',p:0},{n:'Water Supply',p:0}]}};
+const inr=n=>{let t=String(Math.round(n)),l=t.slice(-3),r=t.slice(0,-3);if(r)l=r.replace(/\B(?=(\d{2})+(?!\d))/g,',')+','+l;return l+'.00'};
+function rcalc(){const S=RS,ABC=RA+RB,gb=S.base=='A'?RA:ABC,gst=Math.round(gb*S.gst/100),c=S.cu=='%'?Math.round(RA*S.c/100):+S.c,lp=S.auto?(RA<=2500000?.5:1):S.li,li=Math.round(RA*lp/100),ex=S.ex.map(e=>Math.round(RA*e.p/100));return{ABC,gst,c,lp,li,ex,g:ABC+gst+c+li+ex.reduce((x,y)=>x+y,0)}}
+function rrender(){const S=RS,v=rcalc(),row=(id,l,a,c='')=>`<tr id="${id}" class="${c}"><td>${l}</td><td class="r v">${inr(a)}</td></tr>`,lk=(v.g/1e5).toFixed(2);
+$('rtb').innerHTML=`<tr id="rA"><td class="k">A &nbsp;&nbsp;Cost of Work</td><td class="r v" style="color:#1b5e20">${inr(RA)}</td></tr><tr id="rB"><td>B &nbsp;&nbsp;Royalty &amp; Testing Charges</td><td class="r v">${inr(RB)}</td></tr><tr class="sub" id="rR"><td>• Royalty</td><td class="r">${inr(RR)}</td></tr><tr class="sub" id="rM"><td>• Material Testing</td><td class="r">${inr(RM)}</td></tr><tr class="tt" id="rT"><td>Total (A + B)</td><td class="r">${inr(v.ABC)}</td></tr>`
++row('rG',`Add ${S.gst}% GST <span id="rbtn" class="${S.base=='A'?'':'abc'}">${S.base=='A'?'on A':'on A+B'} ⇄</span>`,v.gst)
++row('rC',S.cu=='%'?`Add ${S.c}% Contingencies`:`Add Rs. ${S.c} Contingencies`,v.c)
++row('rL',`Add ${v.lp}% Labour Insurance`,v.li)
++S.ex.map((e,i)=>e.p>0?row('rX'+i,`Add ${e.p}% for ${e.n}`,v.ex[i],'xr'):'').join('')
++`<tr class="gt" id="rGT"><td>Grand Total</td><td class="r">${inr(v.g)}</td></tr><tr class="lk"><td>= Rs.</td><td class="r" id="rLk">${lk} Lakhs</td></tr>`;
+document.querySelector('#bar .gt').innerHTML=`<b>23</b> items &nbsp;<b>${lk} L</b> Grand Total`}
+function rsrender(){const S=RS;$('x_gst').value=S.gst;$('x_c').value=S.c;$('x_cu').textContent=S.cu+' ▾';$('x_li').value=S.li;$('x_au').classList.toggle('on',S.auto);$('x_ex').innerHTML=S.ex.map((e,i)=>`<div class="xr2"><input id="x_n${i}" value="${e.n}"><input id="x_p${i}" value="${e.p}"><span class="sel">% ▾</span><b class="xd">✕</b></div>`).join('')}
+const navOn=i=>[...$('nav').children].forEach((c,k)=>c.classList.toggle('on',k==i));
+const rhl=async id=>{await mv($(id));ring($(id));await sleep(1500);ring(null)};
+const rtype=async(id,v)=>{const e=$(id);await click(e);e.value='';await type(e,v)};
+function rcReset(){rinit();rrender();rsrender();$('rcp').classList.remove('sd');$('rsp').style.display='none';$('nav').children[2].innerHTML='SEARCH <i id="sbd">23</i>';['m1','m2','m3','m4','m5'].forEach(m=>show(m,false));$('ts').style.opacity=0;ring(null);navOn(3);px=480;py=330;cu.style.transition='none';cu.style.transform=`translate(${px-3}px,${py-2}px)`}
+const rcSteps=[
+S('RECAPITULATION tab – the final cost summary','Open the RECAPITULATION tab (fourth tab from the left).','Nothing to type on this sheet – everything is calculated automatically from the items in your estimate and ends in the Grand Total.',async()=>{await click($('nav').children[3])}),
+S('A – Cost of Work','Look at row A.','It is the total amount of all the items you added in the estimate (here ₹1,09,42,387).',async()=>{await rhl('rA')}),
+S('B – Royalty & Testing Charges','Look at row B and its two parts.','Royalty (81,607) + Material Testing (27,215) = 1,08,822. These are calculated automatically.',async()=>{await rhl('rB');await rhl('rR');await rhl('rM')}),
+S('Total (A + B)','Look at the Total (A + B) row.','Cost of Work + Royalty & Testing = 1,10,51,209.',async()=>{await rhl('rT')}),
+S('Add 18% GST','Look at the GST row – the small blue button says “on A”.','By default GST is worked out on A only: 18% of 1,09,42,387 = 19,69,630.',async()=>{await rhl('rG')}),
+S('GST on A + B','Click the blue “on A ⇄” button.','The button changes to “on A+B” and GST is now 18% of A+B = 19,89,218. The Grand Total changes to 1,33,68,699 (133.69 Lakhs) – also in the top bar.',async()=>{await click($('rbtn'));RS.base='ABC';rrender()}),
+S('Back to GST on A','Click the button again to switch back.','It toggles between “on A” and “on A+B”. Only the GST changes – Contingencies and Labour Insurance stay as they are.',async()=>{await click($('rbtn'));RS.base='A';rrender()}),
+S('Contingencies and Labour Insurance','Look at the next two rows.','2% Contingencies (2,18,848) and 1% Labour Insurance (1,09,424) are both worked out on A, the Cost of Work.',async()=>{await rhl('rC');await rhl('rL')}),
+S('Grand Total','Look at the black Grand Total row.','Total (A+B) + GST + Contingencies + Labour Insurance = 1,33,49,111, i.e. 133.49 Lakhs – the same figure shown in the top bar.',async()=>{await rhl('rGT');await rhl('rLk')}),
+S('Change the percentages in SETTINGS','Open the SETTINGS tab. (Here it is shown beside the Recapitulation so you can watch the effect.)','GST, Contingencies, Labour Insurance and the EXTRA % ROWS are set here. Every change shows in the Recapitulation at once.',async()=>{await click($('nav').children[11]);navOn(11);$('rcp').classList.add('sd');$('rsp').style.display='block'}),
+S('GST %','Click GST % and type the rate – for example 12 (the default is 18).','The Recap row becomes “Add 12% GST” (12% of A = 13,13,086) and the Grand Total follows.',async()=>{await rtype('x_gst','12');RS.gst=12;rrender();await rhl('rG')}),
+S('Contingencies – % or ₹','Contingencies can be a % (worked out on A) or a fixed rupee amount. Choose ₹ in the dropdown and type 8000.','The Recap row reads “Add Rs. 8000 Contingencies” = 8,000.',async()=>{await click($('x_cu'));RS.cu='₹';$('x_cu').textContent='₹ ▾';await rtype('x_c','8000');RS.c=8000;rrender();await rhl('rC')}),
+S('Labour Insurance – Auto','The tick box “Auto” is on: 0.50% up to 25 Lakh and 1.00% above 25 Lakh (SSR Sec. B (i)A). Type 0.5 in the box.','While Auto is ticked the typed % is ignored – the Recap still shows 1%, because this work is above 25 Lakh.',async()=>{await rtype('x_li','0.5');RS.li=.5;rrender();await rhl('rL')}),
+S('Labour Insurance – your own %','Untick the Auto box to use your own percentage.','Now the Recap shows “Add 0.5% Labour Insurance” with the new amount.',async()=>{await click($('x_au'));RS.auto=false;$('x_au').classList.remove('on');rrender();await rhl('rL')}),
+S('Extra % rows','Type a % in the extra rows – here 2 for Electrification and 2 for Water Supply.','Each row with a value above 0 is added to the Recapitulation as a green line, worked out on A. A row with 0 stays hidden.',async()=>{await rtype('x_p0','2');RS.ex[0].p=2;rrender();await rhl('rX0');await rtype('x_p1','2');RS.ex[1].p=2;rrender();await rhl('rX1')}),
+S('+ Add and ✕','Click + Add to create one more extra row (give it a name and a % or ₹ value). The red ✕ removes a row.','Use it for any extra charge of your estimate that should be added to the Grand Total.',async()=>{await mv($('x_add'));ring($('x_add'));await sleep(1500);ring(null)}),
+S('Back to RECAPITULATION','Open the RECAPITULATION tab again.','The Grand Total now includes GST, Contingencies, Labour Insurance and the extra rows exactly as set in SETTINGS.',async()=>{await click($('nav').children[3]);navOn(3);$('rcp').classList.remove('sd');$('rsp').style.display='none';await rhl('rGT')}),
+S('Officer stamps','Nothing to type – the names come from Edit Stamp on the MAIN tab.','By default this sheet carries the Sub Divisional Engineer, Executive Engineer and Superintending Engineer (Circle) – change it in Edit Stamp → Sheet-wise Stamps.',async()=>{await rhl('rstp')}),
+S('Summary – how to use RECAPITULATION','Check A, B, GST (on A or A+B) and the Grand Total – set the percentages in SETTINGS – then print or export.','Next tutorial: the next tab in the menu.',async()=>{await click($('nav').children[3])})
+];
+/* ── ABSTRACT lesson (opened with #abstract) ── */
+const ABL=[['21.02','Excavation for foundation in earth, soil of all types, sand, gravel and soft murum, including removing the excavated material up to a distance of 50 m … complete. -- Bd.A.1 Page One Number 259','Cubic Metre','33.490','207.00','6,932.00'],['21.06','Excavation for foundation in hard murum including removing the excavated material upto distance of 50 metres beyond the building area … complete. -- Bd.A.2 Page One Number 259','Cubic Metre','20.382','227.00','4,627.00'],['24.01','Providing and laying Cast in situ/Ready Mix cement concrete in M-10 of trap/granite/quartzite/gneiss metal for foundation and bedding including bailing out water … complete. -- Bd. E. 1 Page One Number 287','Cubic Metre','90.633','6,253.48','5,66,772.00'],['25.11','Providing and laying in situ /Ready Mix cement concrete M-20 of trap / granite / quartzite / gneiss metal for R.C.C. work in foundations like raft, strip foundations … complete. -- Bd.F.3 Page One Number 298','Cubic Metre','12.640','7,485.36','94,615.00'],['25.31','Providing and laying Cast in situ/Ready Mix cement concrete M-20 of trap / granite /quartzite/ gneiss metal for R.C.C. columns as per detailed designs and drawing … complete. -- Bd.F.5 Page One Number 300','Cubic Metre','15.120','14,164.36','2,14,165.00'],['25.5','Providing and laying Cast in situ/Ready Mix cement concrete M-20 of trap/granite/quartzite/gneiss metal for R.C.C. beams and lintels as per detailed designs and drawings … complete. -- Bd.F.6 Page One Number 300','Cubic Metre','64.800','12,650.36','8,19,743.00'],['27.03','Providing second class Burnt Brick masonry with conventional/ I.S. type bricks in cement mortar 1:6 in plinth as backing in composite masonry including bailing out water … complete. -- Bd.G.3 Page One Number 314','Cubic Metre','21.917','8,319.85','1,82,346.00'],['21.37','Filling in plinth and floors with contractors material/brought from outside and approved by Engineer incharge in layers of 15 cm to 20 cm including watering and compaction etc. complete. -- Bd.A.11 Page One Number 263','Cubic Metre','168.465','1,248.91','2,10,398.00']];
+let ABD;
+function abrender(){$('abb').innerHTML=ABD.map((a,i)=>`<div class="abr" id="ar${a[0].replace('.','_')}"><span class="n">${i+1}</span><span class="no">${a[0]}</span><span>${a[1]}</span><span class="u">${a[2]}</span><span class="fb">Ground<br>Floor</span><span class="r">${a[3]}</span><span class="fr">${a[4]}</span><span class="am">${a[5]}</span><span class="ac"><b class="cfb">CF</b><u class="dl" id="ad${a[0].replace('.','_')}" style="text-decoration:none">del</u></span></div>`).join('')}
+function abcount(n){document.querySelector('#bar .gt').innerHTML=`<b>${n}</b> items &nbsp;<b>135.96 L</b> Grand Total`;$('nav').children[2].innerHTML=`SEARCH <i id="sbd">${n}</i>`}
+function abReset(){ABD=ABL.slice();abrender();abcount(23);['m1','m2','m3','m4','m5'].forEach(m=>show(m,false));$('ts').style.opacity=0;ring(null);[...$('nav').children].forEach((c,i)=>c.classList.toggle('on',i==4));px=480;py=330;cu.style.transition='none';cu.style.transform=`translate(${px-3}px,${py-2}px)`}
+const abhl=async id=>{await mv($(id));ring($(id));await sleep(1700);ring(null)};
+const abSteps=[
+S('ABSTRACT tab – list of all items','Open the ABSTRACT tab (fifth tab from the left).','Nothing to type here. The Abstract lists every item of your estimate, one line each, in the order they were added.',async()=>{await click($('nav').children[4])}),
+S('Item details','Look at the first columns: Sr., Item No., Description and Unit.','These come from the SSR item you picked in the SEARCH tab. The Sr. numbers run 1, 2, 3 … down the list.',async()=>{await abhl('ar21_02')}),
+S('Qty, Final Rate and Amount','Look at Qty, Final Rate and Amount of item 21.02.','Qty is the total of your measurements. Final Rate is the SSR rate with lead charges added. Amount = Qty × Final Rate (33.490 × 207 = 6,932).',async()=>{await mv($('ar21_02'));ring($('ar21_02'));await sleep(2000);ring(null)}),
+S('Floor','Look at the Floor column.','It shows the floor of the measurements – here Ground Floor. Items measured on upper floors show them here as well.',async()=>{const e=$('ar21_02').querySelector('.fb');await mv(e);ring(e);await sleep(1600);ring(null)}),
+S('Delete an item','Click the red “del” button at the end of a line – here item 21.06.','The item is deleted at once – no question is asked, so click carefully. The Sr. numbers close up and the totals are recalculated.',async()=>{await click($('ad21_06'));ABD=ABD.filter(a=>a[0]!='21.06');abrender();abcount(22);toast('Item deleted')}),
+S('Deleted everywhere','Check the other sheets (Measurements, Rate Analysis, Recapitulation).','Deleting removes the item from the whole estimate, and the item count on the SEARCH tab and in the top bar goes down by one. Add it again from SEARCH if you need it back.',async()=>{await abhl('ar24_01')}),
+S('Summary – how to use ABSTRACT','Check the list → del any wrong item → continue with the other sheets.','Next tutorial: the next tab in the menu.',async()=>{await click($('nav').children[4])})
+];
+/* ── RATE ANALYSIS lesson (opened with #rate) ── */
+const RAD={'24.01':{d:'Providing and laying Cast in situ/Ready Mix cement concrete M-10 of trap / granite / quartzite / gneiss metal for foundation and bedding … With fine aggregate (Crushed sand VSI Grade)',b:5830,sc:-126,u:'Cubic Metre',sd:1,L:[{n:'Screened Sand',f:.47,r:397.93,s:1},{n:'Metal 40mm',f:.7,r:381.35},{n:'Metal 20mm',f:.24,r:397.93}]},
+'3.4':{d:'Providing and laying bituminous macadam using crushed aggregates …',b:7000,sc:-63,u:'Cubic Metre',L:[{n:'Bitumen Heating & Decanning',a:540.4}]},
+'25.13':{d:'Providing and laying in situ / Ready Mix cement concrete …',b:8200,sc:-126,u:'Cubic Metre',L:[{n:'Cement (bags)',a:14.02},{n:'Metal 20mm',a:210.4}]}};
+let RAI,RGC;
+const r2=n=>Math.round(n*100)/100;
+const f2=n=>(n<0?'-':'')+Math.abs(n).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
+const newIt=(no,on)=>({no,on,ex:[],ov:{},dl:{},nat:false});
+const raRate=(it,j)=>{const l=RAD[it.no].L[j];if(it.ov[j]!=null)return it.ov[j];if(l.a!=null)return l.a;return r2(l.f*(l.s&&it.nat?566.86:l.r))};
+const raLbl=(it,j)=>{const l=RAD[it.no].L[j];if(l.a!=null)return 'Lead: '+l.n;const nm=l.s&&it.nat?'Natural Sand':l.n,rt=l.s&&it.nat?566.86:l.r;return `Lead: ${nm} ( ${l.f} × ${rt} )`};
+const raFin=it=>{const d=RAD[it.no];let t=d.b+(it.on?d.sc:0);d.L.forEach((l,j)=>{if(!it.dl[j])t+=raRate(it,j)});it.ex.forEach(x=>t+=x.a);return r2(t)};
+function raRender(){$('rab').innerHTML=RAI.map((it,i)=>{const d=RAD[it.no],c=it.on?'#c62828':'#2e7d32';
+let h=`<tr class="ih"><td>${i+1}</td><td class="no">${it.no}</td><td colspan="3">${d.d}</td></tr>`
++`<tr><td></td><td></td><td>Base SSR Rate</td><td class="r">${f2(d.b)}</td><td>${d.u}</td></tr>`;
+d.L.forEach((l,j)=>{h+=it.dl[j]?`<tr class="dl"><td></td><td></td><td style="text-decoration:line-through">${raLbl(it,j)}</td><td class="r" style="color:#c62828">Deleted (was ${f2(raRate(it,j))})</td><td><span class="rbt" id="rr${i}_${j}" style="background:#2e7d32">↩ Restore</span></td></tr>`
+:`<tr><td></td><td></td><td class="pu">${raLbl(it,j)}</td><td class="r"><input class="pu" id="re${i}_${j}" value="${f2(raRate(it,j))}"></td><td><span class="xb" id="rx${i}_${j}">✕</span></td></tr>`});
+if(it.on)h+=`<tr id="rs${i}"><td></td><td></td><td class="rd">SCADA Deduction</td><td class="r rd">${f2(d.sc)}</td><td><span class="xb">✕</span></td></tr>`;
+it.ex.forEach((x,k)=>{h+=`<tr><td></td><td></td><td><input class="lb" id="rxl${i}_${k}" value="${x.l}"></td><td class="r"><input class="ax" id="rxa${i}_${k}" value="${x.a}"></td><td><span class="xb">✕</span></td></tr>`});
+h+=`<tr class="fin" id="rf${i}"><td></td><td></td><td>Final Rate (Ground Floor)</td><td class="r">${f2(raFin(it))}</td><td></td></tr>`
++`<tr><td></td><td></td><td colspan="3"><span class="rbt" id="rxb${i}" style="background:#b8860b">+ Extra Row</span><span class="rbt" id="rb${i}" style="background:${c}">${it.on?'❌ Cancel SCADA':'✅ Apply SCADA'}</span><span class="rbn" style="color:${c}">(SCADA ${it.on?f2(d.sc):'Off'})</span>`
++(d.sd?`<span class="rbt" id="rsd${i}" style="background:#00796b;margin-left:4px">⇄ Use ${it.nat?'Screened':'Natural'} Sand lead</span><span class="rbn" style="color:#00796b">(${it.nat?'Natural':'Screened'} Sand)</span>`:'')+`</td></tr>`
++'<tr style="height:3px"><td colspan="5" style="background:#ddd;padding:0"></td></tr>';return h}).join('')}
+const raCard=id=>['raSet','raSr'].forEach(c=>$(c).style.display=c==id?'block':'none');
+const raSrch=(no,rate)=>{$('rsr').innerHTML=`<b>${no}</b><span>${RAD[no].d}</span><strong>${rate}</strong>`};
+const rah=async id=>{await mv($(id));ring($(id));await sleep(1700);ring(null)};
+const raIn=async(id,v)=>{const e=$(id);await click(e);e.value='';await type(e,v)};
+function raReset(){RAI=[newIt('24.01',true),newIt('3.4',true)];RGC=false;raRender();raCard(null);$('rsb').className='';$('rsb').textContent='❌ SCADA Deduction Active';['m1','m2','m3','m4','m5'].forEach(m=>show(m,false));$('ts').style.opacity=0;ring(null);navOn(5);$('nav').children[2].innerHTML='SEARCH <i id="sbd">2</i>';px=480;py=330;cu.style.transition='none';cu.style.transform=`translate(${px-3}px,${py-2}px)`}
+const raSteps=[
+S('RATE ANALYSIS tab – how the rate of every item is made','Open the RATE ANALYSIS tab (sixth tab from the left).','Nothing is compulsory here. For every item of your estimate this sheet shows, step by step, how its Final Rate is built up – and you can adjust it item by item.',async()=>{await click($('nav').children[5]);navOn(5)}),
+S('Rate build-up','Look at item 24.01: Base SSR Rate → Lead rows → SCADA Deduction → Final Rate.','The SSR rate is the starting point. Lead charges (from the LEAD CHARGES tab) are added, SCADA is deducted, and the Final Rate goes to the Abstract.',async()=>{await rah('rf0')}),
+S('SCADA Deduction row','Look at the red SCADA Deduction row – here −126.00 per Cu.M. (BT items like 3.4 get −63.00).','It is applied automatically to items that carry a SCADA deduction (SSR 2022-23 Sec. B (xxiv)). The SCADA button under an item is shown only for such items.',async()=>{await rah('rs0')}),
+S('Cancel SCADA for one item','Click the red “❌ Cancel SCADA” button under the item – here under 24.01.','The red SCADA row disappears at once and the Final Rate goes up (6,253.48 → 6,379.48). Abstract, Amount and Recapitulation are recalculated. Only this item changes.',async()=>{await click($('rb0'));RAI[0].on=false;raRender();toast('Item 24.01: SCADA deduction cancelled');await rah('rf0')}),
+S('Apply SCADA again','The button is now green “✅ Apply SCADA”. Click it to bring the deduction back.','The SCADA row returns and the rate goes back to 6,253.48. Switch it ON / OFF as often as you like.',async()=>{await click($('rb0'));RAI[0].on=true;raRender();toast('Item 24.01: SCADA deduction applied (-126)')}),
+S('Other items are not affected','Look at item 3.4 – its SCADA Deduction (−63.00) is still there.','The button under an item works for that one item only.',async()=>{await rah('rs1')}),
+S('+ Extra Row','Click the yellow “+ Extra Row” button under the item.','A new yellow row “Extra Item” appears with a label box and an amount box. Its amount is added to the Final Rate of this item.',async()=>{await click($('rxb0'));RAI[0].ex.push({l:'Extra Item',a:0});raRender()}),
+S('Label and amount of the extra row','Type a name in the label box (for example: Transport) and the amount in the amount box (for example: 200).','Final Rate 6,253.48 → 6,453.48. A minus value (e.g. −50) is also allowed – then it is deducted. The red ✕ removes the row.',async()=>{await raIn('rxl0_0','Transport');await raIn('rxa0_0','200');RAI[0].ex[0]={l:'Transport',a:200};raRender();await rah('rf0')}),
+S('Edit any amount','Click the amount of a Lead row – here Metal 40mm 266.95 – and type the new value (for example 250), then press Enter.','Final Rate 6,453.48 → 6,436.53. Abstract and Recapitulation follow automatically. The wording of a row can be changed the same way.',async()=>{await raIn('re0_1','250');RAI[0].ov[1]=250;raRender();await rah('rf0')}),
+S('Delete a row and restore it','Click the red ✕ at the end of a row – here Metal 20mm lead. Click “↩ Restore” to bring it back.','The row shows “Deleted (was 95.50)” and the Final Rate falls to 6,341.03. After Restore it is 6,436.53 again. The ✕ works on Lead and SCADA rows too.',async()=>{await click($('rx0_2'));RAI[0].dl[2]=true;raRender();await sleep(1500);await click($('rr0_2'));delete RAI[0].dl[2];raRender()}),
+S('Use Natural Sand lead','Click the teal “⇄ Use Natural Sand lead” button. It is shown for items that use sand – now the item is on Screened Sand.','The sand lead is worked out on the Natural Sand lead instead: 0.47 × 566.86 = 266.42 (was 187.03). Final Rate 6,436.53 → 6,515.92. Only this item changes; the consumption factor stays the same.',async()=>{await click($('rsd0'));RAI[0].nat=true;raRender();await rah('rf0')}),
+S('Back to Screened Sand','The button now says “⇄ Use Screened Sand lead”. Click it to switch back.','The sand lead returns to 187.03 and the Final Rate to 6,436.53. These buttons are for your screen only – they are not printed.',async()=>{await click($('rsd0'));RAI[0].nat=false;raRender();await rah('rf0')}),
+S('Important – the Settings button works only for NEW items','Open SETTINGS and click “Cancel SCADA Deduction”. It turns green: “✅ SCADA Cancelled”.','Items that are already added do NOT change – look at 24.01, its SCADA row is still there. The Settings button is read only at the moment an item is added. For an added item use the SCADA button under it.',async()=>{await click($('nav').children[11]);navOn(11);raCard('raSet');await click($('rsb'));RGC=true;$('rsb').className='on';$('rsb').textContent='✅ SCADA Cancelled';toast('New items will not have SCADA');await sleep(900);await rah('rs0')}),
+S('New item – first SCADA off, then add','With SCADA cancelled in Settings, open SEARCH and click the item – for example 25.13 (with “Direct Measurement Sheet” ticked it is added straight away).','The new item comes without SCADA – no red row, and a green “✅ Apply SCADA” button. So the order is: 1) cancel SCADA in Settings, 2) add the item.',async()=>{await click($('nav').children[2]);navOn(2);raSrch('25.13','8,200');raCard('raSr');await click($('rsr'));RAI.push(newIt('25.13',false));raRender();$('nav').children[2].innerHTML='SEARCH <i id="sbd">3</i>';await click($('nav').children[5]);navOn(5);raCard(null);toast('Item added without SCADA ✓');await rah('rf2')}),
+S('Summary – how to use RATE ANALYSIS','Under each item: ❌ Cancel SCADA / ✅ Apply SCADA, + Extra Row, edit any amount, ✕ delete, ⇄ sand swap. For a new item: cancel SCADA in Settings first, then add it.','Every change flows into Abstract and Recapitulation. Next tutorial: the next tab in the menu.',async()=>{await click($('nav').children[5]);navOn(5)})
+];
+/* ── MEASUREMENTS lesson (opened with #measure) ── */
+const MFLN=['G','1st','2nd','3rd','4th'],MFLL=['Ground Floor','1st Floor','2nd Floor','3rd Floor','4th Floor'];
+const msData=()=>[
+{no:'21.06',u:'Cubic Metre',us:'Cu.m',d:'Excavation for foundation in hard murum including removing the excavated material upto distance of 50 metres beyond the building area and stacking and spreading as directed … complete. (Lift upto 1.50 m) By Mechanical Means -- Bd.A.2 Page One Number 259',rows:[{lbl:'Footing 1',n:9,l:2.2,b:2.2,d:.2,fl:0},{lbl:'Footing 2',n:6,l:2.35,b:2.35,d:.2,fl:0}]},
+{no:'24.01',u:'Cubic Metre',us:'Cu.m',d:'Providing and laying Cast in situ/Ready Mix cement concrete in M-10 of trap / granite/ quartzite/ gneiss metal for foundation and bedding including bailing out water … etc. complete. -- Bd. E. 1 Page One Number 287',rows:[{lbl:'Footing 1',n:9,l:2.15,b:2.15,d:.15,fl:0}]}
+];
+let MI,MSEL={},MCOPY=false,MPI=0;const MLNK={n:true,l:true,b:true,d:true,qty:false};
+const m3f=n=>(Math.round((n||0)*1000)/1000).toFixed(3);
+const mIsP=r=>r.pct!=null||r.fac!=null;
+function mcalc(){
+ for(let pass=0;pass<2;pass++)MI.forEach(it=>it.rows.forEach(r=>{
+  if(mIsP(r))return;
+  if(r.fx)for(const f in r.fx){const x=r.fx[f];let v=x.s[x.sf]||0;if(x.op==='*')v*=x.k;if(x.op==='/')v/=x.k;r[f]=v}
+  if(r.lk){if(r.lk.f.includes('qty')){r.q=Math.round((r.lk.s.q||0)*r.lk.p/100*1000)/1000;return}r.lk.f.forEach(f=>r[f]=r.lk.s[f])}
+  let q=(r.n==null?1:r.n);if(r.l)q*=r.l;if(r.b)q*=r.b;if(r.d)q*=r.d;
+  r.q=(r.ded?-1:1)*Math.round(q*1000)/1000}));
+ MI.forEach(it=>{it.rows.forEach(r=>{if(!mIsP(r))return;const s=r.src==null?it:MI[r.src];let base=0;s.rows.forEach(x=>{if(!mIsP(x))base+=x.q||0});r.base=base;r.q=Math.round((r.fac!=null?base*r.fac:base*r.pct/100)*1000)/1000});it.tot=it.rows.reduce((s,r)=>s+(r.q||0),0)})}
+function msUpd(){MI.forEach((it,i)=>{
+ it.rows.forEach((r,ri)=>{const q=$('mq_'+i+'_'+ri);if(q)q.textContent=m3f(r.q);const pb=$('mpb_'+i+'_'+ri);if(pb)pb.textContent=m3f(r.base);
+  if(r.lk||r.fx)['n','l','b','d'].forEach(f=>{const e=$('mi_'+i+'_'+ri+'_'+f);if(e&&document.activeElement!==e&&((r.lk&&r.lk.f.includes(f))||(r.fx&&r.fx[f])))e.value=(r[f]==null||(r[f]===0&&f!='n'))?'':r[f]})});
+ const t=$('msn_'+i);if(t)t.textContent=m3f(it.tot);
+ const fl={};it.rows.forEach(r=>{const f=r.fl||0;fl[f]=(fl[f]||0)+(r.q||0)});
+ Object.keys(fl).forEach(k=>{const e=$('msnf_'+i+'_'+k);if(e)e.textContent=m3f(fl[k])})})}
+function msIn(i,ri,f,el){
+ const row=MI[i].rows[ri];let v=el.value.trim();if(!row)return;
+ if(f==='lbl'){row.lbl=el.value;return}
+ if(mIsP(row)){if(f==='p'){const x=parseFloat(v)||0;if(row.fac!=null)row.fac=x;else row.pct=x}mcalc();msUpd();return}
+ if(/^avg\s*\(.*\)$/i.test(v)){const a=v.replace(/^avg\s*\(/i,'').replace(/\)\s*$/,'').split(',').map(parseFloat).filter(x=>!isNaN(x));if(a.length){el.value=String(Math.round(a.reduce((s,x)=>s+x,0)/a.length*1000)/1000);v=el.value}}
+ if(v[0]==='='){const m=/^=(\d+)\.(\d+)([LBDHN])(?:([*\/])([\d.]+))?$/i.exec(v);const s=m&&MI[+m[1]-1]&&MI[+m[1]-1].rows[+m[2]];
+  if(s){const sf=m[3].toLowerCase()==='h'?'d':m[3].toLowerCase();(row.fx=row.fx||{})[f]={s,sf,op:m[4]||'',k:+m[5]||1};el.style.background='#e8f5e9'}else el.style.background='#ffebee';
+  mcalc();msUpd();return}
+ if(row.fx)delete row.fx[f];el.style.background='';row[f]=v===''?null:(parseFloat(v)||0);mcalc();msUpd()}
+function msFl(i,ri,v){const r=MI[i].rows[ri];if(r.fl!==+v){r.fl=+v;r.mv=true}mrender()}
+function mrender(){
+ mcalc();const nI=MI.length;let h='';
+ MI.forEach((it,i)=>{
+  it.rows=it.rows.map((r,k)=>({r,k,o:r.mv?1e5+k:k})).sort((a,b)=>((a.r.fl||0)-(b.r.fl||0))||(a.o-b.o)).map(x=>{delete x.r.mv;return x.r});
+  h+=`<tr class="mhd" id="mh_${i}"><td style="text-align:center;font-weight:700">${i+1}</td><td class="no">${it.no}</td><td colspan="7">${it.d}<div class="mtl"><span class="mbt" id="mchg_${i}" style="background:#ef6c00">&#8644; Change Item</span><span class="mbt" id="mup_${i}" style="background:#546e7a${i==0?';opacity:.4':''}">&#9650;</span><span class="mbt" id="mdn_${i}" style="background:#546e7a${i==nI-1?';opacity:.4':''}">&#9660;</span><span style="font-size:8px;color:#555">Move to Sr.</span><input id="mvto_${i}" placeholder="${i+1}" style="width:36px;border:1px solid #bbb;border-radius:3px;font-size:8px;padding:1px 3px;text-align:center"><span class="mbt" id="mgo_${i}" style="background:#1565c0;margin:0">Go</span></div></td><td style="font-size:8px;vertical-align:top">${it.u}</td><td></td></tr>`;
+  let lastFl=null;
+  it.rows.forEach((r,ri)=>{
+   const fl0=r.fl||0,first=fl0!==lastFl;lastFl=fl0;const isP=mIsP(r);
+   const bg=isP?'#f7f0fb':r.ded?'#fff0f0':r.lk?'#f0f8ff':'';
+   const sel=`<select id="mfl_${i}_${ri}" onchange="msFl(${i},${ri},this.value)" style="${isP?'border-color:#ce93d8':r.ded?'border-color:#c62828':''}">${MFLN.map((x,k)=>`<option value="${k}"${k==fl0?' selected':''}>${x}</option>`).join('')}</select>`;
+   const fc=`<td>${first?sel:`<span style="opacity:.3">${sel}</span>`}</td>`;
+   const act=`<td>${MCOPY&&!isP?`<input type="checkbox" id="mck_${i}_${ri}" style="margin-right:3px">`:''}<span class="mxb" id="mdel_${i}_${ri}">&#10005;</span></td>`;
+   if(isP){
+    h+=`<tr id="msr_${i}_${ri}" style="background:${bg}"><td colspan="2"></td>${fc}<td><input class="md" id="mi_${i}_${ri}_lbl" value="${r.lbl||''}" placeholder="e.g. Add 5% for laps" style="color:#4a148c" oninput="msIn(${i},${ri},'lbl',this)"><span style="font-size:7px;color:#6a1b9a;margin-left:3px">of <select><option>${r.src==null?'own rows':'Item '+(r.src+1)}</option></select></span></td><td class="r"><input class="mi" id="mi_${i}_${ri}_p" value="${r.fac!=null?r.fac:r.pct}" style="color:#4a148c;font-weight:700;width:38px" oninput="msIn(${i},${ri},'p',this)"></td><td class="r" style="color:#6a1b9a;font-weight:700"><select><option>${r.fac!=null?'Factor':'%'}</option></select></td><td class="r" style="font-size:8px;color:#888" id="mpb_${i}_${ri}">${m3f(r.base)}</td><td></td><td class="r"><b id="mq_${i}_${ri}" style="color:#6a1b9a">${m3f(r.q)}</b></td><td></td>${act}</tr>`;
+   }else{
+    const num=f=>{const L=r.lk&&r.lk.f.includes(f),X=r.fx&&r.fx[f],v=r[f];return `<td class="r"><input class="mi" id="mi_${i}_${ri}_${f}" value="${(v==null||(v===0&&f!='n'))?'':v}" placeholder="&mdash;" ${L?'readonly':''} style="${L?'background:#e3f2fd':X?'background:#e8f5e9':''}" oninput="msIn(${i},${ri},'${f}',this)"></td>`};
+    h+=`<tr id="msr_${i}_${ri}" style="background:${bg}"><td colspan="2">${r.ded?'<span class="mdd">DEDUCT</span>':''}</td>${fc}<td><input class="md" id="mi_${i}_${ri}_lbl" value="${r.lbl||''}" placeholder="${r.ded?'Deduction detail (e.g. door opening)':'Detail / Remark'}" style="${r.ded?'color:#c62828':''}" oninput="msIn(${i},${ri},'lbl',this)">${r.lk?`<span class="mbg">&#128279; ${r.lk.f.map(x=>x.toUpperCase()).join('+')} Linked</span>`:''}${r.fx?`<span class="mbg" style="background:#2e7d32">&fnof; ${Object.keys(r.fx).map(x=>x.toUpperCase()).join('+')} Link</span>`:''}<span class="mcm" id="mcm_${i}_${ri}">Add Comment</span></td>${num('n')}${num('l')}${num('b')}${num('d')}<td class="r"><b id="mq_${i}_${ri}">${m3f(r.q)}</b></td><td></td>${act}</tr>`;
+   }
+   if(r.cm)h+=`<tr style="background:${bg}"><td colspan="3"></td><td colspan="8" style="font-size:8px;font-style:italic;color:#555">${r.cm}</td></tr>`;
+  });
+  const fl={};it.rows.forEach(r=>{const f=r.fl||0;fl[f]=(fl[f]||0)+(r.q||0)});const ks=Object.keys(fl).map(Number).sort();
+  if(ks.some(k=>k>0))ks.forEach(k=>{h+=`<tr class="mnet"><td colspan="8" style="text-align:right">Net Quantity &ndash; ${MFLL[k]}</td><td class="r"><span id="msnf_${i}_${k}">${m3f(fl[k])}</span></td><td>${it.us}</td><td></td></tr>`});
+  else h+=`<tr class="mnet"><td colspan="8" style="text-align:right">Net Quantity</td><td class="r"><span id="msn_${i}">${m3f(it.tot)}</span></td><td>${it.us}</td><td></td></tr>`;
+  h+=`<tr><td colspan="11" style="padding:3px 5px;border-top:1px solid #e8e8e8">${MCOPY?`<span id="mlkbar_${i}" style="display:inline-block"><span style="font-size:8px;color:#888;margin-right:3px">Link:</span>${['n','l','b','d','qty'].map(f=>`<label style="font-size:8px;margin-right:5px"><input type="checkbox" id="mlk_${i}_${f}" ${MLNK[f]?'checked':''}> ${{n:'N',l:'L',b:'B',d:'D',qty:'Qty'}[f]}</label>`).join('')}<span style="font-size:8px;color:#888">&times; %</span><input id="mlp_${i}" value="100" style="width:34px;font-size:8px;margin:0 6px 0 3px;text-align:right;border:1px solid #bbb"></span><span class="mbt" id="mpaste_${i}" style="background:#1565c0">&#128203; Paste Linked</span>`:''}<span class="mbt" id="mrow_${i}" style="background:#1565c0">+ Row</span><span class="mbt" id="mded_${i}" style="background:#c62828">&#8722; Deduction</span><span class="mbt" id="mpct_${i}" style="background:#6a1b9a">% Row</span>${MCOPY?`<span class="mbt" id="mclr_${i}" style="background:#f57f17">&#10005; Clear Selection</span>`:`<span class="mbt" id="mcopy_${i}" style="background:#607d8b">&#9112; Copy Mode</span>`}</td></tr><tr><td colspan="11" style="height:3px;background:#ddd;padding:0"></td></tr>`;
+ });
+ $('mstb').innerHTML=h}
+const msTab=id=>['rap','lcp','srp','rcp','abp','msp'].forEach(x=>$(x).style.display=x===id?'block':'none');
+function mmDprev(){const n=Math.abs(parseFloat($('mmD_n').value)||1),l=parseFloat($('mmD_l').value)||0,b=parseFloat($('mmD_b').value)||0,d=parseFloat($('mmD_h').value)||0;let q=n;if(l)q*=l;if(b)q*=b;if(d)q*=d;q=Math.round(q*1000)/1000;$('mmD_prev').textContent=q>0?'Deduction Qty = -'+q+' Cubic Metre':''}
+function mmPprev(){let base=0;MI[MPI].rows.forEach(x=>{if(!mIsP(x))base+=x.q||0});const v=parseFloat($('mmP_v').value)||0;$('mmP_prev').textContent='Base '+m3f(base)+' × '+v+'% = '+m3f(base*v/100)+' Cubic Metre'}
+function msFormReset(){
+ [['mmD_d',''],['mmD_n','1'],['mmD_l',''],['mmD_b',''],['mmD_h',''],['mmD_c',''],['mmP_d',''],['mmP_v','5'],['mmC_t',''],['mmN_ssr',''],['mmN_no',''],['mmN_desc',''],['mmN_unit',''],['mmN_rate',''],['mmN_cf0',''],['mmN_cf1',''],['mmN_cf2','']].forEach(([i,v])=>$(i).value=v);
+ $('mmD_prev').textContent='';$('mmP_prev').textContent='';$('mmD_fl').selectedIndex=0;$('mmP_src').selectedIndex=0;$('mmP_fl').selectedIndex=0;$('mmP_mode').selectedIndex=0;
+ ['mmC_l','mmC_b','mmC_d','mmC_g'].forEach(i=>$(i).classList.remove('on'));
+ $('mmN_type').value='se';$('mmN_ssrw').style.display='none';$('mmN_cfp').style.display='none';$('mmN_cfb').textContent='Consumption Factor'}
+function msReset(){
+ MI=msData();MSEL={};MCOPY=false;MPI=0;msFormReset();msTab('msp');mrender();
+ ['m1','m2','m3','m4','m5','m6','m7','m8','m9'].forEach(m=>show(m,false));
+ $('msChg').style.display='none';$('ts').style.opacity=0;ring(null);navOn(6);
+ $('nav').children[2].innerHTML='SEARCH <i id="sbd">2</i>';
+ px=480;py=330;cu.style.transition='none';cu.style.transform=`translate(${px-3}px,${py-2}px)`}
+const mset=async(id,v)=>{const e=$(id);await click(e);e.value='';await type(e,v)};
+const msSwap=(a,b)=>{const t=MI[a];MI[a]=MI[b];MI[b]=t;mrender()};
+const msSteps=[
+S('MEASUREMENTS tab – the quantity of every item','Open the MEASUREMENTS tab (seventh tab from the left).','Every item you added in SEARCH is listed here with its measurement rows. The Net Quantity of each item is carried to the Abstract – so this is where you tell the app “how much” of each item there is.',async()=>{await click($('nav').children[6]);navOn(6)}),
+S('Item heading','Look at the shaded heading line of an item: Sr., Item No., description and unit.','These come from the SSR item you picked in SEARCH. The small buttons under the description (Change Item, ▲ ▼, Move to Sr.) are explained later.',async()=>{await rhl('mh_0')}),
+S('One row = one measurement','Look at the first row of item 21.06: Floor, Detail, No., Length, Width, Height and Quantity.','Quantity = No. × Length × Width × Height. Footing 1: 9 × 2.2 × 2.2 × 0.2 = 8.712. Leave Length, Width or Height empty when they do not apply (they are simply skipped).',async()=>{await rhl('msr_0_0')}),
+S('Net Quantity','Look at the Net Quantity line below the rows.','It is the total of all rows of the item (deductions and % rows included): 8.712 + 6.627 = 15.339 Cu.m. This figure goes to the Abstract.',async()=>{await rhl('msn_0')}),
+S('+ Row – add a measurement row','Click the blue “+ Row” button under item 21.06.','A new blank row appears at the bottom of the item (Quantity 1.000 until you enter sizes).',async()=>{await click($('mrow_0'));MI[0].rows.push({lbl:'',n:1,fl:0});mrender()}),
+S('Fill the row','Click the boxes of the new row one by one and type: Detail “Footing 3”, No. 6, Length 2.05, Width 2.05, Height 0.2.','Quantity = 6 × 2.05 × 2.05 × 0.2 = 5.043, and the Net Quantity changes at once: 15.339 → 20.382. Abstract and Recapitulation follow automatically.',async()=>{await mset('mi_0_2_lbl','Footing 3');await mset('mi_0_2_n','6');await mset('mi_0_2_l','2.05');await mset('mi_0_2_b','2.05');await mset('mi_0_2_d','0.2');await rhl('msn_0')}),
+S('Average of readings – avg( )','In Length, Width or Height you can type avg(a,b,c) – here avg(2,2.1) in the Length of Footing 3.','The box turns into the average (2 + 2.1) ÷ 2 = 2.05. Useful when you take several readings of the same dimension.',async()=>{await mset('mi_0_2_l','avg(2,2.1)');await rhl('mi_0_2_l')}),
+S('Take a value from another row – formula','In item 24.01 click + Row, give it a Detail and No. (here Footing 2, 6) and in Length type =1.1L and in Width =1.1B, then Height 0.15.','=1.1L means: Item 1 · row 1 (rows are counted from 0, so this is the 2nd row) · Length. The boxes turn green with a “ƒ Link” tag and always follow that row – change it and this row changes too. You can add × or ÷, e.g. =1.1L*2.',async()=>{await click($('mrow_1'));MI[1].rows.push({lbl:'',n:1,fl:0});mrender();await mset('mi_1_1_lbl','Footing 2');await mset('mi_1_1_n','6');await mset('mi_1_1_l','=1.1L');await mset('mi_1_1_b','=1.1B');await mset('mi_1_1_d','0.15');await rhl('msr_1_1')}),
+S('Floor','Click the Floor drop-down of Footing 3 and choose 1st Floor.','The row moves into its own floor group, and the Net Quantity is shown floor-wise: Ground Floor 15.339 and 1st Floor 5.043. The Abstract carries the floors separately.',async()=>{await click($('mfl_0_2'));$('mfl_0_2').value='1';msFl(0,2,1);await rhl('msnf_0_1')}),
+S('Back to Ground Floor','Choose Ground Floor again.','The row returns to the Ground Floor group and the single Net Quantity line (20.382) is shown again. Only the first row of each floor shows the drop-down in full – on the other rows it is faded, but works the same.',async()=>{await click($('mfl_0_2'));$('mfl_0_2').value='0';msFl(0,2,0);await rhl('msn_0')}),
+S('Add Comment','Click the brown “Add Comment” button of Footing 1.','A small window asks under which column the note should appear: Length, Width, Depth or General.',async()=>{await click($('mcm_0_0'));show('m8')}),
+S('Write and save the comment','Choose General, type the note – for example “Size as per drawing no. 5” – and click Save.','The note is printed in the measurement sheet below that row. Clear removes it again.',async()=>{await click($('mmC_g'));['mmC_l','mmC_b','mmC_d'].forEach(i=>$(i).classList.remove('on'));$('mmC_g').classList.add('on');await click($('mmC_t'));await type($('mmC_t'),'Size as per drawing no. 5');await click($('mmC_ok'));MI[0].rows[0].cm='Size as per drawing no. 5';show('m8',false);mrender()}),
+S('− Deduction','Click the red “− Deduction” button under item 21.06.','A window opens to deduct openings, pits or voids – the quantity is subtracted from the item.',async()=>{await click($('mded_0'));show('m6')}),
+S('Fill the deduction','Type the Description (required) – for example “Deduct column pit” – then Nos. 2, L 0.9, B 0.9, D/H 0.2. avg(a,b) works here too. Floor and Comment are optional.','A live line shows “Deduction Qty = -0.324”. Click “− Deduction Add”: a red DEDUCT row is added with a negative quantity and the Net Quantity falls: 20.382 → 20.058.',async()=>{await mset('mmD_d','Deduct column pit');await mset('mmD_n','2');await mset('mmD_l','0.9');await mset('mmD_b','0.9');await mset('mmD_h','0.2');await sleep(900);await click($('mmD_ok'));MI[0].rows.push({lbl:'Deduct column pit',n:2,l:.9,b:.9,d:.2,fl:0,ded:true});show('m6',false);mrender();await rhl('msn_0')}),
+S('% Row','Click the purple “% Row” button under item 21.06.','Use it to add or subtract a percentage of the item – for laps, wastage or working space.',async()=>{MPI=0;await click($('mpct_0'));show('m7');mmPprev()}),
+S('Fill the % row','Type a Description – for example “Add 5% for working space”. Base = Total of this item’s rows, Floor = Ground Floor, Type = % (Percent), % = 5. (A negative % deducts.)','The line below shows “Base 20.058 × 5% = 1.003”. Click “+ % Row”: a purple row is added and the Net Quantity becomes 21.061. Base can also be another item, and Type can be Factor (qty = base × factor).',async()=>{await mset('mmP_d','Add 5% for working space');await click($('mmP_v'));mmPprev();await sleep(1200);await click($('mmP_ok'));MI[0].rows.push({lbl:'Add 5% for working space',pct:5,src:null,fl:0});show('m7',false);mrender();await rhl('msn_0')}),
+S('Copy Mode – copy rows between items','Click the grey “⎘ Copy Mode” button.','Tick boxes appear next to every row and a “Link:” bar appears under each item. Use this to repeat rows (for example the footing sizes) in another item without typing them again.',async()=>{await click($('mcopy_0'));MCOPY=true;MSEL={};mrender();toast('Copy Mode ON')}),
+S('Select the rows','Tick the rows you want to copy – here Footing 1 and Footing 2 of item 21.06.','Only the ticked rows are copied. Deduction and % rows can be copied the same way (deduction rows stay deductions).',async()=>{await click($('mck_0_0'));$('mck_0_0').checked=true;MSEL['0_0']=1;await click($('mck_0_1'));$('mck_0_1').checked=true;MSEL['0_1']=1}),
+S('Choose what stays linked','Look at the Link: boxes – N, L, B, D are ticked by default. Tick only “Qty” to link the whole quantity; “× %” scales it (50 = half).','Linked values stay connected to the original row. Boxes that are not linked are copied once and can be edited freely.',async()=>{await rhl('mlkbar_1')}),
+S('Paste Linked','Click “📋 Paste Linked” under item 24.01 (the item where the rows should go).','The two rows are added to item 24.01 with a blue background and a “🔗 N+L+B+D Linked” tag. Copy Mode switches off by itself.',async()=>{await click($('mpaste_1'));const out=Object.keys(MSEL).map(k=>MI[+k.split('_')[0]].rows[+k.split('_')[1]]);out.forEach(s=>MI[1].rows.push({lbl:s.lbl,n:s.n,l:s.l,b:s.b,d:s.d,fl:s.fl||0,lk:{s,f:['n','l','b','d'],p:100}}));MCOPY=false;MSEL={};mrender();toast('2 row(s) pasted — N+L+B+D linked live')}),
+S('Linked rows follow the original','Change the Length of Footing 1 in item 21.06 from 2.2 to 2.5.','The linked row in item 24.01 changes by itself, and so do both Net Quantities. Linked boxes are locked (blue) – edit the original row, not the copy.',async()=>{await mset('mi_0_0_l','2.5');await rhl('msr_1_2')}),
+S('Delete a row','Click the red ✕ at the end of a row – here the last linked row of item 24.01 – and confirm with OK.','The row is removed and the Net Quantity is recalculated. Other rows that were linked to it become independent, and formulas are corrected automatically.',async()=>{await click($('mdel_1_3'));ask('Delete this measurement row?');await sleep(900);await click($('cok'));show('m4',false);MI[1].rows.splice(3,1);mrender()}),
+S('Change Item – wrong item picked?','Click the orange “⇄ Change Item” button of item 24.01.','The SEARCH tab opens with an orange banner. You do not have to delete the item – the measurements stay as they are.',async()=>{await click($('mchg_1'));$('msChgT').textContent='Sr. 2 (24.01) is being changed — search for the new item below and click it. Measurements will stay the same.';$('msChg').style.display='flex';sres([['24.01','Providing and laying Cast in situ/Ready Mix cement concrete in M-10 of trap / granite … for foundation and bedding … complete.','Cubic Metre','5,830'],['24.02','Providing and laying Cast in situ/Ready Mix cement concrete in M-15 of trap / granite … for foundation and bedding … complete.','Cubic Metre','6,120'],['24.03','Providing and laying Cast in situ/Ready Mix cement concrete in M-20 of trap / granite … for foundation and bedding … complete.','Cubic Metre','6,550']],'2009 items');$('sq').value='24.0';msTab('srp');navOn(2)}),
+S('Pick the correct item','Click the correct item in the list – here 24.02.','You return to MEASUREMENTS: item number, description, rate and consumption factor are now those of 24.02, while all rows and quantities are unchanged. Cancel on the banner leaves the item as it was.',async()=>{await click($('sr24_02'));MI[1].no='24.02';MI[1].d='Providing and laying Cast in situ/Ready Mix cement concrete in M-15 of trap / granite … for foundation and bedding … complete.';$('msChg').style.display='none';msTab('msp');navOn(6);mrender();toast('Item changed – measurements kept');await rhl('mh_1')}),
+S('Move an item – ▲ ▼','Click ▼ under item 21.06, then ▲ under it again.','The item moves one place down / up and the Sr. numbers change; Abstract and all other sheets follow the new order. ▲ is faded for the first item and ▼ for the last.',async()=>{await click($('mdn_0'));msSwap(0,1);await sleep(1200);await click($('mup_1'));msSwap(0,1)}),
+S('Move to Sr.','Type the new serial number in the “Move to Sr.” box – here 2 – and click Go (Enter works too).','The item jumps straight to Sr. 2. Useful in a long estimate. Links, % rows and formulas such as =1.1L are corrected automatically.',async()=>{await mset('mvto_0','2');await click($('mgo_0'));const x=MI.splice(0,1)[0];MI.splice(1,0,x);mrender();await rhl('mh_1')}),
+S('+ Non-SSR / Other SSR Item','Click the purple “+ Non-SSR / Other SSR Item” button at the top.','Use it for an item that is not in the SSR – an SE-approved rate, or an item from another SSR book.',async()=>{await click($('mnp'));show('m9')}),
+S('Item details','Type the Item No. (for example NS-1), Description, Unit and the Rate per unit – all four are compulsory. The Item No. must be new.','These are the details printed for the item in Abstract and Measurements. The rate you type is the base rate of the item.',async()=>{await mset('mmN_no','NS-1');await mset('mmN_desc','Extra item – PCC M-10 bed for pump foundation as approved by Superintending Engineer');await mset('mmN_unit','Cubic Metre');await mset('mmN_rate','5800')}),
+S('Type: Non SSR or Other SSR','Open the Type drop-down. “Non SSR – SE Approved” is the default; choose “Other SSR” for an item from another SSR book.','With “Other SSR” an extra box “SSR name / year” appears (for example SSR 2023-24); the name is added after the description.',async()=>{await click($('mmN_type'));$('mmN_type').value='ssr';$('mmN_ssrw').style.display='block';await mset('mmN_ssr','SSR 2023-24');await sleep(900);$('mmN_type').value='se';$('mmN_ssrw').style.display='none'}),
+S('Consumption Factor (optional)','Click the blue “Consumption Factor” button and type the quantity of material per unit – for example Cement 4.2 bags, Screened Sand 0.47 M3.','The button shows how many materials you filled, e.g. “Consumption Factor (2)”. They feed the Consumption chart, Royalty and lead charges like a normal SSR item – lead is taken from the LEAD CHARGES tab. Leave 0 to skip a material.',async()=>{await click($('mmN_cfb'));$('mmN_cfp').style.display='block';await mset('mmN_cf0','4.2');await mset('mmN_cf1','0.47');$('mmN_cfb').textContent='Consumption Factor (2)'}),
+S('Add Item','Click the green “Add Item” button.','The item is added at the end of the list (or at the place given in “Insert at Sr.” on the SEARCH tab) with “(Non-SSR — SE Approved)” after the description, and one blank row is ready for its measurements.',async()=>{await click($('mmN_ok'));show('m9',false);MI.push({no:'NS-1',u:'Cubic Metre',us:'Cu.m',d:'Extra item – PCC M-10 bed for pump foundation as approved by Superintending Engineer (Non-SSR — SE Approved)',rows:[{lbl:'',n:1,fl:0}]});mrender();await rhl('mh_2')}),
+S('Summary – how to use MEASUREMENTS','+ Row → type No., L, B, H (avg( ) or = formulas if needed) → − Deduction / % Row → Copy Mode for repeated rows → Floor and Add Comment as required.','Change Item, ▲ ▼ / Move to Sr. and + Non-SSR keep the list right. Everything flows into Abstract and Recapitulation. Next tutorial: the next tab in the menu.',async()=>{await click($('nav').children[6]);navOn(6)})
+];
+/* ── SETTINGS lesson (opened with #settings) ── */
+const SGR={foul:[5,'Gen. Note (x): foul condition, up to ground/bed level'],scarcity:[25,'Gen. Note (xi): drought prone area, excavation items'],depth1:[20,'Sec. B (xv): building excavation 3.0 m to 4.5 m'],depth2:[30,'Sec. B (xv): building excavation 4.5 m to 6.0 m'],scaff:[1,'Sec. B (vi): scaffolding erected for external repair/plaster/paint'],curing:[5,'Sec. B (xxiii): modified type of curing, curing compound']};
+const SGN={foul:'Foul condition',scarcity:'Water scarcity (excavation)',depth1:'Excavation depth 3.0-4.5 m',depth2:'Excavation depth 4.5-6.0 m',scaff:'Scaffolding (external repair)',curing:'Modified curing (RCC/PQC)'};
+const SGI=[['21.06'],['24.01'],['25.11']];
+let SG;
+const sgInit=()=>({gf:false,sc:false,ex:[{n:'Electrification',p:0},{n:'Water Supply',p:0}],ad:{}});
+function sgFx(t,b){const e=$('sgFx');if(!t){e.style.display='none';return}e.style.display='block';e.innerHTML='<b>'+t+'</b>'+b}
+function sgBit(){const d=(parseFloat($('ssBitC').value)||0)-(parseFloat($('ssBitS').value)||0);$('ssBitChg').textContent=(d>=0?'+':'')+Math.round(d)}
+function sgArea(){$('ssAreaPct').textContent=((parseFloat($('ssArea').value)||0)+(parseFloat($('ssArea2').value)||0))+'%'}
+function sgRule(){const k=$('ssRule').value;$('ssPct').value=SGR[k][0];$('ssRefTxt').textContent=SGR[k][1]}
+function sgRender(){
+ $('ssXL').innerHTML=SG.ex.map((e,i)=>`<div class="sgxr"><input type="text" id="ssX${i}n" value="${e.n}" placeholder="Label (e.g. Electrification)" style="flex:1;text-align:left;width:auto" oninput="SG.ex[${i}].n=this.value"><input type="number" id="ssX${i}p" value="${e.p}" oninput="SG.ex[${i}].p=parseFloat(this.value)||0"><select id="ssX${i}m"><option>%</option><option>&#8377;</option></select><span class="mxb" id="ssXd${i}">&#10005;</span></div>`).join('')||'<div class="sgn">No extra rows. Click + Add above.</div>';
+ const g=$('ssGF');g.textContent=SG.gf?'\u2611 Only Ground Floor \u2014 ON':'\u2610 Only Ground Floor \u2014 OFF';g.className='sgb'+(SG.gf?' on':'');
+ const s=$('ssSc');s.textContent=SG.sc?'\u2705 SCADA Cancelled':'\u274C SCADA Deduction Active';s.className='sgb'+(SG.sc?' on':'');
+ let h='';Object.keys(SG.ad).forEach(i=>{const a=SG.ad[i];if(!a.length)return;h+=`<div style="font-size:8.5px;padding:2px 0;border-bottom:1px dashed #ddd"><b>${+i+1}. ${SGI[i][0]}</b> `+a.map(x=>`<span class="sgchip">+${x.pct}% ${SGN[x.k]} <b id="ssAdX${i}_${x.k}" style="color:#c62828">&times;</b></span>`).join('')+'</div>'});
+ $('ssAdApp').innerHTML=h?'<div style="font-size:8.5px;font-weight:700;color:#1a4a76;margin-top:3px">Applied add-ons:</div>'+h:''}
+function sgReset(){
+ SG=sgInit();
+ [['ssGST','18'],['ssCont','2'],['ssLI','1'],['ssBitS','49862'],['ssBitC','49862'],['ssHeat','137'],['ssPct','5'],['ssScV','-126'],['ssScB','-63'],['ssRS','237.37'],['ssRC','216.18'],['ssCessP','21']].forEach(([i,v])=>$(i).value=v);
+ $('ssContM').value='pct';$('ssAuto').checked=true;$('ssRule').value='foul';$('ssRefTxt').textContent=SGR.foul[1];
+ ['ssAd0','ssAd1','ssAd2','ssCess'].forEach(i=>$(i).checked=false);$('ssCessS').checked=true;
+ $('ssArea').selectedIndex=0;$('ssArea2').selectedIndex=0;sgBit();sgArea();sgRender();
+ $('sgL').style.scrollBehavior='auto';$('sgL').scrollTop=0;sgFx('','');
+ ['m1','m2','m3','m4','m5','m6','m7','m8','m9'].forEach(m=>show(m,false));
+ $('ts').style.opacity=0;ring(null);navOn(11);
+ px=480;py=330;cu.style.transition='none';cu.style.transform=`translate(${px-3}px,${py-2}px)`}
+async function sgScroll(id){const L=$('sgL');L.style.scrollBehavior=fast?'auto':'smooth';L.scrollTop=Math.max(0,$(id).offsetTop-150);await sleep(600)}
+const sgClick=async id=>{await sgScroll(id);await click($(id))};
+const sgSet=async(id,v)=>{await sgScroll(id);const e=$(id);await click(e);e.value='';await type(e,v)};
+const sgHl=async id=>{await sgScroll(id);await rhl(id)};
+const sgSteps=[
+S('SETTINGS tab – the rules of your estimate','Open the SETTINGS tab (twelfth tab from the left).','Percentages, rates and special conditions that apply to the whole estimate are set here. Nothing is compulsory – the defaults are the usual SSR values – and every change reaches the other sheets at once. (The list is long: in this tutorial it scrolls down by itself.)',async()=>{await click($('nav').children[11]);navOn(11);sgFx('Where the changes show','Recapitulation, Rate Analysis, Abstract, Measurements and Royalty are recalculated as soon as you change a value here.')}),
+S('GST %','Click GST % and type the rate – for example 12 (the default is 18).','The Recapitulation row becomes “Add 12% GST” and the Grand Total follows. (The recap tutorial shows this in detail.)',async()=>{await sgSet('ssGST','12');sgFx('Recapitulation','Add 12% GST – Grand Total recalculated.')}),
+S('Contingencies – % or ₹','Choose ₹ in the drop-down next to Contingencies and type 8000.','Contingencies become a fixed amount: “Add Rs. 8000 Contingencies”. Choose % to go back to a percentage of A.',async()=>{await sgClick('ssContM');$('ssContM').value='amt';await sgSet('ssCont','8000');sgFx('Recapitulation','Add Rs. 8000 Contingencies.')}),
+S('Labour Insurance','The “Auto” box is ticked: 0.50% up to 25 Lakh, 1.00% above (SSR Sec. B (i)A). Type 0.5, then untick Auto.','While Auto is ticked the typed % is ignored. After unticking, your own % (0.5) is used.',async()=>{await sgSet('ssLI','0.5');await sgClick('ssAuto');$('ssAuto').checked=false;sgFx('Recapitulation','Add 0.5% Labour Insurance (your own %).')}),
+S('Extra % rows','In the Extra % Rows list, type a % in a row – here 2 for Electrification.','Each row with a value above 0 becomes a green line in the Recapitulation, worked out on A. A row with 0 stays hidden. The drop-down on the row switches between % and a fixed ₹ amount.',async()=>{await sgSet('ssX0p','2');SG.ex[0].p=2;sgFx('Recapitulation','Add 2% for Electrification (green line).')}),
+S('+ Add and ✕','Click + Add to create one more row, type its name (for example Painting) and its %. The red ✕ removes a row.','Use it for any extra charge of your estimate that should be added to the Grand Total.',async()=>{await sgClick('ssAdd');SG.ex.push({n:'',p:0});sgRender();await sgSet('ssX2n','Painting');await sgSet('ssX2p','1');SG.ex[2]={n:'Painting',p:1};await sleep(700);await sgClick('ssXd2');SG.ex.splice(2,1);sgRender()}),
+S('Bitumen – SSR rate and Current rate','Under Bitumen Rate Settings, SSR Bitumen Rate is the rate in the SSR (here 49862). Click Current Bitumen Rate and type today’s rate – for example 51862.','“Change in Rate” shows +2000 (Current − SSR; a negative change is a deduction). Every item that contains bitumen gets a row “Bitumen Rate Change (bitumen CF × 2000)” in Rate Analysis, so Abstract and Recapitulation follow.',async()=>{await sgSet('ssBitC','51862');sgBit();await sgHl('ssBitChg');sgFx('Rate Analysis','Bitumen items: Bitumen Rate Change (CF × 2000) is added to the rate.')}),
+S('Heating & Decanning of bulk bitumen','Click the Heating & Decanning box and type the rate per MT – here 150 (default 137).','For every item that has a Bitumen CF, “Add Heating & Decanning For Bitumen (CF × rate)” is added in Rate Analysis.',async()=>{await sgSet('ssHeat','150');sgFx('Rate Analysis','Add Heating & Decanning For Bitumen (CF × 150) for bitumen items.')}),
+S('Bitumen rates table','Nothing to type – look at the small “Bitumen Rates” table.','It is a reference list (with its date and SSR label) published by the app, so you can read the latest SSR rate of VG-10 / VG-30 / VG-40 and enter it above. It is only for reading.',async()=>{await sgHl('ssRef')}),
+S('Only Ground Floor','Click the “Only Ground Floor” button.','It turns ON: the Floor column is hidden in the Measurement Sheet, Abstract and Rate Analysis. If some rows were measured on upper floors, the app asks first and treats them as Ground Floor (OFF restores them). Items with a depth / lift / height band keep their drop-down.',async()=>{await sgClick('ssGF');SG.gf=true;sgRender();sgFx('Measurements, Abstract, Rate Analysis','Floor column is not shown – everything is treated as Ground Floor.')}),
+S('Back to normal floors','Click the button again.','It reads “OFF” again and the floor columns come back, with any floors you had chosen.',async()=>{await sgClick('ssGF');SG.gf=false;sgRender();sgFx('','')}),
+S('SSR Condition add-ons – choose the rule','Open the rule drop-down – for example “Excavation depth 3.0-4.5 m”. The % fills in by itself (20) and the SSR reference is shown below.','These are the extra percentages from the SSR notes (foul condition, water scarcity, excavation depth, scaffolding, curing). You may change the % in the box before adding.',async()=>{await sgClick('ssRule');$('ssRule').value='depth1';sgRule();await sgHl('ssPct')}),
+S('Apply to selected items','Tick the item(s) it applies to – here 21.06 Excavation – and click “+ Add to selected items”.','The item gets the chip “+20% Excavation depth 3.0-4.5 m” under “Applied add-ons”. The % is worked out on the SSR base rate and shown as a row in Rate Analysis, so the Final Rate goes up.',async()=>{await sgClick('ssAd0');$('ssAd0').checked=true;await sgClick('ssAdGo');SG.ad[0]=[{k:'depth1',pct:20}];$('ssAd0').checked=false;sgRender();await sgHl('ssAdApp');sgFx('Rate Analysis','Item 21.06: +20% Excavation depth 3.0-4.5 m (on SSR base rate).')}),
+S('Select all, Clear and remove','Select all ticks every item, Clear unticks them. To take an add-on off an item, click the red × on its chip.','Removing the chip deletes the add-on row from that item’s Rate Analysis. Applying the same rule again to an item only updates its %.',async()=>{await sgClick('ssAdAll');['ssAd0','ssAd1','ssAd2'].forEach(i=>$(i).checked=true);await sleep(800);await sgClick('ssAdClr');['ssAd0','ssAd1','ssAd2'].forEach(i=>$(i).checked=false);await sgClick('ssAdX0_depth1');delete SG.ad[0];sgRender();sgFx('','')}),
+S('Cancel SCADA Deduction','Click the “SCADA Deduction Active” button.','It turns green “SCADA Cancelled” – but ONLY for items you add after this. Items already in the estimate keep their SCADA; change those with the SCADA button under the item in Rate Analysis. Click again to switch it back.',async()=>{await sgClick('ssSc');SG.sc=true;sgRender();await sleep(1200);await sgClick('ssSc');SG.sc=false;sgRender();sgFx('Rate Analysis','New items are added without the SCADA deduction while this is ON.')}),
+S('SCADA values','SCADA Default Value is −126 per cum (concrete items) and BT SCADA Value −63 per cum (BM / DBM / BC). Change them only if the SSR changes – for example type −130.','The new value is used for newly added items. For items already added, use the SCADA button in Rate Analysis. (For 4.12 OGC 20 mm the BT value × 0.02 is used.)',async()=>{await sgSet('ssScV','-130');await sgHl('ssScB');sgFx('Rate Analysis','New items take SCADA −130 (concrete) / −63 (BT).')}),
+S('Royalty rates','Under Royalty Rates, type the rate per M3 for Sand and Coarse (aggregate) – for example 250 and 230.','The Royalty statement and “B – Royalty & Testing Charges” in the Recapitulation are recalculated with these rates.',async()=>{await sgSet('ssRS','250');await sgSet('ssRC','230');sgFx('Royalty & Recapitulation','Royalty (B) recalculated at Sand 250 / Coarse 230 per M3.')}),
+S('Specific Area Surcharge (F)','Choose the Area Type as per the GR table – for example “b) Municipal Council Areas — 4%”.','“F Surcharge %” shows 4%. The % is applied to the items’ SSR base rate and appears as a “Specific Area” row in Rate Analysis. “None” means no surcharge.',async()=>{await sgClick('ssArea');$('ssArea').selectedIndex=2;sgArea();await sgHl('ssAreaPct');sgFx('Rate Analysis','+4% Specific Area (Municipal Council Areas) row on every item.')}),
+S('A 2nd area type','If two conditions apply together, pick the second one in “+ 2nd Area Type” – for example “i) Metropolitan areas — 2%”.','The two percentages are added: F Surcharge % becomes 6%. Leave it at “None” when only one applies.',async()=>{await sgClick('ssArea2');$('ssArea2').selectedIndex=9;sgArea();await sgHl('ssAreaPct');sgFx('Rate Analysis','Both area % are added (4% + 2% = 6%).')}),
+S('Cess (optional)','Tick “Deduct / add Cess”, keep 21 % in its box and the “Deduct SCADA along with Cess” box ticked.','The cess is deducted from the SSR rate first, the area / floor / add-on % are worked out on the Net Basic rate, and the same cess is added back at the end. Lead is added last. Leave it unticked for the normal method.',async()=>{await sgClick('ssCess');$('ssCess').checked=true;await sgHl('ssCessS');sgFx('Rate Analysis','Cess 21% deducted → % on Net Basic → cess added back.')}),
+S('Summary – how to use SETTINGS','Check GST, Contingencies, Labour Insurance and extra rows – then bitumen, floor, add-ons, SCADA, royalty and area surcharge only if your work needs them.','Settings are saved with the estimate. Items already added keep their own SCADA (use Rate Analysis for them). Next tutorial: the next tab in the menu.',async()=>{await click($('nav').children[11]);navOn(11);$('sgL').style.scrollBehavior=fast?'auto':'smooth';$('sgL').scrollTop=0;sgFx('','')})
+];
+const steps=SETT?sgSteps:MEAS?msSteps:RATE?raSteps:LEAD?leadSteps:SRCH?srSteps:RCP?rcSteps:ABS?abSteps:mainSteps;
+if(RATE||LEAD||SRCH||RCP||ABS){['cov','sv'].forEach(i=>$(i).style.display='none');if(RATE)document.querySelector('#pg>.pt').style.display='none';document.querySelector('.bt').style.display='none';$(RATE?'rap':LEAD?'lcp':SRCH?'srp':RCP?'rcp':'abp').style.display='block';[...$('tabs').children].forEach((c,i)=>c.classList.toggle('on',i==(RATE?5:LEAD?1:SRCH?2:RCP?3:4)));document.querySelector('#top small').textContent='Interactive tutorial · '+(RATE?'RATE ANALYSIS':LEAD?'LEAD CHARGES':SRCH?'SEARCH':RCP?'RECAPITULATION':'ABSTRACT')+' tab'}
+if(MEAS){['cov','sv'].forEach(i=>$(i).style.display='none');document.querySelector('#pg>.pt').style.display='none';document.querySelector('.bt').style.display='none';$('msp').style.display='block';[...$('tabs').children].forEach((c,i)=>c.classList.toggle('on',i==6));document.querySelector('#top small').textContent='Interactive tutorial · MEASUREMENTS tab'}
+if(SETT){['cov','sv'].forEach(i=>$(i).style.display='none');document.querySelector('#pg>.pt').style.display='none';document.querySelector('.bt').style.display='none';$('sgp').style.display='block';[...$('tabs').children].forEach((c,i)=>c.classList.toggle('on',i==11));document.querySelector('#top small').textContent='Interactive tutorial · SETTINGS tab'}
+/* ── player ── */
+function showStep(i){cur=i;fit();const s=steps[i];$('ct').textContent=`${i+1}. ${s.t}`;$('ci').textContent=s.i;$('co').textContent=s.o;$('cnt').textContent=`Step ${i+1} / ${steps.length}`;$('ts').style.opacity=0;[...$('dots').children].forEach((d,j)=>d.classList.toggle('on',j<=i))}
+async function go(n){const t=++TOK;try{fast=true;reset();for(let i=0;i<n;i++)await steps[i].run();fast=false;paused=false;$('bq').textContent='⏸ Pause';for(let i=n;i<steps.length;i++){showStep(i);await steps[i].run();await sleep(1600)}$('bq').textContent='↻ Replay';cur=steps.length}catch(e){if(t===TOK)throw e}}
+$('dots').innerHTML=steps.map((s,i)=>`<i title="${s.t}" onclick="go(${i})"></i>`).join('');
+$('bp').onclick=()=>go(Math.max(0,cur-1));$('bn').onclick=()=>go(Math.min(steps.length-1,cur+1));
+$('bq').onclick=()=>{if(cur>=steps.length)return go(0);paused=!paused;$('bq').textContent=paused?'▶ Play':'⏸ Pause'};
+document.addEventListener('keydown',e=>{if(e.key=='Escape'){parent.postMessage('atp-tut-close','*');return}if(e.key=='ArrowRight')$('bn').onclick();if(e.key=='ArrowLeft')$('bp').onclick();if(e.key==' '){e.preventDefault();$('bq').onclick()}});
+function fit(){const hAvail=innerHeight-($('top').offsetHeight+$('cap').offsetHeight+$('ctl').offsetHeight+30);const k=Math.max(.3,Math.min(1,wrap.clientWidth/960,hAvail/700));st.style.transform=`scale(${k})`;st.style.left=Math.max(0,(wrap.clientWidth-960*k)/2)+'px';wrap.style.height=700*k+'px'}
+addEventListener('resize',fit);fit();go(0);
+</script></body></html>
